@@ -17,8 +17,8 @@ var ConfigurationDaemon = function(config, broadcastPort) {
 
 	this.bc_socket.on('listening', this.onStartListening.bind(this));
 	//Broadcast message handler
-	this.bc_socket.on('message', this.getMessageHandler(true));
-	this.uc_socket.on('message', this.getMessageHandler(false));
+	this.bc_socket.on('message', this.getMessageHandler(true).bind(this));
+	this.uc_socket.on('message', this.getMessageHandler(false).bind(this));
 };
 
 ConfigurationDaemon.prototype.onStartListening = function() {
@@ -56,7 +56,7 @@ ConfigurationDaemon.prototype.isClient = function() {
 };
 
 ConfigurationDaemon.prototype.handleBroadcastMessage = function(msg, rinfo) {
-	if(this.isManager() && msg.type === 'hello') {
+	if(this.isManager() && msg.type === "hello") {
 		var configMessage = this.getConfigureMessage();
 
 		this.uc_socket.send(
