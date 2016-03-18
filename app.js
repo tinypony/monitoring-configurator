@@ -2,12 +2,16 @@ var dgram = require('dgram');
 var config = require('./config.js');
 var bc_socket = dgram.createSocket('udp4');
 var uc_socket = dgram.createSocket('udp4');
-
+var Netmask = require('netmask');
 var NODE_TYPE = require('./node-type.js');
-var configurator_port = 12556;
 
 bc_socket.bind(config.broadcast.port, '0.0.0.0');
 uc_socket.bind(config.unicast.port,   '0.0.0.0');
+
+function getBroadcastAddress() {
+	var block = new Netmask(config.monitoring.subnet);
+	return block.broadcast;
+}
 
 //On start listener.
 bc_socket.on('listening', function() {
@@ -19,13 +23,12 @@ bc_socket.on('listening', function() {
 	else if ( isClient() ) 	message = getHelloMessage();
 	else					return;
 
-
 	bc_socket.send(
 		new Buffer(message), 
 		0, 
 		message.length, 
 		config.broadcast.port,
-		config.getAddress(), 
+		getBroadcastAddress(), 
 		function (err) {
 			if (err) console.log(err);
 		}

@@ -1,12 +1,8 @@
 var NODE_TYPE = require('./node-type.js');
-var Netmask = require('netmask');
+
 
 module.exports = {
 	broadcast: {
- 		getAddress: function() {
- 			var block = new Netmask(this.monitoring.subnet);
- 			return block.broadcast;
- 		},
 		port: 12555
 	}, 
 	unicast: {
