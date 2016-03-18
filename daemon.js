@@ -8,6 +8,8 @@ var uc_socket = dgram.createSocket('udp4');
 
 var ConfigurationDaemon = function(config, broadcastPort) {
 	this.config = config;
+	this.agentConfigurator = require('./custom/agent-configurator.js');
+	
 	this.broadcastPort = broadcastPort;
 	this.bc_socket = dgram.createSocket('udp4');
 	this.uc_socket = dgram.createSocket('udp4');
@@ -68,12 +70,14 @@ ConfigurationDaemon.prototype.handleBroadcastMessage = function(msg, rinfo) {
 		);
 	}
 
-	if(this.isClient() && msg.type === 'reconfig') {
-		console.log('reconfigure!!');
-		console.log(JSON.stringify(msg));
+	//Every type of node is being monitored and needs to be reconfigured
+	if(msg.type === 'reconfig') {
+		console.log('reconfigure with ' + this.config.monitoring.agentConfigurator);
+		this.agentConfigurator.configure(this.config, msg);
 	}
 };
 
+//Client node is provided with configuration by a manager node
 ConfigurationDaemon.prototype.handleUnicastMessage = function(msg, rinfo) {
 	if(this.isClient() && msg.type === 'config') {
 		console.log('configure');
@@ -87,6 +91,10 @@ ConfigurationDaemon.prototype.getMessageHandler = function(isBroadcast) {
 
 		try {
 			var msg = JSON.parse(msgStr);
+			if(msg.monitoring && msg.monitoring.host === 'self') {
+				msg.monitoring.host = rinfo.address;
+			}
+
 			if(isBroadcast)
 				this.handleBroadcastMessage(msg, rinfo);
 			else 
