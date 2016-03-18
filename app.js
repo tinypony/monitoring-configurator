@@ -40,10 +40,12 @@ function isClient() {
 	return config.node_type === NODE_TYPE.CLIENT;
 } 
 
-function handleBroadcastMessage(msg) {
+function handleBroadcastMessage(msg, rinfo) {
 	if(isManager() && msg.type === 'hello') {
 		var configMessage = getConfigureMessage();
 		console.log('configure that fucker');
+		console.log(rinfo.address + ':' + msg.port);
+
 		uc_socket.send(
 			new Buffer(configMessage),
 			0,
@@ -59,7 +61,7 @@ function handleBroadcastMessage(msg) {
 	}
 }
 
-function handleUnicastMessage(msg) {
+function handleUnicastMessage(msg, rinfo) {
 	console.log('got unicast message!');
 	if(isClient() && msg.type === 'config') {
 		console.log('configure');
@@ -73,12 +75,10 @@ function getMessageHandler(isBroadcast) {
 	
 		try {
 			var msg = JSON.parse(msgStr);
-			console.log('handling message');
-			console.log(msgStr);
 			if(isBroadcast)
-				handleBroadcastMessage(msg);
+				handleBroadcastMessage(msg, rinfo);
 			else 
-				handleUnicastMessage(msg);
+				handleUnicastMessage(msg, rinfo);
 		} catch(e) {
 			//silent skip
 		}
