@@ -2,7 +2,7 @@ var dgram = require('dgram');
 var config = require('./config.js');
 var bc_socket = dgram.createSocket('udp4');
 var uc_socket = dgram.createSocket('udp4');
-var Netmask = require('netmask');
+var Netmask = require('netmask').Netmask;
 var NODE_TYPE = require('./node-type.js');
 
 bc_socket.bind(config.broadcast.port, '0.0.0.0');
