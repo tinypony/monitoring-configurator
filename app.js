@@ -25,7 +25,7 @@ bc_socket.on('listening', function() {
 		0, 
 		message.length, 
 		config.broadcast.port,
-		config.broadcast.addr, 
+		config.getAddress(), 
 		function (err) {
 			if (err) console.log(err);
 		}
@@ -43,8 +43,6 @@ function isClient() {
 function handleBroadcastMessage(msg, rinfo) {
 	if(isManager() && msg.type === 'hello') {
 		var configMessage = getConfigureMessage();
-		console.log('configure that fucker');
-		console.log(rinfo.address + ':' + msg.port);
 
 		uc_socket.send(
 			new Buffer(configMessage),
@@ -62,7 +60,6 @@ function handleBroadcastMessage(msg, rinfo) {
 }
 
 function handleUnicastMessage(msg, rinfo) {
-	console.log('got unicast message!');
 	if(isClient() && msg.type === 'config') {
 		console.log('configure');
 		console.log(JSON.stringify(msg));
