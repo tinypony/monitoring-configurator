@@ -34,7 +34,7 @@ ConfigurationDaemon.prototype.onStartListening = function() {
 		new Buffer(message), 
 		0, 
 		message.length, 
-		this.config.broadcast.port,
+		this.broadcastPort,
 		this.getBroadcastAddress(), 
 		function (err) {
 			if (err) console.log(err);
