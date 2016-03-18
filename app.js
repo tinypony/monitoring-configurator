@@ -43,7 +43,7 @@ function isClient() {
 function handleBroadcastMessage(msg) {
 	if(isManager() && msg.type === 'hello') {
 		var configMessage = getConfigureMessage();
-		
+		console.log('configure that fucker');
 		uc_socket.send(
 			new Buffer(configMessage),
 			0,
