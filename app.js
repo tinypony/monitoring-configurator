@@ -60,6 +60,7 @@ function handleBroadcastMessage(msg) {
 }
 
 function handleUnicastMessage(msg) {
+	console.log('got unicast message!');
 	if(isClient() && msg.type === 'config') {
 		console.log('configure');
 		console.log(JSON.stringify(msg));
@@ -72,6 +73,8 @@ function getMessageHandler(isBroadcast) {
 	
 		try {
 			var msg = JSON.parse(msgStr);
+			console.log('handling message');
+			console.log(msgStr);
 			if(isBroadcast)
 				handleBroadcastMessage(msg);
 			else 
