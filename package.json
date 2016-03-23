@@ -1,0 +1,24 @@
+{
+  "name": "monitoring-configurator",
+  "version": "0.0.1",
+  "description": "Auto configurator for monitoring in dynamic nfv deployments",
+  "main": "app.js",
+  "dependencies": {
+    "netmask": "^1.0.5",
+    "sprintf-js": "^1.0.3",
+    "sprintfjs": "^1.2.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tinypony/monitoring-configurator"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tinypony/monitoring-configurator/issues"
+  }
+}

@@ -21,6 +21,7 @@ fs.readFile(configPath, {encoding: 'utf-8'}, function(err, data) {
 	try {
 		config = JSON.parse(data);
 		daemon = new ConfigDaemon(config, broadcastPort);
+		console.log('started daemon');
 	} catch(e) {
 		console.error("Could not parse configuration file, not valid JSON?");
 		process.exit();

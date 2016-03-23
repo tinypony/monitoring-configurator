@@ -1,15 +1,14 @@
 var dgram = require('dgram');
 var Netmask = require('netmask').Netmask;
 var NODE_TYPE = require('./node-type.js');
-
-var bc_socket = dgram.createSocket('udp4');
-var uc_socket = dgram.createSocket('udp4');
+var Forwarder = require('./forwarder.js');
 
 
 var ConfigurationDaemon = function(config, broadcastPort) {
 	this.config = config;
-	this.agentConfigurator = require('./custom/agent-configurator.js');
-	
+	this.agentConfigurator = require(this.config.monitoring.agentConfigurator);
+	this.forwarder = new Forwarder(config);
+
 	this.broadcastPort = broadcastPort;
 	this.bc_socket = dgram.createSocket('udp4');
 	this.uc_socket = dgram.createSocket('udp4');
@@ -73,7 +72,8 @@ ConfigurationDaemon.prototype.handleBroadcastMessage = function(msg, rinfo) {
 	//Every type of node is being monitored and needs to be reconfigured
 	if(msg.type === 'reconfig') {
 		console.log('reconfigure with ' + this.config.monitoring.agentConfigurator);
-		this.agentConfigurator.configure(this.config, msg);
+		this.config = this.agentConfigurator.configure(this.config, msg);
+		this.forwarder.reconfig(this.config);
 	}
 };
 

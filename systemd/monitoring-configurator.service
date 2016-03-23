@@ -1,0 +1,12 @@
+[Unit]
+Description=Monitoring configurator
+
+[Service]
+Type=simple
+User=root
+Group=mon-agent
+Restart=on-failure
+ExecStart=/usr/bin/node /opt/monitoring-configurator/app.js /opt/monitoring-configurator/config.json
+
+[Install]
+WantedBy=multi-user.target
