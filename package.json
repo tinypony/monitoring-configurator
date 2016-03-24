@@ -6,7 +6,8 @@
   "dependencies": {
     "netmask": "^1.0.5",
     "sprintf-js": "^1.0.3",
-    "sprintfjs": "^1.2.2"
+    "sprintfjs": "^1.2.2",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {},
   "scripts": {

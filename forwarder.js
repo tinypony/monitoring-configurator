@@ -19,6 +19,7 @@ Forwarder.prototype.reconfig = function(config) {
 
 Forwarder.prototype.forward = function(data, rinfo) {
 	var msgStr = data.toString();
+	
 	if(!this.forwardToPort || !this.forwardToAddress) {
 		return ;
 	}
