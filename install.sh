@@ -6,7 +6,7 @@ cp -r ./* /opt/monitoring-configurator/
 cd /opt/monitoring-configurator
 npm install
 
-if [[ -d "/usr/lib/systemd" ]]; then
+if hash systemctl 2>/dev/null; then
         echo "Use systemd"
 	mv ./systemd/monitoring-configurator.service /etc/systemd/system/monitoring-configurator.service
         systemctl start monitoring-configurator
