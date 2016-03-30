@@ -1,12 +1,16 @@
 var dgram = require('dgram');
+var _ = require('underscore');
 
 var Forwarder = function(config) {
-	this.in_socket = dgram.createSocket('udp4');
 	this.ou_socket = dgram.createSocket('udp4');
+	var self = this;
 
-	this.in_socket.bind(config.forwarder.inport, '127.0.0.1');
-	this.in_socket.on("message", this.forward.bind(this));
-	this.ou_socket.bind(config.forwarder.outport,   '0.0.0.0');
+	this.forward_ports = _.map(config.producers, function(fwd) {
+		var skt = dgram.createSocket('udp4');
+		skt.bind(fwd.port, '127.0.0.1');
+		skt.on("message", self.forward.bind(self));
+		return skt;
+	});
 
 	this.forwardToAddress = config.monitoring.host;
 	this.forwardToPort = config.monitoring.port;
@@ -24,16 +28,18 @@ Forwarder.prototype.forward = function(data, rinfo) {
 		return ;
 	}
 
-	this.ou_socket.send(
-		new Buffer(msgStr), 
-		0, 
-		msgStr.length, 
-		this.forwardToPort,
-		this.forwardToAddress, 
-		function (err) {
-			if (err) console.log(err);
-		}
-	);
+	console.log('Forward '+msgStr.length);
+
+	// this.ou_socket.send(
+	// 	new Buffer(msgStr), 
+	// 	0, 
+	// 	msgStr.length, 
+	// 	this.forwardToPort,
+	// 	this.forwardToAddress, 
+	// 	function (err) {
+	// 		if (err) console.log(err);
+	// 	}
+	// );
 };
 
 module.exports = Forwarder;

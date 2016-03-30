@@ -1,13 +1,16 @@
 var dgram = require('dgram');
+var _ = require('underscore');
 var Netmask = require('netmask').Netmask;
 var NODE_TYPE = require('./node-type.js');
-var Forwarder = require('./forwarder.js');
+var Forwarder = require('./forwarder/forwarder.js');
 
 
 var ConfigurationDaemon = function(config, broadcastPort) {
 	this.config = config;
-	this.agentConfigurator = require(this.config.monitoring.agentConfigurator);
-	this.forwarder = new Forwarder(config);
+
+	if(this.isProducer()) {
+		this.forwarder = new Forwarder(config);
+	}
 
 	this.broadcastPort = broadcastPort;
 	this.bc_socket = dgram.createSocket('udp4');
@@ -27,8 +30,8 @@ ConfigurationDaemon.prototype.onStartListening = function() {
 	var message;
 
 	//send message on start depending on node type
-	if ( this.isManager() ) 		message = this.getReconfigureMessage();
-	else if ( this.isClient() ) 	message = this.getHelloMessage();
+	if ( this.isDatasink() ) 		message = this.getReconfigureMessage();
+	else if ( this.isProducer() ) 	message = this.getHelloMessage();
 	else							return;
 
 	this.bc_socket.send(
@@ -48,16 +51,16 @@ ConfigurationDaemon.prototype.getBroadcastAddress = function() {
 	return block.broadcast;
 };
 
-ConfigurationDaemon.prototype.isManager = function() {
-	return this.config.node_type === NODE_TYPE.MANAGER;
+ConfigurationDaemon.prototype.isDatasink = function() {
+	return _.contains(this.config.roles, NODE_TYPE.DATASINK);
 };
 
-ConfigurationDaemon.prototype.isClient = function() {
-	return this.config.node_type === NODE_TYPE.CLIENT;
+ConfigurationDaemon.prototype.isProducer = function() {
+	return _.contains(this.config.roles, NODE_TYPE.PRODUCER);
 };
 
 ConfigurationDaemon.prototype.handleBroadcastMessage = function(msg, rinfo) {
-	if(this.isManager() && msg.type === "hello") {
+	if(this.isDatasink() && msg.type === "hello") {
 		var configMessage = this.getConfigureMessage();
 
 		this.uc_socket.send(
@@ -70,16 +73,16 @@ ConfigurationDaemon.prototype.handleBroadcastMessage = function(msg, rinfo) {
 	}
 
 	//Every type of node is being monitored and needs to be reconfigured
-	if(msg.type === 'reconfig') {
-		console.log('reconfigure with ' + this.config.monitoring.agentConfigurator);
-		this.config = this.agentConfigurator.configure(this.config, msg);
+	if(msg.type === 'reconfig' && this.isProducer()) {
+		console.log('reconfig');
+		this.config.monitoring = _.extend(this.config.monitoring, msg.monitoring);
 		this.forwarder.reconfig(this.config);
 	}
 };
 
 //Client node is provided with configuration by a manager node
 ConfigurationDaemon.prototype.handleUnicastMessage = function(msg, rinfo) {
-	if(this.isClient() && msg.type === 'config') {
+	if(this.isProducer() && msg.type === 'config') {
 		console.log('configure');
 		console.log(JSON.stringify(msg));
 	}
