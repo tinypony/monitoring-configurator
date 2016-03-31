@@ -107,7 +107,8 @@ ConfigurationDaemon.prototype.handleBroadcastMessage = function(msg) {
 };
 
 ConfigurationDaemon.prototype.configureClient = function(msg) {
-	this.config.monitoring = _.extend(this.config.monitoring, msg.monitoring);
+	console.log('configure client with ' + JSON.stringify(msg));
+ 	this.config.monitoring = _.extend(this.config.monitoring, msg.monitoring);
 		
 	if(this.isProducer()) {
 		this.forwarder.reconfig(this.config);

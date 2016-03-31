@@ -12,6 +12,7 @@ var Forwarder = function(config) {
 	 * fwd.topic
 	 */
 	this.forward_ports = _.map(config.producers, function(fwd) {
+		console.log("Forwarding configuration = " + fwd.port + "=>" + fwd.topic);
 		var skt = dgram.createSocket('udp4');
 		skt.bind(fwd.port, '127.0.0.1');
 		skt.on("message", self.forward.bind(self, fwd.topic));
@@ -39,13 +40,13 @@ Forwarder.prototype.reconfig = function(config) {
 
 Forwarder.prototype.forward = function(topic, data) {
 	var msgStr = data.toString();
-	
+  	console.log('fwd:'+msgStr);	
 	if(!this.forwardToPort || !this.forwardToAddress || !this.producer) {
 		return ;
 	}
 
 	console.log('Forward ' + msgStr.split('\n').length);
-	
+		
 	//contain possible errors if datasink is temporarily down
 	try {
 		this.producer.send([{

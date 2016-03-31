@@ -36,6 +36,7 @@ KafkaForwarder.prototype.subscribe = function(sub) {
 	});
 
 	consumer.on("message", function(msg) {
+                console.log("Send message " + msg + " to subscribed client " + sub.host + ":" + sub.port);
 		self.ou_socket.send(
 		 	new Buffer(msg), 
 		 	0, 
@@ -46,7 +47,6 @@ KafkaForwarder.prototype.subscribe = function(sub) {
 		 		if (err) console.log(err);
 		 	}
 		);
-		self.ou_socket()
 	});
 };
 
