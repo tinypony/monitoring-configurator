@@ -165,7 +165,7 @@ ConfigurationDaemon.prototype.getMessageHandler = function(isBroadcast) {
 	return function( data, rinfo) {
 		try {
 			var msg = this.preprocessMessage( JSON.parse(data.toString()), rinfo );
-			//console.log("got message:"+JSON.stringify(msg));			
+			console.log("got message:"+JSON.stringify(msg));			
 			if(isBroadcast)
 				this.handleBroadcastMessage(msg);
 			else 
