@@ -136,6 +136,7 @@ ConfigurationDaemon.prototype.handleUnicastMessage = function(msg) {
 		var self = this;
 
 		_.each(msg.endpoints, function(ep) {
+			console.log("wire " + ep.topics.join(",") + " to " + msg.host + ":" + ep.port);
 			ep.host = msg.host;
 			self.kafkaForwarder.subscribe(ep);
 		});
