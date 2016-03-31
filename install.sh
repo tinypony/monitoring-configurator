@@ -8,9 +8,10 @@ npm install
 
 if hash systemctl 2>/dev/null; then
         echo "Use systemd"
-	mv ./systemd/monitoring-configurator.service /etc/systemd/system/monitoring-configurator.service
+	cp ./systemd/monitoring-configurator.service /etc/systemd/system/monitoring-configurator.service
         systemctl start monitoring-configurator
 elif [[ -d "/usr/share/upstart" ]]; then
         echo "Use upstart"
-        mv ./upstart/monitoring-configurator.conf /etc/init/monitoring-configurator.conf
+        cp ./upstart/monitoring-configurator.conf /etc/init/monitoring-configurator.conf
+       start monitoring-configurator
 fi
