@@ -13,5 +13,5 @@ if hash systemctl 2>/dev/null; then
 elif [[ -d "/usr/share/upstart" ]]; then
         echo "Use upstart"
         cp ./upstart/monitoring-configurator.conf /etc/init/monitoring-configurator.conf
-       start monitoring-configurator
+        start monitoring-configurator
 fi
