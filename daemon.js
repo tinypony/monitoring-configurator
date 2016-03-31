@@ -3,26 +3,46 @@ var _ = require('underscore');
 var Netmask = require('netmask').Netmask;
 var NODE_TYPE = require('./node-type.js');
 var Forwarder = require('./forwarder/forwarder.js');
-
+var KafkaForwarder = require('./kafka/kafka-forwarder.js');
 
 var ConfigurationDaemon = function(config, broadcastPort) {
 	this.config = config;
-
 	if(this.isProducer()) {
-		this.forwarder = new Forwarder(config);
+		this.initProducer(config);
 	}
 
+	if(this.isDatasink()) {
+		this.initDatasink(config);
+	}
+
+	if(this.isConsumer()) {
+		this.initConsumer(config);
+	}
+	
 	this.broadcastPort = broadcastPort;
 	this.bc_socket = dgram.createSocket('udp4');
 	this.uc_socket = dgram.createSocket('udp4');
 
-	this.bc_socket.bind(this.broadcastPort, '0.0.0.0');
-	this.uc_socket.bind(this.config.unicast.port,   '0.0.0.0');
-
-	this.bc_socket.on('listening', this.onStartListening.bind(this));
-	//Broadcast message handler
+	//Attach message handlers
 	this.bc_socket.on('message', this.getMessageHandler(true).bind(this));
 	this.uc_socket.on('message', this.getMessageHandler(false).bind(this));
+
+	//bind sockets and attach on listen
+	this.bc_socket.bind(this.broadcastPort, '0.0.0.0');
+	this.uc_socket.bind(this.config.unicast.port, '0.0.0.0');
+	this.bc_socket.on('listening', this.onStartListening.bind(this));
+};
+
+ConfigurationDaemon.prototype.initDatasink = function(config) {
+	this.kafkaForwarder = new KafkaForwarder(config);
+};
+
+ConfigurationDaemon.prototype.initConsumer = function(config) {
+
+};
+
+ConfigurationDaemon.prototype.initProducer = function(config) {
+	this.forwarder = new Forwarder(config);
 };
 
 ConfigurationDaemon.prototype.onStartListening = function() {
@@ -30,9 +50,13 @@ ConfigurationDaemon.prototype.onStartListening = function() {
 	var message;
 
 	//send message on start depending on node type
-	if ( this.isDatasink() ) 		message = this.getReconfigureMessage();
-	else if ( this.isProducer() ) 	message = this.getHelloMessage();
-	else							return;
+	if ( this.isDatasink() ) {
+		message = this.getReconfigureMessage();
+	} else if ( this.isProducer() || this.isConsumer() ) {
+		message = this.getHelloMessage();
+	} else {
+		return;
+	}
 
 	this.bc_socket.send(
 		new Buffer(message), 
@@ -59,7 +83,11 @@ ConfigurationDaemon.prototype.isProducer = function() {
 	return _.contains(this.config.roles, NODE_TYPE.PRODUCER);
 };
 
-ConfigurationDaemon.prototype.handleBroadcastMessage = function(msg, rinfo) {
+ConfigurationDaemon.prototype.isConsumer = function() {
+	return _.contains(this.config.roles, NODE_TYPE.CONSUMER);
+};
+
+ConfigurationDaemon.prototype.handleBroadcastMessage = function(msg) {
 	if(this.isDatasink() && msg.type === "hello") {
 		var configMessage = this.getConfigureMessage();
 
@@ -68,40 +96,72 @@ ConfigurationDaemon.prototype.handleBroadcastMessage = function(msg, rinfo) {
 			0,
 			configMessage.length,
 			msg.port,
-			rinfo.address
+			msg.host
 		);
 	}
 
 	//Every type of node is being monitored and needs to be reconfigured
-	if(msg.type === 'reconfig' && this.isProducer()) {
-		console.log('reconfig');
-		this.config.monitoring = _.extend(this.config.monitoring, msg.monitoring);
+	if( msg.type === 'reconfig' && (this.isProducer() || this.isConsumer()) ) {
+		this.configureClient(msg);
+	}
+};
+
+ConfigurationDaemon.prototype.configureClient = function(msg) {
+	this.config.monitoring = _.extend(this.config.monitoring, msg.monitoring);
+		
+	if(this.isProducer()) {
 		this.forwarder.reconfig(this.config);
+	}
+
+	if(this.isConsumer()) {
+		var subscribeMsg = this.getSubscribeMessage();
+		this.uc_socket.send(
+			new Buffer(subscribeMsg),
+			0,
+			subscribeMsg.length,
+			msg.port,
+			msg.host
+		);
 	}
 };
 
 //Client node is provided with configuration by a manager node
-ConfigurationDaemon.prototype.handleUnicastMessage = function(msg, rinfo) {
-	if(this.isProducer() && msg.type === 'config') {
-		console.log('configure');
-		console.log(JSON.stringify(msg));
+ConfigurationDaemon.prototype.handleUnicastMessage = function(msg) {
+	if( (this.isProducer() || this.isConsumer()) && msg.type === 'config') {
+		this.configureClient(msg);
 	}
+
+	if( this.isDatasink() && msg.type === 'subscribe' ) {
+		var self = this;
+
+		_.each(msg.endpoints, function(ep) {
+			ep.host = msg.host;
+			self.kafkaForwarder.subscribe(ep);
+		});
+	}
+};
+
+ConfigurationDaemon.prototype.preprocessMessage = function(msg, rinfo) {
+	if(msg.monitoring && msg.monitoring.host === 'self') {
+		msg.monitoring.host = rinfo.address;
+	}
+
+	if(msg.host && msg.host === 'self') {
+		msg.host = rinfo.address;
+	}
+
+	return msg;
 };
 
 ConfigurationDaemon.prototype.getMessageHandler = function(isBroadcast) {
 	return function( data, rinfo) {
-		var msgStr = data.toString();
-
 		try {
-			var msg = JSON.parse(msgStr);
-			if(msg.monitoring && msg.monitoring.host === 'self') {
-				msg.monitoring.host = rinfo.address;
-			}
-
+			var msg = this.preprocessMessage( JSON.parse(data.toString()), rinfo );
+			
 			if(isBroadcast)
-				this.handleBroadcastMessage(msg, rinfo);
+				this.handleBroadcastMessage(msg);
 			else 
-				this.handleUnicastMessage(msg, rinfo);
+				this.handleUnicastMessage(msg);
 		} catch(e) {
 			//silent skip
 		}
@@ -111,6 +171,7 @@ ConfigurationDaemon.prototype.getMessageHandler = function(isBroadcast) {
 ConfigurationDaemon.prototype.getReconfigureMessage = function() {
 	var msg = {
 		type: 'reconfig',
+		host: 'self',
 		monitoring: {
 			host: 'self',
 			port: this.config.monitoring.port,
@@ -124,6 +185,7 @@ ConfigurationDaemon.prototype.getReconfigureMessage = function() {
 ConfigurationDaemon.prototype.getConfigureMessage = function() {
 	var msg = {
 		type: 'config',
+		host: 'self',
 		monitoring: {
 			host: 'self',
 			port: this.config.monitoring.port,
@@ -137,8 +199,19 @@ ConfigurationDaemon.prototype.getConfigureMessage = function() {
 ConfigurationDaemon.prototype.getHelloMessage = function() {
 	var msg = {
 		type: 'hello',
+		host: 'self',
 		port: this.config.unicast.port
 	};
+
+	return JSON.stringify(msg);
+};
+
+ConfigurationDaemon.prototype.getSubscribeMessage = function() {
+	var msg = {
+		type: 'subscribe',
+		host: 'self',
+		enspoints: this.config.consumers
+	}
 
 	return JSON.stringify(msg);
 };
