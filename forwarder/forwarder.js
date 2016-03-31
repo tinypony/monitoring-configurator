@@ -40,18 +40,23 @@ Forwarder.prototype.reconfig = function(config) {
 
 Forwarder.prototype.forward = function(topic, data) {
 	var msgStr = data.toString();
-  	console.log('fwd:'+msgStr);	
+        var messages = msgStr.split('\n');
+	messages = _.map(messages, function(m){
+		var val = m.replace(/\r$/g, '');///.replace(/["']/g, '');
+		return val;
+	});
+	
 	if(!this.forwardToPort || !this.forwardToAddress || !this.producer) {
 		return ;
 	}
 
-	console.log('Forward ' + msgStr.split('\n').length);
+	//console.log('Forward ' + msgStr.split('\n').length);
 		
 	//contain possible errors if datasink is temporarily down
 	try {
 		this.producer.send([{
 			topic: topic,
-			messages: msgStr.split('\n')
+			messages: messages
 		}], function(err, sent_data) {
 
 		});

@@ -31,16 +31,21 @@ KafkaForwarder.prototype.subscribe = function(sub) {
 
 	var consumer = new kafka.HighLevelConsumer(client, payloads, {
 		autoCommit: true,
-    	autoCommitIntervalMs: 5000,
-    	encoding: 'utf8'
+    		autoCommitIntervalMs: 5000,
+    		encoding: 'utf8'
 	});
 
 	consumer.on("message", function(msg) {
-                console.log("Send message " + msg + " to subscribed client " + sub.host + ":" + sub.port);
+		var msgstr = JSON.stringify(msg.value).replace(/["']/g, '');
+		if(!msgstr.length)
+			return;
+		
+		console.log(msgstr);
+                //console.log("Send message " + msgstr + " to subscribed client " + sub.host + ":" + sub.port);
 		self.ou_socket.send(
-		 	new Buffer(msg), 
+		 	new Buffer(msgstr), 
 		 	0, 
-		 	msg.length, 
+		 	msgstr.length, 
 		 	sub.port,
 		 	sub.host, 
 		 	function(err) {

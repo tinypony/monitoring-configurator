@@ -140,7 +140,8 @@ ConfigurationDaemon.prototype.handleUnicastMessage = function(msg) {
 
 	if( this.isDatasink() && msg.type === 'subscribe' ) {
 		var self = this;
-
+		console.log("let's subscribe!");
+		
 		_.each(msg.endpoints, function(ep) {
 			console.log("wire " + ep.topics.join(",") + " to " + msg.host + ":" + ep.port);
 			ep.host = msg.host;
