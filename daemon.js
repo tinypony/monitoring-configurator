@@ -22,6 +22,12 @@ var ConfigurationDaemon = function(config, broadcastPort) {
 	this.broadcastPort = broadcastPort;
 	this.bc_socket = dgram.createSocket('udp4');
 	this.uc_socket = dgram.createSocket('udp4');
+	this.bc_socket.on('error', function(e) {
+		console.log(JSON.stringify(e));
+	});
+        this.uc_socket.on('error', function(e) {
+		console.log(JSON.stringify(e));
+	});
 
 	//Attach message handlers
 	this.bc_socket.on('message', this.getMessageHandler(true).bind(this));
@@ -159,7 +165,7 @@ ConfigurationDaemon.prototype.getMessageHandler = function(isBroadcast) {
 	return function( data, rinfo) {
 		try {
 			var msg = this.preprocessMessage( JSON.parse(data.toString()), rinfo );
-			
+			console.log("got message:"+JSON.stringify(msg));			
 			if(isBroadcast)
 				this.handleBroadcastMessage(msg);
 			else 
@@ -174,10 +180,10 @@ ConfigurationDaemon.prototype.getReconfigureMessage = function() {
 	var msg = {
 		type: 'reconfig',
 		host: 'self',
+		port: this.config.unicast.port,
 		monitoring: {
 			host: 'self',
-			port: this.config.monitoring.port,
-			keystone: this.config.monitoring.keystone
+			port: this.config.monitoring.port
 		}
 	};
 
@@ -188,10 +194,10 @@ ConfigurationDaemon.prototype.getConfigureMessage = function() {
 	var msg = {
 		type: 'config',
 		host: 'self',
+		port: this.config.unicast.port,
 		monitoring: {
 			host: 'self',
-			port: this.config.monitoring.port,
-			keystone: this.config.monitoring.keystone
+			port: this.config.monitoring.port
 		}
 	};
 
