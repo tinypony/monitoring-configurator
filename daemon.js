@@ -113,9 +113,10 @@ ConfigurationDaemon.prototype.handleHello = function(msg) {
 ConfigurationDaemon.prototype.handleSubscribe = function(msg) {
 	if( this.isDatasink() ) {
 		var self = this;
-
+		console.log('let\'s subscribe');
+		
 		_.each(msg.endpoints, function(ep) {
-			console
+			console.log("wire " + ep.topics.join(",") + " to " + msg.host + ":" + ep.port);
 			ep.host = msg.host;
 			self.kafkaForwarder.subscribe(ep);
 		});
