@@ -76,9 +76,7 @@ Forwarder.prototype.forward = function(topic, data) {
 		}], function(err, sent_data) {
 			if(err) {
 				return console.log(JSON.stringify(err));
-			}
-			console.log(sent_data);
-			
+			}			
 		});
 	} catch(e) {
 		console.log(e); //carry on
