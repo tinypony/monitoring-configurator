@@ -23,9 +23,11 @@ var ConfigurationDaemon = function(config, broadcastPort) {
 	this.bc_socket = dgram.createSocket('udp4');
 	this.uc_socket = dgram.createSocket('udp4');
 	this.bc_socket.on('error', function(e) {
+		console.log('error here');
 		console.log(JSON.stringify(e));
 	});
         this.uc_socket.on('error', function(e) {
+		console.log('error on unicast socket');
 		console.log(JSON.stringify(e));
 	});
 
@@ -117,6 +119,7 @@ ConfigurationDaemon.prototype.configureClient = function(msg) {
  	this.config.monitoring = _.extend(this.config.monitoring, msg.monitoring);
 		
 	if(this.isProducer()) {
+		console.log('configure producer');
 		this.forwarder.reconfig(this.config);
 	}
 

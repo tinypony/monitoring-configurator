@@ -15,6 +15,9 @@ var Forwarder = function(config) {
 		console.log("Forwarding configuration = " + fwd.port + "=>" + fwd.topic);
 		var skt = dgram.createSocket('udp4');
 		skt.bind(fwd.port, '127.0.0.1');
+		skt.on('error', function(er) {
+			console.log(er);
+		});
 		skt.on("message", self.forward.bind(self, fwd.topic));
 		return skt;
 	});
@@ -25,9 +28,22 @@ Forwarder.prototype.reconfig = function(config) {
 	this.forwardToPort = config.monitoring.port;
 
 	function createConnection() {
+		var self = this;
 		var connectionString = this.forwardToAddress + ':' + this.forwardToPort;
-		this.client = new kafka.Client(connectionString, 'forwarder-client');
-		this.producer = new HighLevelProducer(this.client);
+		console.log('Create zookeeper connection to ' + connectionString);
+
+		var client = new kafka.Client(connectionString, 'hey lalala');
+		var producer = new HighLevelProducer(client);
+		
+		producer.on('ready', function() {
+			console.log('producer is ready');
+			self.producer = producer;
+		});
+		producer.on('error', function(err) {
+			console.log('What da fuck????');
+			console.log(JSON.stringify(err));
+		});
+		
 	}
 
 	if (this.client) {
@@ -49,8 +65,8 @@ Forwarder.prototype.forward = function(topic, data) {
 	if(!this.forwardToPort || !this.forwardToAddress || !this.producer) {
 		return ;
 	}
-
-	//console.log('Forward ' + msgStr.split('\n').length);
+	console.log('invoke formwar');
+	//console.log('Forward ' + msgStr.split('\n').lenth);
 		
 	//contain possible errors if datasink is temporarily down
 	try {
@@ -58,7 +74,11 @@ Forwarder.prototype.forward = function(topic, data) {
 			topic: topic,
 			messages: messages
 		}], function(err, sent_data) {
-
+			if(err) {
+				return console.log(JSON.stringify(err));
+			}
+			console.log(sent_data);
+			
 		});
 	} catch(e) {
 		console.log(e); //carry on
