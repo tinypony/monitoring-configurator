@@ -114,7 +114,7 @@ ConfigurationDaemon.prototype.handleSubscribe = function(msg) {
 	if( this.isDatasink() ) {
 		var self = this;
 		console.log('let\'s subscribe');
-		
+
 		_.each(msg.endpoints, function(ep) {
 			console.log("wire " + ep.topics.join(",") + " to " + msg.host + ":" + ep.port);
 			ep.host = msg.host;
@@ -238,7 +238,7 @@ ConfigurationDaemon.prototype.getSubscribeMessage = function() {
 	var msg = {
 		type: 'subscribe',
 		host: 'self',
-		enspoints: this.config.consumers
+		endpoints: this.config.consumers
 	}
 
 	return JSON.stringify(msg);
