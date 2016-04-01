@@ -27,7 +27,7 @@ NetworkConfigurator.prototype.initNetwork = function() {
 			var address = rinfo.address;
 			console.log('address resolved = ' + address);
 			
-			exec('./lifecycle/on_address_resolved.sh ' + this.address,
+			exec('/opt/monitoring-configurator/lifecycle/on_address_resolved.sh ' + address,
 				function (error, stdout, stderr) {	
 				    if (error !== null) {
 				      console.log('exec error: ' + error);
