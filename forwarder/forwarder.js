@@ -2,10 +2,12 @@ var dgram = require('dgram');
 var _ = require('underscore');
 var kafka = require('kafka-node');
 var HighLevelProducer = kafka.HighLevelProducer;
+var uuid = require('node-uuid');
 
 var Forwarder = function(config) {
 	this.ou_socket = dgram.createSocket('udp4');
 	var self = this;
+	this.id = uuid.v4();
 
 	/**
 	 * fwd.port,
@@ -32,15 +34,14 @@ Forwarder.prototype.reconfig = function(config) {
 		var connectionString = this.forwardToAddress + ':' + this.forwardToPort;
 		console.log('Create zookeeper connection to ' + connectionString);
 
-		var client = new kafka.Client(connectionString, 'hey lalala');
+		var client = new kafka.Client(connectionString, this.id);
 		var producer = new HighLevelProducer(client);
 		
 		producer.on('ready', function() {
-			console.log('producer is ready');
 			self.producer = producer;
 		});
+
 		producer.on('error', function(err) {
-			console.log('What da fuck????');
 			console.log(JSON.stringify(err));
 		});
 		
@@ -65,8 +66,7 @@ Forwarder.prototype.forward = function(topic, data) {
 	if(!this.forwardToPort || !this.forwardToAddress || !this.producer) {
 		return ;
 	}
-	console.log('invoke formwar');
-	//console.log('Forward ' + msgStr.split('\n').lenth);
+	console.log('invoke forward');
 		
 	//contain possible errors if datasink is temporarily down
 	try {
