@@ -197,6 +197,7 @@ ConfigurationDaemon.prototype.getReconfigureMessage = function() {
 	var msg = {
 		type: 'reconfig',
 		host: 'self',
+		port: this.config.unicast.port,
 		monitoring: {
 			host: 'self',
 			port: this.config.monitoring.port,
