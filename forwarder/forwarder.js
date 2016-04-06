@@ -61,7 +61,7 @@ Forwarder.prototype.forward = function(topic, data) {
 
 	messages = _.map(messages, function(m) {
 		var val = m.replace(/\r$/g, '');
-		console.log('Forwarding ' + val);
+		//console.log('Forwarding ' + val);
 		return val;
 	});
 	

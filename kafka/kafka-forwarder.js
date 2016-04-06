@@ -77,6 +77,10 @@ KafkaForwarder.prototype.subscribe = function(sub) {
     	encoding: 'utf8'
 	});
 
+	consumer.on("error", function(err) {
+		console.log(JSON.stringify(err));
+	})
+
 	consumer.on("message", function(msg) {
 		//console.log("Send message " + msg + " to subscribed client " + sub.host + ":" + sub.port);
 		this.send(msg, sub.port, sub.host);
