@@ -118,6 +118,7 @@ ConfigurationDaemon.prototype.handleSubscribe = function(msg) {
 		_.each(msg.endpoints, function(ep) {
 			console.log("wire " + ep.topics.join(",") + " to " + msg.host + ":" + ep.port);
 			ep.host = msg.host;
+			ep.unicastport = msg.port;
 			self.kafkaForwarder.subscribe(ep);
 		});
 	}
@@ -238,7 +239,19 @@ ConfigurationDaemon.prototype.getSubscribeMessage = function() {
 	var msg = {
 		type: 'subscribe',
 		host: 'self',
+		port: this.config.unicast.port,
 		endpoints: this.config.consumers
+	}
+
+	return JSON.stringify(msg);
+};
+
+
+ConfigurationDaemon.prototype.getPongMessage = function() {
+	var msg = {
+		type: 'pong',
+		host: 'self',
+		port: this.config.unicast.port
 	}
 
 	return JSON.stringify(msg);
