@@ -86,7 +86,7 @@ KafkaForwarder.prototype.subscribe = function(sub) {
 			return;
 		}
 		//console.log("Send message " + msg + " to subscribed client " + sub.host + ":" + sub.port);
-		this.send(msg.value, sub.host, parseInt(sub.port));
+		self.send(msg.value, sub.host, parseInt(sub.port));
 	});
 
 	this.connections.push({
