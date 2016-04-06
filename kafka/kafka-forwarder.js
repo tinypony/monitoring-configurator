@@ -47,7 +47,7 @@ KafkaForwarder.prototype.hasConnection = function(sub) {
 };
 
 KafkaForwarder.prototype.getClientId = function(sub) {
-	return sub.host + ":" + sub.port + "@" + sub.topics.join(',');
+	return sub.host + "-" + sub.port + "-" + sub.topics.join('-');
 };
 
 /**
@@ -82,8 +82,11 @@ KafkaForwarder.prototype.subscribe = function(sub) {
 	})
 
 	consumer.on("message", function(msg) {
+		if(!msg.value) {
+			return;
+		}
 		//console.log("Send message " + msg + " to subscribed client " + sub.host + ":" + sub.port);
-		this.send(msg, sub.port, sub.host);
+		this.send(msg.value, sub.host, parseInt(sub.port));
 	});
 
 	this.connections.push({
@@ -92,7 +95,8 @@ KafkaForwarder.prototype.subscribe = function(sub) {
 		topics: sub.topics,
 		consumer: consumer,
 		liveStatus: 1			// 0 - unresponsive, 1 - live, 2 - pending check
-	})
+	});
+	console.log('Subscribed ' + this.getClientId(sub));
 };
 
 module.exports = KafkaForwarder;

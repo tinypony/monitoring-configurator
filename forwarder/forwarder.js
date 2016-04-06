@@ -42,7 +42,7 @@ Forwarder.prototype.reconfig = function(config) {
 		});
 
 		producer.on('error', function(err) {
-			console.log(JSON.stringify(err));
+			console.log('[Kafka producer] Error: ' + JSON.stringify(err));
 		});
 		
 	}
