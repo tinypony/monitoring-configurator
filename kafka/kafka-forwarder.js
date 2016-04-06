@@ -22,7 +22,7 @@ KafkaForwarder.prototype.getConnectionString = function() {
 
 KafkaForwarder.prototype.subscribe = function(sub) {
 	var self = this;
-	var client = new kafka.Client(this.getConnectionString(), 'kafka-node-client');
+	var client = new kafka.Client(this.getConnectionString(), sub.host + ":" + sub.port + "@" + sub.topics.join(",") );
 	var payloads = _.map(sub.topics, function(topic) {
 		return {
 			topic: topic
