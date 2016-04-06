@@ -59,6 +59,7 @@ ConfigurationDaemon.prototype.getClientId = function(sub) {
 
 KafkaForwarder.prototype.subscribe = function(sub) {
 	var self = this;
+	
 	if(this.hasConnection(sub)) {
 		return;
 	}
