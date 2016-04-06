@@ -59,7 +59,7 @@ ConfigurationDaemon.prototype.getClientId = function(sub) {
 
 KafkaForwarder.prototype.subscribe = function(sub) {
 	var self = this;
-	
+
 	if(this.hasConnection(sub)) {
 		return;
 	}
@@ -79,7 +79,7 @@ KafkaForwarder.prototype.subscribe = function(sub) {
 
 	consumer.on("message", function(msg) {
 		//console.log("Send message " + msg + " to subscribed client " + sub.host + ":" + sub.port);
-		this.send(msg), sub.port, sub.host);
+		this.send(msg, sub.port, sub.host);
 	});
 
 	this.connections.push({
