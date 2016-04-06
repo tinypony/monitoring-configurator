@@ -26,7 +26,7 @@ KafkaForwarder.prototype.send = function(msg, host, port) {
 		);
 }
 
-ConfigurationDaemon.prototype.getPingMessage = function() {
+KafkaForwarder.prototype.getPingMessage = function() {
 	var msg = {
 		type: 'ping',
 		host: 'self',
@@ -36,7 +36,7 @@ ConfigurationDaemon.prototype.getPingMessage = function() {
 	return JSON.stringify(msg);
 };
 
-ConfigurationDaemon.prototype.hasConnection = function(sub) {
+KafkaForwarder.prototype.hasConnection = function(sub) {
 	var existing = _.findWhere(this.connections, {host: sub.host, port: sub.port });
 
 	if(!existing) {
@@ -46,7 +46,7 @@ ConfigurationDaemon.prototype.hasConnection = function(sub) {
 	return this.getClientId(existing) === this.getClientId(sub); //a quick hack, as we basically need to ensure that IDs are unique
 };
 
-ConfigurationDaemon.prototype.getClientId = function(sub) {
+KafkaForwarder.prototype.getClientId = function(sub) {
 	return sub.host + ":" + sub.port + "@" + sub.topics.join(',');
 };
 
