@@ -2,6 +2,10 @@ var dgram = require('dgram');
 var _ = require('underscore');
 var kafka = require('kafka-node');
 
+var KAFKA_ERROR = {
+	NODE_EXISTS: ''
+};
+
 //forwards message from kafka to clients who subscribed to particular topics
 var KafkaForwarder = function(config) {
 	this.config = config;
@@ -78,6 +82,7 @@ KafkaForwarder.prototype.subscribe = function(sub) {
 	});
 
 	consumer.on("error", function(err) {
+		console.log('[KafkaForwarder]');
 		console.log(JSON.stringify(err));
 	})
 
