@@ -146,12 +146,21 @@ ConfigurationDaemon.prototype.configureClient = function(msg) {
 
 		if(this.isConsumer()) {
 			var subscribeMsg = this.getSubscribeMessage();
+
 			this.uc_socket.send(
 				new Buffer(subscribeMsg),
 				0,
 				subscribeMsg.length,
 				msg.port,
-				msg.host
+				msg.host, 
+				function(e) {
+					if(e) {
+						console.log(JSON.stringify(e));
+						return;
+					}
+
+					console.log('Sent subscribe request to ' + msg.host + ":" + msg.port);
+				}
 			);
 		}
 	}
