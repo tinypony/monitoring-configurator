@@ -92,10 +92,12 @@ KafkaForwarder.prototype.subscribe = function(sub) {
 
 		//Waiting for kafka to timeout and clear previous connection
 		if( KAFKA_ERROR.isNodeExists(err) ) {
+			console.log('Waiting for kafka to clear previous connection');
 			setTimeout(this.subscribe.bind(this, sub), 5000);
 		} 
 		//Waiting for KAFKA to spin up (possibly)
 		else if(KAFKA_ERROR.isCouldNotFindBroker(err)) {
+			console.log('Waiting for kafka to spin up');
 			setTimeout(this.subscribe.bind(this, sub), 5000);
 		}
 	}.bind(this));
