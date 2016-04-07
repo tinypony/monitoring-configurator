@@ -3,7 +3,12 @@ var _ = require('underscore');
 var kafka = require('kafka-node');
 
 var KAFKA_ERROR = {
-	NODE_EXISTS: ''
+	isNodeExists: function(err) {
+		return _.isString(err.message) && err.message.indexOf('NODE_EXISTS') > -1;
+	},
+	isCouldNotFindBroker: function(err) {
+		return _.isString(err.message) && err.message.indexOf('Could not find a broker') > -1;
+	}
 };
 
 //forwards message from kafka to clients who subscribed to particular topics
@@ -84,24 +89,37 @@ KafkaForwarder.prototype.subscribe = function(sub) {
 	consumer.on("error", function(err) {
 		console.log('[KafkaForwarder]');
 		console.log(JSON.stringify(err));
-	})
 
-	consumer.on("message", function(msg) {
+		//Waiting for kafka to timeout and clear previous connection
+		if( KAFKA_ERROR.isNodeExists(err) ) {
+			setTimeout(this.subscribe.bind(this, sub), 5000);
+		} 
+		//Waiting for KAFKA to spin up (possibly)
+		else if(KAFKA_ERROR.isCouldNotFindBroker(err)) {
+			setTimeout(this.subscribe.bind(this, sub), 5000);
+		}
+	}.bind(this));
+
+	consumer.on('message', function(msg) {
 		if(!msg.value) {
 			return;
 		}
 		//console.log("Send message " + msg + " to subscribed client " + sub.host + ":" + sub.port);
-		self.send(msg.value, sub.host, parseInt(sub.port));
-	});
+		this.send(msg.value, sub.host, parseInt(sub.port));
+	}.bind(this));
 
-	this.connections.push({
-		host: sub.host,
-		port: sub.unicastport,
-		topics: sub.topics,
-		consumer: consumer,
-		liveStatus: 1			// 0 - unresponsive, 1 - live, 2 - pending check
-	});
-	console.log('Subscribed ' + this.getClientId(sub));
+	consumer.on('connect', function() {
+		this.connections.push({
+			host: sub.host,
+			port: sub.unicastport,
+			topics: sub.topics,
+			consumer: consumer,
+			liveStatus: 1			// 0 - unresponsive, 1 - live, 2 - pending check
+		});
+		console.log('Subscribed ' + this.getClientId(sub));
+	}.bind(this));
+
+	
 };
 
 module.exports = KafkaForwarder;
