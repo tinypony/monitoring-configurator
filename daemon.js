@@ -214,6 +214,7 @@ ConfigurationDaemon.prototype.getConfigureMessage = function() {
 	var msg = {
 		type: 'config',
 		host: 'self',
+		port: this.config.unicast.port,
 		monitoring: {
 			host: 'self',
 			port: this.config.monitoring.port,
