@@ -2,6 +2,8 @@ var dgram = require('dgram');
 var _ = require('underscore');
 var kafka = require('kafka-node');
 
+var firstMessageLogged = false;
+
 var KAFKA_ERROR = {
 	isNodeExists: function(err) {
 		return _.isString(err.message) && err.message.indexOf('NODE_EXISTS') > -1;
@@ -31,6 +33,10 @@ KafkaForwarder.prototype.send = function(msg, host, port) {
 	 	host, 
 	 	function(err) {
 	 		if (err) console.log(err);
+	 		if (!firstMessageLogged) {
+	 			console.log("Sent message " + msg + " to subscribed client " + host + ":" + port);
+	 			firstMessageLogged = true;
+	 		}
 	 	}
 	);
 }
@@ -106,7 +112,10 @@ KafkaForwarder.prototype.subscribe = function(sub) {
 		if(!msg.value) {
 			return;
 		}
-		//console.log("Send message " + msg + " to subscribed client " + sub.host + ":" + sub.port);
+		if(!firstMessageLogged) {
+			console.log("Send message " + msg + " to subscribed client " + sub.host + ":" + sub.port);
+		}
+
 		this.send(msg.value, sub.host, parseInt(sub.port));
 	}.bind(this));
 
