@@ -28,6 +28,7 @@ var Forwarder = function(config) {
 Forwarder.prototype.reconfig = function(config) {
 	this.forwardToAddress = config.monitoring.host;
 	this.forwardToPort = config.monitoring.port;
+	console.log('[Forwarder] Reconfiguring forwarder');
 
 	function createConnection() {
 		var self = this;
