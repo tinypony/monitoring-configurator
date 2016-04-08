@@ -24,15 +24,15 @@ KafkaForwarder.prototype.getConnectionString = function() {
 
 KafkaForwarder.prototype.send = function(msg, host, port) {
 	this.ou_socket.send(
-		 	new Buffer(msg), 
-		 	0, 
-		 	msg.length, 
-		 	port,
-		 	host, 
-		 	function(err) {
-		 		if (err) console.log(err);
-		 	}
-		);
+	 	new Buffer(msg), 
+	 	0, 
+	 	msg.length, 
+	 	port,
+	 	host, 
+	 	function(err) {
+	 		if (err) console.log(err);
+	 	}
+	);
 }
 
 KafkaForwarder.prototype.getPingMessage = function() {
