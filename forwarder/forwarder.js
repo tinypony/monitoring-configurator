@@ -38,17 +38,17 @@ Forwarder.prototype.reconfig = function(config) {
 		var producer = new HighLevelProducer(client);
 		
 		producer.on('ready', function() {
-			self.producer = producer;
-		});
+			console.log('Forwader is ready');
+			this.producer = producer;
+			this.client = client;
+		}.bind(this));
 
 		producer.on('error', function(err) {
 			console.log('[Kafka producer] Error: ' + JSON.stringify(err));
 		});
-		
 	}
 
 	if (this.client) {
-		this.producer = null;
 		this.client.close(createConnection.bind(this));
 	} else {
 		createConnection.call(this);
@@ -66,6 +66,7 @@ Forwarder.prototype.forward = function(topic, data) {
 	});
 	
 	if(!this.forwardToPort || !this.forwardToAddress || !this.producer) {
+		console.log('[Forwarder] No producer');
 		return ;
 	}
 		
