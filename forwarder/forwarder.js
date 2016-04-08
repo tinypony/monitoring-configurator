@@ -46,6 +46,8 @@ Forwarder.prototype.reconfig = function(config) {
 		producer.on('error', function(err) {
 			console.log('[Kafka producer] Error: ' + JSON.stringify(err));
 		});
+
+		console.log('[Forwarder] Created producer');
 	}
 
 	if (this.client) {
@@ -61,7 +63,6 @@ Forwarder.prototype.forward = function(topic, data) {
 
 	messages = _.map(messages, function(m) {
 		var val = m.replace(/\r$/g, '');
-		//console.log('Forwarding ' + val);
 		return val;
 	});
 	
