@@ -202,7 +202,7 @@ ConfigurationDaemon.prototype.getMessageHandler = function(isBroadcast) {
 		var dataString = data.toString();
 
 		try {
-			var msg JSON.parse(dataString);
+			var msg = JSON.parse(dataString);
 			msg = this.preprocessMessage( msg, rinfo );
 			
 			if(isBroadcast)
