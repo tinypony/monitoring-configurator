@@ -135,6 +135,10 @@ ConfigurationDaemon.prototype.handleBroadcastMessage = function(msg) {
 	}
 };
 
+function isValidPort(port) {
+	return _.isNumber(port) && port > 0 && port < 65535;
+}
+
 ConfigurationDaemon.prototype.configureClient = function(msg) {
 	if( this.isProducer() || this.isConsumer() ) {
 		console.log('configure client with ' + JSON.stringify(msg));
@@ -145,6 +149,10 @@ ConfigurationDaemon.prototype.configureClient = function(msg) {
 		}
 
 		if(this.isConsumer()) {
+			if(!isValidPort(msg.port)) {
+				console.log('trying to send subscription message to an invalid port');
+				return;
+			}
 			var subscribeMsg = this.getSubscribeMessage();
 
 			this.uc_socket.send(
@@ -178,11 +186,11 @@ ConfigurationDaemon.prototype.handleUnicastMessage = function(msg) {
 };
 
 ConfigurationDaemon.prototype.preprocessMessage = function(msg, rinfo) {
-	if(msg.monitoring && msg.monitoring.host === 'self') {
+	if(msg.monitoring) {
 		msg.monitoring.host = rinfo.address;
 	}
 
-	if(msg.host && msg.host === 'self') {
+	if(msg.host) {
 		msg.host = rinfo.address;
 	}
 
@@ -191,8 +199,11 @@ ConfigurationDaemon.prototype.preprocessMessage = function(msg, rinfo) {
 
 ConfigurationDaemon.prototype.getMessageHandler = function(isBroadcast) {
 	return function( data, rinfo) {
+		var dataString = data.toString();
+
 		try {
-			var msg = this.preprocessMessage( JSON.parse(data.toString()), rinfo );
+			var msg JSON.parse(dataString);
+			msg = this.preprocessMessage( msg, rinfo );
 			
 			if(isBroadcast)
 				this.handleBroadcastMessage(msg);
@@ -200,6 +211,7 @@ ConfigurationDaemon.prototype.getMessageHandler = function(isBroadcast) {
 				this.handleUnicastMessage(msg);
 		} catch(e) {
 			//silent skip
+			console.log("Could not parse incoming data, probably malformed");
 		}
 	}
 };

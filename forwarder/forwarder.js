@@ -25,10 +25,20 @@ var Forwarder = function(config) {
 	});
 };
 
+function isValidPort(port) {
+	return _.isNumber(port) && port > 0 && port < 65535;
+}
+
 Forwarder.prototype.reconfig = function(config) {
+	if(!isValidPort(config.monitoring.port)) {
+		console.log('trying to configure forwarder with an invalid port');
+		return;
+	}
+
 	this.forwardToAddress = config.monitoring.host;
 	this.forwardToPort = config.monitoring.port;
 	console.log('[Forwarder] Reconfiguring forwarder');
+
 
 	function createConnection() {
 		var self = this;
@@ -42,7 +52,7 @@ Forwarder.prototype.reconfig = function(config) {
 			console.log('Forwader is ready');
 			this.producer = producer;
 			this.client = client;
-		}.bind(this));
+		}.bind(this) );
 
 		producer.on('error', function(err) {
 			console.log('[Kafka producer] Error: ' + JSON.stringify(err));
@@ -68,7 +78,7 @@ Forwarder.prototype.forward = function(topic, data) {
 	});
 	
 	if(!this.forwardToPort || !this.forwardToAddress || !this.producer) {
-		console.log('[Forwarder] No producer');
+	//	console.log('[Forwarder] No producer');
 		return ;
 	}
 		
