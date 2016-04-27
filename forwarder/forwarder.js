@@ -1,100 +1,136 @@
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _kafkaNode = require('kafka-node');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var dgram = require('dgram');
 var _ = require('underscore');
-var kafka = require('kafka-node');
-var HighLevelProducer = kafka.HighLevelProducer;
+
 var uuid = require('node-uuid');
-
-var Forwarder = function(config) {
-	this.ou_socket = dgram.createSocket('udp4');
-	var self = this;
-	this.id = uuid.v4();
-
-	/**
-	 * fwd.port,
-	 * fwd.topic
-	 */
-	this.forward_ports = _.map(config.producers, function(fwd) {
-		console.log("Forwarding configuration = " + fwd.port + "=>" + fwd.topic);
-		var skt = dgram.createSocket('udp4');
-		skt.bind(fwd.port, '127.0.0.1');
-		skt.on('error', function(er) {
-			console.log(er);
-		});
-		skt.on("message", self.forward.bind(self, fwd.topic));
-		return skt;
-	});
-};
+var winston = require('winston');
 
 function isValidPort(port) {
 	return _.isNumber(port) && port > 0 && port < 65535;
 }
 
-Forwarder.prototype.reconfig = function(config) {
-	if(!isValidPort(config.monitoring.port)) {
-		console.log('trying to configure forwarder with an invalid port');
-		return;
-	}
+var Forwarder = function () {
+	function Forwarder(config) {
+		var _this = this;
 
-	this.forwardToAddress = config.monitoring.host;
-	this.forwardToPort = config.monitoring.port;
-	console.log('[Forwarder] Reconfiguring forwarder');
+		_classCallCheck(this, Forwarder);
 
+		this.ou_socket = dgram.createSocket('udp4');
+		this.id = uuid.v4();
 
-	function createConnection() {
-		var self = this;
-		var connectionString = this.forwardToAddress + ':' + this.forwardToPort;
-		console.log('Create zookeeper connection to ' + connectionString);
-
-		var client = new kafka.Client(connectionString, this.id);
-		var producer = new HighLevelProducer(client);
-		
-		producer.on('ready', function() {
-			console.log('Forwader is ready');
-			this.producer = producer;
-			this.client = client;
-		}.bind(this) );
-
-		producer.on('error', function(err) {
-			console.log('[Kafka producer] Error: ' + JSON.stringify(err));
+		this.logger = new winston.Logger({
+			transports: [new winston.transports.Console()]
 		});
 
-		console.log('[Forwarder] Created producer');
-	}
+		if (config.logging && config.logging.disable) {
+			this.logger.remove(winston.transports.Console);
+		}
 
-	if (this.client) {
-		this.client.close(createConnection.bind(this));
-	} else {
-		createConnection.call(this);
-	}	
-};
+		/**
+   * fwd.port,
+   * fwd.topic
+   */
+		this.forward_ports = _.map(config.producers, function (fwd) {
+			_this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
+			var skt = dgram.createSocket('udp4');
+			skt.bind(fwd.port, '127.0.0.1');
 
-Forwarder.prototype.forward = function(topic, data) {
-	var msgStr = data.toString();
-    var messages = msgStr.split('\n');
+			skt.on('error', function (er) {
+				_this.logger.warn(er);
+			});
 
-	messages = _.map(messages, function(m) {
-		var val = m.replace(/\r$/g, '');
-		return val;
-	});
-	
-	if(!this.forwardToPort || !this.forwardToAddress || !this.producer) {
-	//	console.log('[Forwarder] No producer');
-		return ;
-	}
-		
-	//contain possible errors if datasink is temporarily down
-	try {
-		this.producer.send([{
-			topic: topic,
-			messages: messages
-		}], function(err, sent_data) {
-			if(err) {
-				return console.log(JSON.stringify(err));
-			}			
+			skt.on("message", _this.forward.bind(_this, fwd.topic));
+			return skt;
 		});
-	} catch(e) {
-		console.log(e); //carry on
 	}
-};
 
-module.exports = Forwarder;
+	_createClass(Forwarder, [{
+		key: 'reconfig',
+		value: function reconfig(config) {
+			if (!isValidPort(config.monitoring.port)) {
+				this.logger.info('trying to configure forwarder with an invalid port');
+				return;
+			}
+
+			this.forwardToAddress = config.monitoring.host;
+			this.forwardToPort = config.monitoring.port;
+			this.logger.info('[Forwarder] Reconfiguring forwarder');
+
+			function createConnection() {
+				var _this2 = this;
+
+				var self = this;
+				var connectionString = this.forwardToAddress + ':' + this.forwardToPort;
+				this.logger.info('Create zookeeper connection to %s', connectionString);
+
+				var client = new _kafkaNode.Client(connectionString, this.id);
+				var producer = new _kafkaNode.HighLevelProducer(client);
+
+				producer.on('ready', function () {
+					_this2.logger.info('Forwader is ready');
+					_this2.producer = producer;
+					_this2.client = client;
+				});
+
+				producer.on('error', function (err) {
+					_this2.logger.warn('[Kafka producer] Error: %s', JSON.stringify(err));
+				});
+
+				this.logger.info('[Forwarder] Created producer');
+			}
+
+			if (this.client) {
+				this.client.close(createConnection.bind(this));
+			} else {
+				createConnection.call(this);
+			}
+		}
+	}, {
+		key: 'forward',
+		value: function forward(topic, data) {
+			var _this3 = this;
+
+			var msgStr = data.toString();
+			var messages = msgStr.split('\n');
+
+			messages = _.map(messages, function (m) {
+				var val = m.replace(/\r$/g, '');
+				return val;
+			});
+
+			if (!this.forwardToPort || !this.forwardToAddress || !this.producer) {
+				//this.logger.info('[Forwarder] No producer');
+				return;
+			}
+
+			//contain possible errors if datasink is temporarily down
+			try {
+				this.producer.send([{
+					topic: topic,
+					messages: messages
+				}], function (err, sent_data) {
+					if (err) {
+						return _this3.logger.warn(JSON.stringify(err));
+					}
+				});
+			} catch (e) {
+				this.logger.info(e); //carry on
+			}
+		}
+	}]);
+
+	return Forwarder;
+}();
+
+exports.default = Forwarder;
