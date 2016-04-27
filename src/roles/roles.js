@@ -13,20 +13,28 @@ class Role {
 
 	isDatasink() {
 		return _.contains(this.config.roles, NODE_TYPE.DATASINK);
-	};
+	}
 
 	isProducer() {
 		return _.contains(this.config.roles, NODE_TYPE.PRODUCER);
-	};
+	}
 
 	isConsumer() {
 		return _.contains(this.config.roles, NODE_TYPE.CONSUMER);
-	};
+	}
+
+	isValidPort(port) {
+		return _.isNumber(port) && port > 0 && port < 65535;
+	}
 
 	onStart() {
 		var defer = q.defer();
 		defer.resolve();
 		return defer.promise;
+	}
+
+	shouldProcess(msg) {
+		return false;
 	}
 
 	onStop() {

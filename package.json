@@ -22,7 +22,8 @@
     "chai": "^3.5.0",
     "chai-spies": "^0.7.1",
     "mocha": "^2.4.5",
-    "mock-udp": "^0.1.1"
+    "mock-udp": "^0.1.1",
+    "sinon": "^1.17.3"
   },
   "scripts": {
     "test": "mocha --compilers js:babel-core/register",

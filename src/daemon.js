@@ -118,105 +118,32 @@ class ConfigurationDaemon {
 		return _.contains(this.config.roles, NODE_TYPE.CONSUMER);
 	}
 
-	handleHello(msg) {
+	handleInChain(msg, func) {
 		var defer = q.defer();
 		defer.resolve();
 		var promise = defer.promise;
 
 		_.each(this.roles, (r) => {
-			promise = promise.then(r.handleHello(msg));
+			promise = promise.then( r[func].call(r, msg) );
 		});
 
 		return promise;
+	}
+
+	handleHello(msg) {
+		return this.handleInChain(msg, 'handleHello');
 	}
 
 	handleSubscribe(msg) {
-		var defer = q.defer();
-		defer.resolve();
-		var promise = defer.promise;
-
-		_.each(this.roles, (r) => {
-			promise = promise.then(r.handleSubscribe(msg));
-		});
-
-		return promise;
-	}
-
-	handleBroadcastMessage(msg) {
-		if(msg.type === 'hello') {
-			return this.handleHello(msg);
-		}
-
-		//Every type of node is being monitored and needs to be reconfigured
-		if( msg.type === 'reconfig' && (this.isProducer() || this.isConsumer()) ) {
-			return this.handleReconfig(msg);
-		}
+		return this.handleInChain(msg, 'handleSubscribe');
 	}
 
 	handleReconfig(msg) {
-		var defer = q.defer();
-		defer.resolve();
-		var promise = defer.promise;
-
-		_.each(this.roles, (r) => {
-			promise = promise.then(r.handleReconfig(msg));
-		});
-
-		return promise;
+		return this.handleInChain(msg, 'handleReconfig');
 	}
 
 	handleConfig(msg) {
-		var defer = q.defer();
-		defer.resolve();
-		var promise = defer.promise;
-
-		_.each(this.roles, (r) => {
-			promise = promise.then(r.handleConfig(msg));
-		});
-
-		return promise;
-	}
-
-	configureClient(msg) {
-		var defer = q.defer();
-
-		if( this.isProducer() || this.isConsumer() ) {
-			this.logger.info('configure client with ' + JSON.stringify(msg));
-		 	this.config.monitoring = _.extend(this.config.monitoring, msg.monitoring);
-				
-			if(this.isProducer()) {
-				this.forwarder.reconfig(this.config);
-				defer.resolve();
-			}
-
-			if(this.isConsumer()) {
-				if( !isValidPort(msg.port) ) {
-					this.logger.info('trying to send subscription message to an invalid port');
-					return defer.reject();
-				}
-				var subscribeMsg = this.getSubscribeMessage();
-
-				this.uc_socket.send(
-					new Buffer(subscribeMsg),
-					0,
-					subscribeMsg.length,
-					msg.port,
-					msg.host, 
-					(e) => {
-						if(e) {
-							this.logger.warn(JSON.stringify(e));
-							return defer.reject(e);
-						}
-						defer.resolve();
-						this.logger.info('Sent subscribe request to ' + msg.host + ":" + msg.port);
-					}
-				);
-			}
-		} else {
-			defer.reject('nothing to configure');
-		}
-
-		return defer.promise;
+		return this.handleInChain(msg, 'handleConfig');
 	}
 
 	close() {
@@ -232,6 +159,17 @@ class ConfigurationDaemon {
 
 		if( msg.type === 'subscribe' ) {
 			return this.handleSubscribe(msg);
+		}
+	}
+
+	handleBroadcastMessage(msg) {
+		if(msg.type === 'hello') {
+			return this.handleHello(msg);
+		}
+
+		//Every type of node is being monitored and needs to be reconfigured
+		if( msg.type === 'reconfig' ) {
+			return this.handleReconfig(msg);
 		}
 	}
 
@@ -264,66 +202,6 @@ class ConfigurationDaemon {
 				this.logger.info("Could not parse incoming data, probably malformed");
 			}
 		}
-	}
-
-	getReconfigureMessage() {
-		var msg = {
-			type: 'reconfig',
-			host: 'self',
-			port: this.config.unicast.port,
-			monitoring: {
-				host: 'self',
-				port: this.config.monitoring.port
-			}
-		};
-
-		return JSON.stringify(msg);
-	}
-
-	getConfigureMessage() {
-		var msg = {
-			type: 'config',
-			host: 'self',
-			port: this.config.unicast.port,
-			monitoring: {
-				host: 'self',
-				port: this.config.monitoring.port
-			}
-		};
-
-		return JSON.stringify(msg);	
-	}
-
-	getHelloMessage() {
-		var msg = {
-			type: 'hello',
-			uuid: this.initId,
-			host: 'self',
-			port: this.config.unicast.port
-		};
-
-		return JSON.stringify(msg);
-	}
-
-	getSubscribeMessage() {
-		var msg = {
-			type: 'subscribe',
-			host: 'self',
-			port: this.config.unicast.port,
-			endpoints: this.config.consumers
-		}
-
-		return JSON.stringify(msg);
-	}
-
-	getPongMessage() {
-		var msg = {
-			type: 'pong',
-			host: 'self',
-			port: this.config.unicast.port
-		}
-
-		return JSON.stringify(msg);
 	}
 }
 

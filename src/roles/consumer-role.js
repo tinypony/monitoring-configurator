@@ -1,5 +1,6 @@
 import Role from './roles';
 import q from 'q';
+import _ from 'underscore';
 
 class ConsumerRole extends Role {
 	constructor(initId, config, sockets) {
@@ -25,7 +26,6 @@ class ConsumerRole extends Role {
 					this.logger.warn(err);
 					return defer.reject(err);
 				} else {
-					console.log('sent');
 					defer.resolve({
 						hello_sent: true
 					});
@@ -38,11 +38,12 @@ class ConsumerRole extends Role {
 
 	configureClient(msg) {
 		var defer = q.defer();
-	//	this.logger.info('configure client with ' + JSON.stringify(msg));
 		this.config.monitoring = _.extend(this.config.monitoring, msg.monitoring);
-		if( !isValidPort(msg.port) ) {
-			//this.logger.info('trying to send subscription message to an invalid port');
-			return defer.reject();
+
+		if( !this.isValidPort(msg.port) ) {
+			this.logger.warn('trying to send subscription message to an invalid port');
+			defer.reject();
+			return defer.promise;
 		}
 
 		var subscribeMsg = this.getSubscribeMessage();
@@ -59,7 +60,6 @@ class ConsumerRole extends Role {
 					return defer.reject(e);
 				}
 				defer.resolve();
-				//this.logger.info('Sent subscribe request to ' + msg.host + ":" + msg.port);
 			}
 		);
 
@@ -67,10 +67,16 @@ class ConsumerRole extends Role {
 	}
 
 	handleConfig(msg) {
+		if(!this.isConsumer()) {
+			return super.handleConfig();
+		}
 		return this.configureClient(msg);
 	}
 
 	handleReconfig(msg) {
+		if(!this.isConsumer()) {
+			return super.handleReconfig();
+		}
 		return this.configureClient(msg);
 	}
 }

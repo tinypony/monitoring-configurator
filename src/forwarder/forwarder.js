@@ -52,8 +52,7 @@ class Forwarder {
 		this.logger.info('[Forwarder] Reconfiguring forwarder');
 
 
-		function createConnection() {
-			var self = this;
+		var createConnection = () => {
 			var connectionString = this.forwardToAddress + ':' + this.forwardToPort;
 			this.logger.info('Create zookeeper connection to %s', connectionString);
 
@@ -74,9 +73,9 @@ class Forwarder {
 		}
 
 		if (this.client) {
-			this.client.close(createConnection.bind(this));
+			this.client.close(createConnection);
 		} else {
-			createConnection.call(this);
+			createConnection();
 		}	
 	}
 
@@ -90,7 +89,6 @@ class Forwarder {
 		});
 		
 		if(!this.forwardToPort || !this.forwardToAddress || !this.producer) {
-			//this.logger.info('[Forwarder] No producer');
 			return ;
 		}
 			

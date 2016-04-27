@@ -1,6 +1,7 @@
 import Role from './roles';
 import Forwarder from '../forwarder/forwarder.js';
 import q from 'q';
+import _ from 'underscore';
 
 
 class ProducerRole extends Role {
@@ -39,6 +40,30 @@ class ProducerRole extends Role {
 		);
 
 		return defer.promise;
+	}
+
+	configureClient(msg) {
+		var defer = q.defer();
+		this.config.monitoring = _.extend(this.config.monitoring, msg.monitoring);
+		this.forwarder.reconfig(this.config);
+
+		defer.resolve();
+		return defer.promise;
+	}
+
+	handleConfig(msg) {
+
+		if(!this.isProducer()) {
+			return super.handleReconfig();
+		}
+		return this.configureClient(msg);
+	}
+
+	handleReconfig(msg) {
+		if(!this.isProducer()) {
+			return super.handleReconfig();
+		}
+		return this.configureClient(msg);
 	}
 }
 

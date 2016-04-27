@@ -21,7 +21,7 @@ let datasinkConf = {
 	}
 };
 
-xdescribe('Datasink role', () => {
+describe('Datasink role', () => {
 	let broadcastScope;
 	let unicastScope;
 	let d;

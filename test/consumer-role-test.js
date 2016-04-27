@@ -59,7 +59,15 @@ describe('Consumer role', () => {
 					port: 2181
 				}
 			}).then(() => {
-				expect(unicastScope.done()).to.be.true;
+				try {
+					expect(unicastScope.done()).to.be.true;
+				} catch(e) {
+					console.log('Unicast scope was not called');
+					expect(false).to.be.true;
+					done();
+					return;
+				}
+
 				let msg = JSON.parse(unicastScope.buffer.toString());
 				expect(msg.type).to.equal('subscribe');
 				expect(msg.port).to.equal(consumerConf.unicast.port);
