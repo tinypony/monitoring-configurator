@@ -47,22 +47,24 @@ class ProducerRole extends Role {
 		this.config.monitoring = _.extend(this.config.monitoring, msg.monitoring);
 		this.forwarder.reconfig(this.config);
 
-		defer.resolve();
+		defer.resolve(msg);
 		return defer.promise;
 	}
 
 	handleConfig(msg) {
-
 		if(!this.isProducer()) {
-			return super.handleReconfig();
+			return super.handleReconfig(msg);
 		}
+		console.log('Configure client with msg');
 		return this.configureClient(msg);
 	}
 
 	handleReconfig(msg) {
 		if(!this.isProducer()) {
-			return super.handleReconfig();
+			return super.handleReconfig(msg);
 		}
+				console.log('reConfigure client with msg');
+
 		return this.configureClient(msg);
 	}
 }

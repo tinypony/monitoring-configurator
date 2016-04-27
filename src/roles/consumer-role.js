@@ -26,6 +26,8 @@ class ConsumerRole extends Role {
 					this.logger.warn(err);
 					return defer.reject(err);
 				} else {
+					console.log('Consumer sent hello');
+
 					defer.resolve({
 						hello_sent: true
 					});
@@ -59,7 +61,7 @@ class ConsumerRole extends Role {
 					this.logger.warn(JSON.stringify(e));
 					return defer.reject(e);
 				}
-				defer.resolve();
+				defer.resolve(msg);
 			}
 		);
 

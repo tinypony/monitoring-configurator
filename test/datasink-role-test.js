@@ -38,28 +38,38 @@ describe('Datasink role', () => {
 
 	it('Broadcasts reconfigure message on start', (done) => {
 		d.hasStarted.then(() => {
+			try {
+				expect(broadcastScope.done()).to.be.true;
+			} catch(e) {
+				console.log('broadcastScope was not called');
+				expect(false).to.be.true;
+				done();
+			}
 			let msg = JSON.parse(broadcastScope.buffer.toString());
 			expect(msg.type).to.equal('reconfig');
-			expect(broadcastScope.done()).to.be.true;
 			done();
 		});
 		
 	});
 
 	it('Sends unicast response to hello message', (done) => {
-		d.hasStarted.then(() => {
 			d.handleBroadcastMessage({
 				type: 'hello',
 				uuid: 'lalalalala',
 				host: '10.0.0.1',
 				port: 12556
 			}).then(() => {
-				expect(unicastScope.done()).to.be.true;
+				try {
+					expect(unicastScope.done()).to.be.true;
+				} catch(e) {
+					console.log('broadcastScope was not called');
+					expect(false).to.be.true;
+					done();
+				}
 				let msg = JSON.parse(unicastScope.buffer.toString());
 				expect(msg.type).to.equal('config');
 				done();
 			});
-		});
 	});
 });
 

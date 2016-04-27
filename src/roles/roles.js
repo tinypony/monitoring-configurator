@@ -33,10 +33,6 @@ class Role {
 		return defer.promise;
 	}
 
-	shouldProcess(msg) {
-		return false;
-	}
-
 	onStop() {
 		var defer = q.defer();
 		defer.resolve();
@@ -45,25 +41,25 @@ class Role {
 
 	handleHello(msg) {
 		var defer = q.defer();
-		defer.resolve();
+		defer.resolve(msg);
 		return defer.promise;
 	}
 
 	handleConfig(msg) {
 		var defer = q.defer();
-		defer.resolve();
+		defer.resolve(msg);
 		return defer.promise;
 	}
 
 	handleReconfig(msg) {
 		var defer = q.defer();
-		defer.resolve();
+		defer.resolve(msg);
 		return defer.promise;
 	}
 
 	handleSubscribe() {
 		var defer = q.defer();
-		defer.resolve();
+		defer.resolve(msg);
 		return defer.promise;
 	}
 

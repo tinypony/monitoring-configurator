@@ -39,7 +39,7 @@ class DatasinkRole extends Role {
 
 	handleHello(msg) {
 		if(!this.isDatasink()) {
-			return super.handleHello(); //does nothing just returns resolved promise
+			return super.handleHello(msg); //does nothing just returns resolved promise
 		}
 
 		var defer = q.defer();
@@ -62,7 +62,7 @@ class DatasinkRole extends Role {
 					if(err) {
 						return defer.reject(err);
 					} 
-					defer.resolve();
+					defer.resolve(msg);
 				}
 			);
 		}
@@ -72,18 +72,18 @@ class DatasinkRole extends Role {
 
 	handleSubscribe(msg) {
 		if(!this.isDatasink) {
-			return super.handleSubscribe(); //does nothing just returns resolved promise
+			return super.handleSubscribe(msg); //does nothing just returns resolved promise
 		}
 
 		var defer = q.defer();
 		this.logger.info('let\'s subscribe');
 
 		if(_.isEmpty(msg.endpoints)) {
-			defer.resolve();
+			defer.resolve(msg);
 		}
 
 		var callback = _.after(msg.endpoints.length, () => {
-			defer.resolve();
+			defer.resolve(msg);
 		});
 
 		_.each(msg.endpoints, (ep) => {

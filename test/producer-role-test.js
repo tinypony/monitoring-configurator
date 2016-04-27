@@ -54,16 +54,16 @@ describe('Producer role', () => {
 	});
 
 	it('Handles config message', (done) => {
-		d.hasStarted.then(() => {
-			d.handleUnicastMessage({
-				type: 'config',
+		d.handleUnicastMessage({
+			type: 'config',
+			host: '10.0.0.10',
+			port: 1337,
+			monitoring: {
 				host: '10.0.0.10',
-				port: 1337,
-				monitoring: {
-					host: '10.0.0.10',
-					port: 2181
-				}
-			});
+				port: 2181
+			}
+		}).then(()=>{
+			console.log('handle unicast');
 			expect(spy.calledOnce).to.be.true;
 			expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.host', '10.0.0.10');
 			expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.port', 2181);
@@ -73,16 +73,15 @@ describe('Producer role', () => {
 	});
 
 	it('Handles reconfig message', (done) => {
-		d.hasStarted.then(() => {
-			d.handleBroadcastMessage({
-				type: 'reconfig',
+		d.handleBroadcastMessage({
+			type: 'reconfig',
+			host: '10.0.0.10',
+			port: 1337,
+			monitoring: {
 				host: '10.0.0.10',
-				port: 1337,
-				monitoring: {
-					host: '10.0.0.10',
-					port: 2181
-				}
-			});
+				port: 2181
+			}
+		}).then(() => {
 			expect(spy.calledOnce).to.be.true;
 			expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.host', '10.0.0.10');
 			expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.port', 2181);

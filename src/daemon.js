@@ -85,20 +85,20 @@ class ConfigurationDaemon {
 		this.forwarder = new Forwarder(config);
 	}
 
+	getRoleFunctions(func) {
+		return this.roles.map((r) => {
+			return r[func].bind(r);
+		});
+	}
 
 	onStartListening() {
 		this.bc_socket.setBroadcast(true);
-		var defer = q.defer();
-		defer.resolve();
-		var promise = defer.promise;
+		var funcs = this.getRoleFunctions('onStart');
+		funcs.push(() => { this.hasStartedDefer.resolve(); });
 
-		_.each(this.roles, (r) => {
-			promise = promise.then(r.onStart());
-		});
-
-		promise.then(() => {
-			this.hasStartedDefer.resolve();
-		});
+		return funcs.reduce((promise, f) => {
+			return promise.then(f);
+		}, q());
 	}
 
 	getBroadcastAddress() {
@@ -119,15 +119,11 @@ class ConfigurationDaemon {
 	}
 
 	handleInChain(msg, func) {
-		var defer = q.defer();
-		defer.resolve();
-		var promise = defer.promise;
+		var funcs = this.getRoleFunctions(func);
 
-		_.each(this.roles, (r) => {
-			promise = promise.then( r[func].call(r, msg) );
-		});
-
-		return promise;
+		return funcs.reduce((promise, f) => {
+			return promise.then(f);
+		}, q(msg));
 	}
 
 	handleHello(msg) {

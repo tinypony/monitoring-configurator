@@ -49,56 +49,52 @@ describe('Consumer role', () => {
 	});
 
 	it('Handles config message', (done) => {
-		d.hasStarted.then(() => {
-			d.handleUnicastMessage({
-				type: 'config',
+		d.handleUnicastMessage({
+			type: 'config',
+			host: '10.0.0.1',
+			port: 12556,
+			monitoring: {
 				host: '10.0.0.1',
-				port: 12556,
-				monitoring: {
-					host: '10.0.0.1',
-					port: 2181
-				}
-			}).then(() => {
-				try {
-					expect(unicastScope.done()).to.be.true;
-				} catch(e) {
-					console.log('Unicast scope was not called');
-					expect(false).to.be.true;
-					done();
-					return;
-				}
-
-				let msg = JSON.parse(unicastScope.buffer.toString());
-				expect(msg.type).to.equal('subscribe');
-				expect(msg.port).to.equal(consumerConf.unicast.port);
-				expect(msg.endpoints.length).to.equal(1);
-				expect(msg.endpoints[0].topics.length).to.equal(2);
-				expect(msg.endpoints[0].port).to.equal(10000);
+				port: 2181
+			}
+		}).then(() => {
+			try {
+				expect(unicastScope.done()).to.be.true;
+			} catch(e) {
+				console.log('Unicast scope was not called');
+				expect(false).to.be.true;
 				done();
-			});
+				return;
+			}
+
+			let msg = JSON.parse(unicastScope.buffer.toString());
+			expect(msg.type).to.equal('subscribe');
+			expect(msg.port).to.equal(consumerConf.unicast.port);
+			expect(msg.endpoints.length).to.equal(1);
+			expect(msg.endpoints[0].topics.length).to.equal(2);
+			expect(msg.endpoints[0].port).to.equal(10000);
+			done();
 		});
 	});
 
 	it('Handles reconfig message', (done) => {
-		d.hasStarted.then(() => {
-			d.handleBroadcastMessage({
-				type: 'reconfig',
+		d.handleBroadcastMessage({
+			type: 'reconfig',
+			host: '10.0.0.1',
+			port: 12556,
+			monitoring: {
 				host: '10.0.0.1',
-				port: 12556,
-				monitoring: {
-					host: '10.0.0.1',
-					port: 2181
-				}
-			}).then(() => {
-				expect(unicastScope.done()).to.be.true;
-				let msg = JSON.parse(unicastScope.buffer.toString());
-				expect(msg.type).to.equal('subscribe');
-				expect(msg.port).to.equal(consumerConf.unicast.port);
-				expect(msg.endpoints.length).to.equal(1);
-				expect(msg.endpoints[0].topics.length).to.equal(2);
-				expect(msg.endpoints[0].port).to.equal(10000);
-				done();
-			});
+				port: 2181
+			}
+		}).then(() => {
+			expect(unicastScope.done()).to.be.true;
+			let msg = JSON.parse(unicastScope.buffer.toString());
+			expect(msg.type).to.equal('subscribe');
+			expect(msg.port).to.equal(consumerConf.unicast.port);
+			expect(msg.endpoints.length).to.equal(1);
+			expect(msg.endpoints[0].topics.length).to.equal(2);
+			expect(msg.endpoints[0].port).to.equal(10000);
+			done();
 		});
 	});
 });
