@@ -55,7 +55,6 @@ class Forwarder {
 		var createConnection = () => {
 			var connectionString = this.forwardToAddress + ':' + this.forwardToPort;
 			this.logger.info('Create zookeeper connection to %s', connectionString);
-
 			var client = new Client(connectionString, this.id);
 			var producer = new HighLevelProducer(client);
 			

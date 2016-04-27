@@ -33,46 +33,67 @@ describe('Hybrid (producer/consumer) role', () => {
 	let broadcastScope;
 	let unicastScope;
 	let d;
-	let spy;
+	let socketSpy;
+	let forwarderSpy;
 
 	beforeEach(() => {
 		broadcastScope  = mockudp('10.0.255.255:12555');
-		unicastScope = mockudp('10.0.0.1:12556');
-
-		spy = sinon.spy(Socket.prototype, 'send');
+		unicastScope = mockudp('10.0.0.10:1337');
+		socketSpy = sinon.spy(Socket.prototype, 'send');
+		forwarderSpy = sinon.spy(Forwarder.prototype, 'reconfig');
 		d = new Daemon(producerConf, 12555);
 	});
 
 	afterEach(() => {
 		Socket.prototype.send.restore();
+		Forwarder.prototype.reconfig.restore();
 		d.close();
 	});
 
 	it('Broadcasts hello message once on start', (done) => {
 		d.hasStarted.then(() => {
-			expect(spy.callCount).to.equal(1);
+			expect(socketSpy.callCount).to.equal(1);
 			done();
 		});
 	});
 
-	// it('Handles config message', (done) => {
-	// 	d.hasStarted.then(() => {
-	// 		d.handleUnicastMessage({
-	// 			type: 'config',
-	// 			host: '10.0.0.10',
-	// 			port: 1337,
-	// 			monitoring: {
-	// 				host: '10.0.0.10',
-	// 				port: 2181
-	// 			}
-	// 		});
-	// 		expect(spy.calledOnce).to.be.true;
-	// 		expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.host', '10.0.0.10');
-	// 		expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.port', 2181);
+	it('handles config message for both consumer and producer', (done) => {
+		d.handleUnicastMessage({
+			type: 'config',
+			host: '10.0.0.10',
+			port: 1337,
+			monitoring: {
+				host: '10.0.0.10',
+				port: 2181
+			}
+		}).done(() => {
+			expect(forwarderSpy.calledOnce).to.be.true;
+			expect(forwarderSpy.getCall(0).args[0]).to.have.deep.property('monitoring.host', '10.0.0.10');
+			expect(forwarderSpy.getCall(0).args[0]).to.have.deep.property('monitoring.port', 2181);
 
-	// 		done();
-	// 	});
-	// });
+			//called once to send subscribe message (10.0.0.10:1337) and once to broadcast hello (10.0.255.255:12555)
+			expect(socketSpy.callCount).to.equal(2);
+
+			expect(socketSpy.calledWith(
+				sinon.match.any,
+				sinon.match.any,
+				sinon.match.any,
+				12555,
+				'10.0.255.255'
+			)).to.be.true;
+
+			expect(socketSpy.calledWith(
+				sinon.match.any,
+				sinon.match.any,
+				sinon.match.any,
+				1337,
+				'10.0.0.10'
+			)).to.be.true;
+
+
+			done();
+		});
+	});
 
 	// it('Handles reconfig message', (done) => {
 	// 	d.hasStarted.then(() => {

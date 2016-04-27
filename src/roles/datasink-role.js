@@ -77,7 +77,7 @@ class DatasinkRole extends Role {
 
 		var defer = q.defer();
 		this.logger.info('let\'s subscribe');
-
+		
 		if(_.isEmpty(msg.endpoints)) {
 			defer.resolve(msg);
 		}

@@ -55,7 +55,6 @@ class ProducerRole extends Role {
 		if(!this.isProducer()) {
 			return super.handleReconfig(msg);
 		}
-		console.log('Configure client with msg');
 		return this.configureClient(msg);
 	}
 
@@ -63,8 +62,6 @@ class ProducerRole extends Role {
 		if(!this.isProducer()) {
 			return super.handleReconfig(msg);
 		}
-				console.log('reConfigure client with msg');
-
 		return this.configureClient(msg);
 	}
 }

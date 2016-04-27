@@ -63,7 +63,6 @@ describe('Producer role', () => {
 				port: 2181
 			}
 		}).then(()=>{
-			console.log('handle unicast');
 			expect(spy.calledOnce).to.be.true;
 			expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.host', '10.0.0.10');
 			expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.port', 2181);
