@@ -12,11 +12,11 @@ class DatasinkRole extends Role {
 		}
 	}
 
-	onStart() {
-		if(!this.isDatasink()) {
-			return super.onStart();
-		}
+	isMe() {
+		return this.isDatasink();
+	}
 
+	onStart() {
 		var defer = q.defer();
 		var message = this.getReconfigureMessage();
 
@@ -71,10 +71,6 @@ class DatasinkRole extends Role {
 	}
 
 	handleSubscribe(msg) {
-		if(!this.isDatasink) {
-			return super.handleSubscribe(msg); //does nothing just returns resolved promise
-		}
-
 		var defer = q.defer();
 		this.logger.info('let\'s subscribe');
 		

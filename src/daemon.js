@@ -1,16 +1,17 @@
 var dgram = require('dgram');
-var _ = require('underscore');
 var Netmask = require('netmask').Netmask;
 var NODE_TYPE = require('./node-type.js');
 import Forwarder from './forwarder/forwarder.js';
 var KafkaForwarder = require('./kafka/kafka-forwarder.js');
 var uuid = require('node-uuid');
 var q = require('q');
+import _ from 'underscore'
 var winston = require('winston');
 
-import DatasinkRole from './roles/datasink-role.js';
-import ProducerRole from './roles/producer-role.js';
-import ConsumerRole from './roles/consumer-role.js';
+import DatasinkRole from './roles/datasink-role.js'
+import ProducerRole from './roles/producer-role.js'
+import ConsumerRole from './roles/consumer-role.js'
+import DatasinkSlaveRole from './roles/datasink-slave-role'
 
 
 function isValidPort(port) {
@@ -64,6 +65,7 @@ class ConfigurationDaemon {
 
 		this.roles = [
 			new DatasinkRole(this.initId, this.config, sockets),
+			new DatasinkSlaveRole(this.initId, this.config, sockets),
 			new ProducerRole(this.initId, this.config, sockets),
 			new ConsumerRole(this.initId, this.config, sockets)
 		];
@@ -86,9 +88,15 @@ class ConfigurationDaemon {
 	}
 
 	getRoleFunctions(func) {
-		return this.roles.map((r) => {
-			return r[func].bind(r);
+		var funcs = [];
+
+		_.each(this.roles, (r) => {
+			if(r.isMe()){
+				funcs.push(r[func].bind(r));
+			}
 		});
+
+		return funcs;
 	}
 
 	onStartListening() {

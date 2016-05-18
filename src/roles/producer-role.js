@@ -13,8 +13,12 @@ class ProducerRole extends Role {
 		}
 	}
 
+	isMe() {
+		return this.isProducer();
+	}
+
 	onStart(prev) {
-		if(!this.isProducer() || (prev && prev.hello_sent) ) {
+		if( prev && prev.hello_sent ) {
 			return super.onStart();
 		}
 
@@ -52,16 +56,10 @@ class ProducerRole extends Role {
 	}
 
 	handleConfig(msg) {
-		if(!this.isProducer()) {
-			return super.handleReconfig(msg);
-		}
 		return this.configureClient(msg);
 	}
 
 	handleReconfig(msg) {
-		if(!this.isProducer()) {
-			return super.handleReconfig(msg);
-		}
 		return this.configureClient(msg);
 	}
 }

@@ -1,23 +1,26 @@
-import Role from './roles';
-import q from 'q';
-import _ from 'underscore';
+import Role from './roles'
+import _ from 'underscore'
+import KafkaForwarder from '../kafka/kafka-forwarder.js'
+import q from 'q'
+import { exec } from 'child_process'
 
-class ConsumerRole extends Role {
+class DatasinkSlaveRole extends Role {
 	constructor(initId, config, sockets) {
 		super(initId, config, sockets);
 	}
 
 	isMe() {
-		return this.isConsumer();
+		return this.isDatasinkSlave();
 	}
 
 	onStart(prev) {
-		if( prev && prev.hello_sent ) {
+		if(!this.isDatasinkSlave() || (prev && prev.hello_sent) ) {
 			return super.onStart();
 		}
 
 		var defer = q.defer();
 		let message = this.getHelloMessage();
+
 
 		this.sockets.broadcast.send(
 			new Buffer(message), 
@@ -36,8 +39,17 @@ class ConsumerRole extends Role {
 				}
 			}
 		);
-
 		return defer.promise;
+	}
+
+	modifyKafkaConfig(zookeeper_host, zookeeper_port) {
+		exec('/opt/monitoring-configurator/lifecycle/on_configuration_receive.sh ' + zookeeper_host + ' ' + zookeeper_port,
+			(error, stdout, stderr) => {
+			    if (error !== null) {
+			      return;// this.logger.warn(error);
+			    }
+			    this.logger.info('Kafka reconfigured');
+			});
 	}
 
 	configureClient(msg) {
@@ -50,33 +62,25 @@ class ConsumerRole extends Role {
 			return defer.promise;
 		}
 
-		var subscribeMsg = this.getSubscribeMessage();
+		this.modifyKafkaConfig(msg.monitoring.host, msg.monitoring.port);
 
-		this.sockets.unicast.send(
-			new Buffer(subscribeMsg),
-			0,
-			subscribeMsg.length,
-			msg.port,
-			msg.host, 
-			(e) => {
-				if(e) {
-					this.logger.warn(JSON.stringify(e));
-					return defer.reject(e);
-				}
-				defer.resolve(msg);
-			}
-		);
-
+		defer.resolve();
 		return defer.promise;
 	}
 
 	handleConfig(msg) {
+		if(!this.isDatasinkSlave()) {
+			return super.handleConfig();
+		}
 		return this.configureClient(msg);
 	}
 
 	handleReconfig(msg) {
+		if(!this.isDatasinkSlave()) {
+			return super.handleReconfig();
+		}
 		return this.configureClient(msg);
 	}
 }
 
-export default ConsumerRole;
+export default DatasinkSlaveRole;

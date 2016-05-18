@@ -15,6 +15,10 @@ class Role {
 		return _.contains(this.config.roles, NODE_TYPE.DATASINK);
 	}
 
+	isDatasinkSlave() {
+		return _.contains(this.config.roles, NODE_TYPE.DATASINK_SLAVE);
+	}
+
 	isProducer() {
 		return _.contains(this.config.roles, NODE_TYPE.PRODUCER);
 	}
