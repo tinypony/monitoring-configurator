@@ -43,13 +43,14 @@ var DatasinkRole = function (_Role) {
 	}
 
 	_createClass(DatasinkRole, [{
+		key: 'isMe',
+		value: function isMe() {
+			return this.isDatasink();
+		}
+	}, {
 		key: 'onStart',
 		value: function onStart() {
 			var _this2 = this;
-
-			if (!this.isDatasink()) {
-				return _get(Object.getPrototypeOf(DatasinkRole.prototype), 'onStart', this).call(this);
-			}
 
 			var defer = _q2.default.defer();
 			var message = this.getReconfigureMessage();
@@ -67,7 +68,7 @@ var DatasinkRole = function (_Role) {
 		key: 'handleHello',
 		value: function handleHello(msg) {
 			if (!this.isDatasink()) {
-				return _get(Object.getPrototypeOf(DatasinkRole.prototype), 'handleHello', this).call(this); //does nothing just returns resolved promise
+				return _get(Object.getPrototypeOf(DatasinkRole.prototype), 'handleHello', this).call(this, msg); //does nothing just returns resolved promise
 			}
 
 			var defer = _q2.default.defer();
@@ -84,7 +85,7 @@ var DatasinkRole = function (_Role) {
 					if (err) {
 						return defer.reject(err);
 					}
-					defer.resolve();
+					defer.resolve(msg);
 				});
 			}
 
@@ -95,19 +96,15 @@ var DatasinkRole = function (_Role) {
 		value: function handleSubscribe(msg) {
 			var _this3 = this;
 
-			if (!this.isDatasink) {
-				return _get(Object.getPrototypeOf(DatasinkRole.prototype), 'handleSubscribe', this).call(this); //does nothing just returns resolved promise
-			}
-
 			var defer = _q2.default.defer();
 			this.logger.info('let\'s subscribe');
 
 			if (_.isEmpty(msg.endpoints)) {
-				defer.resolve();
+				defer.resolve(msg);
 			}
 
 			var callback = _.after(msg.endpoints.length, function () {
-				defer.resolve();
+				defer.resolve(msg);
 			});
 
 			_.each(msg.endpoints, function (ep) {

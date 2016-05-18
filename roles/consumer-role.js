@@ -38,11 +38,16 @@ var ConsumerRole = function (_Role) {
 	}
 
 	_createClass(ConsumerRole, [{
+		key: 'isMe',
+		value: function isMe() {
+			return this.isConsumer();
+		}
+	}, {
 		key: 'onStart',
 		value: function onStart(prev) {
 			var _this2 = this;
 
-			if (!this.isConsumer() || prev && prev.hello_sent) {
+			if (prev && prev.hello_sent) {
 				return _get(Object.getPrototypeOf(ConsumerRole.prototype), 'onStart', this).call(this);
 			}
 
@@ -83,7 +88,7 @@ var ConsumerRole = function (_Role) {
 					_this3.logger.warn(JSON.stringify(e));
 					return defer.reject(e);
 				}
-				defer.resolve();
+				defer.resolve(msg);
 			});
 
 			return defer.promise;
@@ -91,17 +96,11 @@ var ConsumerRole = function (_Role) {
 	}, {
 		key: 'handleConfig',
 		value: function handleConfig(msg) {
-			if (!this.isConsumer()) {
-				return _get(Object.getPrototypeOf(ConsumerRole.prototype), 'handleConfig', this).call(this);
-			}
 			return this.configureClient(msg);
 		}
 	}, {
 		key: 'handleReconfig',
 		value: function handleReconfig(msg) {
-			if (!this.isConsumer()) {
-				return _get(Object.getPrototypeOf(ConsumerRole.prototype), 'handleReconfig', this).call(this);
-			}
 			return this.configureClient(msg);
 		}
 	}]);

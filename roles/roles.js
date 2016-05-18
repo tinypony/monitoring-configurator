@@ -34,6 +34,11 @@ var Role = function () {
 			return _.contains(this.config.roles, _nodeType2.default.DATASINK);
 		}
 	}, {
+		key: 'isDatasinkSlave',
+		value: function isDatasinkSlave() {
+			return _.contains(this.config.roles, _nodeType2.default.DATASINK_SLAVE);
+		}
+	}, {
 		key: 'isProducer',
 		value: function isProducer() {
 			return _.contains(this.config.roles, _nodeType2.default.PRODUCER);
@@ -56,11 +61,6 @@ var Role = function () {
 			return defer.promise;
 		}
 	}, {
-		key: 'shouldProcess',
-		value: function shouldProcess(msg) {
-			return false;
-		}
-	}, {
 		key: 'onStop',
 		value: function onStop() {
 			var defer = q.defer();
@@ -71,28 +71,28 @@ var Role = function () {
 		key: 'handleHello',
 		value: function handleHello(msg) {
 			var defer = q.defer();
-			defer.resolve();
+			defer.resolve(msg);
 			return defer.promise;
 		}
 	}, {
 		key: 'handleConfig',
 		value: function handleConfig(msg) {
 			var defer = q.defer();
-			defer.resolve();
+			defer.resolve(msg);
 			return defer.promise;
 		}
 	}, {
 		key: 'handleReconfig',
 		value: function handleReconfig(msg) {
 			var defer = q.defer();
-			defer.resolve();
+			defer.resolve(msg);
 			return defer.promise;
 		}
 	}, {
 		key: 'handleSubscribe',
 		value: function handleSubscribe() {
 			var defer = q.defer();
-			defer.resolve();
+			defer.resolve(msg);
 			return defer.promise;
 		}
 	}, {

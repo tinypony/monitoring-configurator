@@ -10,22 +10,42 @@ var _forwarder = require('./forwarder/forwarder.js');
 
 var _forwarder2 = _interopRequireDefault(_forwarder);
 
+var _underscore = require('underscore');
+
+var _underscore2 = _interopRequireDefault(_underscore);
+
+var _datasinkRole = require('./roles/datasink-role.js');
+
+var _datasinkRole2 = _interopRequireDefault(_datasinkRole);
+
+var _producerRole = require('./roles/producer-role.js');
+
+var _producerRole2 = _interopRequireDefault(_producerRole);
+
+var _consumerRole = require('./roles/consumer-role.js');
+
+var _consumerRole2 = _interopRequireDefault(_consumerRole);
+
+var _datasinkSlaveRole = require('./roles/datasink-slave-role');
+
+var _datasinkSlaveRole2 = _interopRequireDefault(_datasinkSlaveRole);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var dgram = require('dgram');
-var _ = require('underscore');
 var Netmask = require('netmask').Netmask;
 var NODE_TYPE = require('./node-type.js');
 
 var KafkaForwarder = require('./kafka/kafka-forwarder.js');
 var uuid = require('node-uuid');
 var q = require('q');
+
 var winston = require('winston');
 
 function isValidPort(port) {
-	return _.isNumber(port) && port > 0 && port < 65535;
+	return _underscore2.default.isNumber(port) && port > 0 && port < 65535;
 }
 
 var ConfigurationDaemon = function () {
@@ -41,6 +61,7 @@ var ConfigurationDaemon = function () {
 		}
 
 		this.config = config;
+		this.config.broadcastPort = broadcastPort;
 		this.address = null;
 		this.initId = uuid.v4();
 
@@ -63,12 +84,19 @@ var ConfigurationDaemon = function () {
 		//Attach message handlers
 		this.bc_socket.on('message', this.getMessageHandler(true).bind(this));
 		this.uc_socket.on('message', this.getMessageHandler(false).bind(this));
-		this.logger.info('sd');
 
 		//bind sockets and attach on listen
 		this.bc_socket.bind(this.broadcastPort, '0.0.0.0');
 		this.uc_socket.bind(this.config.unicast.port, '0.0.0.0');
 		this.bc_socket.on('listening', this.onStartListening.bind(this));
+
+		var sockets = {
+			unicast: this.uc_socket,
+			broadcast: this.bc_socket
+		};
+
+		this.roles = [new _datasinkRole2.default(this.initId, this.config, sockets), new _datasinkSlaveRole2.default(this.initId, this.config, sockets), new _producerRole2.default(this.initId, this.config, sockets), new _consumerRole2.default(this.initId, this.config, sockets)];
+
 		this.hasStartedDefer = q.defer();
 		this.hasStarted = this.hasStartedDefer.promise;
 	}
@@ -87,29 +115,32 @@ var ConfigurationDaemon = function () {
 			this.forwarder = new _forwarder2.default(config);
 		}
 	}, {
+		key: 'getRoleFunctions',
+		value: function getRoleFunctions(func) {
+			var funcs = [];
+
+			_underscore2.default.each(this.roles, function (r) {
+				if (r.isMe()) {
+					funcs.push(r[func].bind(r));
+				}
+			});
+
+			return funcs;
+		}
+	}, {
 		key: 'onStartListening',
 		value: function onStartListening() {
 			var _this = this;
 
 			this.bc_socket.setBroadcast(true);
-			var message;
-
-			//send message on start depending on node type
-			if (this.isDatasink()) {
-				message = this.getReconfigureMessage();
-			} else if (this.isProducer() || this.isConsumer()) {
-				message = this.getHelloMessage();
-			} else {
-				return;
-			}
-
-			this.bc_socket.send(new Buffer(message), 0, message.length, this.broadcastPort, this.getBroadcastAddress(), function (err) {
-				if (err) {
-					_this.logger.warn(err);
-					return _this.hasStartedDefer.reject(err);
-				}
+			var funcs = this.getRoleFunctions('onStart');
+			funcs.push(function () {
 				_this.hasStartedDefer.resolve();
 			});
+
+			return funcs.reduce(function (promise, f) {
+				return promise.then(f);
+			}, q());
 		}
 	}, {
 		key: 'getBroadcastAddress',
@@ -120,105 +151,46 @@ var ConfigurationDaemon = function () {
 	}, {
 		key: 'isDatasink',
 		value: function isDatasink() {
-			return _.contains(this.config.roles, NODE_TYPE.DATASINK);
+			return _underscore2.default.contains(this.config.roles, NODE_TYPE.DATASINK);
 		}
 	}, {
 		key: 'isProducer',
 		value: function isProducer() {
-			return _.contains(this.config.roles, NODE_TYPE.PRODUCER);
+			return _underscore2.default.contains(this.config.roles, NODE_TYPE.PRODUCER);
 		}
 	}, {
 		key: 'isConsumer',
 		value: function isConsumer() {
-			return _.contains(this.config.roles, NODE_TYPE.CONSUMER);
+			return _underscore2.default.contains(this.config.roles, NODE_TYPE.CONSUMER);
+		}
+	}, {
+		key: 'handleInChain',
+		value: function handleInChain(msg, func) {
+			var funcs = this.getRoleFunctions(func);
+
+			return funcs.reduce(function (promise, f) {
+				return promise.then(f);
+			}, q(msg));
 		}
 	}, {
 		key: 'handleHello',
 		value: function handleHello(msg) {
-			var defer = q.defer();
-			if (this.initId && msg.uuid === this.initId) {
-				this.address = msg.host;
-				this.initId = null;
-			}
-
-			if (this.isDatasink()) {
-				var configMessage = this.getConfigureMessage();
-
-				this.uc_socket.send(new Buffer(configMessage), 0, configMessage.length, msg.port, msg.host, function (err) {
-					if (err) {
-						return defer.reject(err);
-					}
-					defer.resolve();
-				});
-			}
-
-			return defer.promise;
+			return this.handleInChain(msg, 'handleHello');
 		}
 	}, {
 		key: 'handleSubscribe',
 		value: function handleSubscribe(msg) {
-			var _this2 = this;
-
-			if (this.isDatasink()) {
-				this.logger.info('let\'s subscribe');
-
-				_.each(msg.endpoints, function (ep) {
-					_this2.logger.info('wire %s to %s:%d', ep.topics.join(","), msg.host, ep.port);
-					ep.host = msg.host;
-					ep.unicastport = msg.port;
-					_this2.kafkaForwarder.subscribe(ep);
-				});
-			}
+			return this.handleInChain(msg, 'handleSubscribe');
 		}
 	}, {
-		key: 'handleBroadcastMessage',
-		value: function handleBroadcastMessage(msg) {
-			if (msg.type === 'hello') {
-				return this.handleHello(msg);
-			}
-
-			//Every type of node is being monitored and needs to be reconfigured
-			if (msg.type === 'reconfig' && (this.isProducer() || this.isConsumer())) {
-				return this.configureClient(msg);
-			}
+		key: 'handleReconfig',
+		value: function handleReconfig(msg) {
+			return this.handleInChain(msg, 'handleReconfig');
 		}
 	}, {
-		key: 'configureClient',
-		value: function configureClient(msg) {
-			var _this3 = this;
-
-			var defer = q.defer();
-
-			if (this.isProducer() || this.isConsumer()) {
-				this.logger.info('configure client with ' + JSON.stringify(msg));
-				this.config.monitoring = _.extend(this.config.monitoring, msg.monitoring);
-
-				if (this.isProducer()) {
-					this.forwarder.reconfig(this.config);
-					defer.resolve();
-				}
-
-				if (this.isConsumer()) {
-					if (!isValidPort(msg.port)) {
-						this.logger.info('trying to send subscription message to an invalid port');
-						return defer.reject();
-					}
-					var subscribeMsg = this.getSubscribeMessage();
-
-					this.uc_socket.send(new Buffer(subscribeMsg), 0, subscribeMsg.length, msg.port, msg.host, function (e) {
-						if (e) {
-							_this3.logger.warn(JSON.stringify(e));
-							return defer.reject(e);
-						}
-						defer.resolve();
-						_this3.logger.info('Sent subscribe request to ' + msg.host + ":" + msg.port);
-					});
-				}
-			} else {
-				defer.reject('nothing to configure');
-			}
-
-			return defer.promise;
+		key: 'handleConfig',
+		value: function handleConfig(msg) {
+			return this.handleInChain(msg, 'handleConfig');
 		}
 	}, {
 		key: 'close',
@@ -233,11 +205,23 @@ var ConfigurationDaemon = function () {
 		key: 'handleUnicastMessage',
 		value: function handleUnicastMessage(msg) {
 			if (msg.type === 'config') {
-				return this.configureClient(msg);
+				return this.handleConfig(msg);
 			}
 
 			if (msg.type === 'subscribe') {
 				return this.handleSubscribe(msg);
+			}
+		}
+	}, {
+		key: 'handleBroadcastMessage',
+		value: function handleBroadcastMessage(msg) {
+			if (msg.type === 'hello') {
+				return this.handleHello(msg);
+			}
+
+			//Every type of node is being monitored and needs to be reconfigured
+			if (msg.type === 'reconfig') {
+				return this.handleReconfig(msg);
 			}
 		}
 	}, {
@@ -256,87 +240,21 @@ var ConfigurationDaemon = function () {
 	}, {
 		key: 'getMessageHandler',
 		value: function getMessageHandler(isBroadcast) {
-			var _this4 = this;
+			var _this2 = this;
 
 			return function (data, rinfo) {
 				var dataString = data.toString();
 
 				try {
 					var msg = JSON.parse(dataString);
-					msg = _this4.preprocessMessage(msg, rinfo);
+					msg = _this2.preprocessMessage(msg, rinfo);
 
-					if (isBroadcast) _this4.handleBroadcastMessage(msg);else _this4.handleUnicastMessage(msg);
+					if (isBroadcast) _this2.handleBroadcastMessage(msg);else _this2.handleUnicastMessage(msg);
 				} catch (e) {
 					//silent skip
-					_this4.logger.info("Could not parse incoming data, probably malformed");
+					_this2.logger.info("Could not parse incoming data, probably malformed");
 				}
 			};
-		}
-	}, {
-		key: 'getReconfigureMessage',
-		value: function getReconfigureMessage() {
-			var msg = {
-				type: 'reconfig',
-				host: 'self',
-				port: this.config.unicast.port,
-				monitoring: {
-					host: 'self',
-					port: this.config.monitoring.port,
-					keystone: this.config.monitoring.keystone
-				}
-			};
-
-			return JSON.stringify(msg);
-		}
-	}, {
-		key: 'getConfigureMessage',
-		value: function getConfigureMessage() {
-			var msg = {
-				type: 'config',
-				host: 'self',
-				port: this.config.unicast.port,
-				monitoring: {
-					host: 'self',
-					port: this.config.monitoring.port
-				}
-			};
-
-			return JSON.stringify(msg);
-		}
-	}, {
-		key: 'getHelloMessage',
-		value: function getHelloMessage() {
-			var msg = {
-				type: 'hello',
-				uuid: this.initId,
-				host: 'self',
-				port: this.config.unicast.port
-			};
-
-			return JSON.stringify(msg);
-		}
-	}, {
-		key: 'getSubscribeMessage',
-		value: function getSubscribeMessage() {
-			var msg = {
-				type: 'subscribe',
-				host: 'self',
-				port: this.config.unicast.port,
-				endpoints: this.config.consumers
-			};
-
-			return JSON.stringify(msg);
-		}
-	}, {
-		key: 'getPongMessage',
-		value: function getPongMessage() {
-			var msg = {
-				type: 'pong',
-				host: 'self',
-				port: this.config.unicast.port
-			};
-
-			return JSON.stringify(msg);
 		}
 	}]);
 

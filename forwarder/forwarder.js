@@ -58,6 +58,8 @@ var Forwarder = function () {
 	_createClass(Forwarder, [{
 		key: 'reconfig',
 		value: function reconfig(config) {
+			var _this2 = this;
+
 			if (!isValidPort(config.monitoring.port)) {
 				this.logger.info('trying to configure forwarder with an invalid port');
 				return;
@@ -67,14 +69,10 @@ var Forwarder = function () {
 			this.forwardToPort = config.monitoring.port;
 			this.logger.info('[Forwarder] Reconfiguring forwarder');
 
-			function createConnection() {
-				var _this2 = this;
-
-				var self = this;
-				var connectionString = this.forwardToAddress + ':' + this.forwardToPort;
-				this.logger.info('Create zookeeper connection to %s', connectionString);
-
-				var client = new _kafkaNode.Client(connectionString, this.id);
+			var createConnection = function createConnection() {
+				var connectionString = _this2.forwardToAddress + ':' + _this2.forwardToPort;
+				_this2.logger.info('Create zookeeper connection to %s', connectionString);
+				var client = new _kafkaNode.Client(connectionString, _this2.id);
 				var producer = new _kafkaNode.HighLevelProducer(client);
 
 				producer.on('ready', function () {
@@ -87,13 +85,13 @@ var Forwarder = function () {
 					_this2.logger.warn('[Kafka producer] Error: %s', JSON.stringify(err));
 				});
 
-				this.logger.info('[Forwarder] Created producer');
-			}
+				_this2.logger.info('[Forwarder] Created producer');
+			};
 
 			if (this.client) {
-				this.client.close(createConnection.bind(this));
+				this.client.close(createConnection);
 			} else {
-				createConnection.call(this);
+				createConnection();
 			}
 		}
 	}, {
@@ -110,7 +108,6 @@ var Forwarder = function () {
 			});
 
 			if (!this.forwardToPort || !this.forwardToAddress || !this.producer) {
-				//this.logger.info('[Forwarder] No producer');
 				return;
 			}
 
