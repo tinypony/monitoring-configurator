@@ -1,7 +1,7 @@
 import dgram from 'dgram'
 import _ from 'underscore'
 import winston from 'winston'
-import { Client, HighLevelProducer } from 'kafka-node'
+import { Client, HighLevelConsumer } from 'kafka-node'
 
 var firstMessageLogged = false;
 
@@ -43,10 +43,10 @@ class KafkaForwarder {
 		 	host, 
 		 	function(err) {
 		 		if (err) return this.logger.warn(err);
-		 		//if (!firstMessageLogged) {
+		 		if (!firstMessageLogged) {
 		 			this.logger.info('Sent message "%s" to subscribed client %s:%d', msg, host, port);
 		 			firstMessageLogged = true;
-		 		//}
+		 		}
 		 	}.bind(this)
 		);
 	}
@@ -120,7 +120,6 @@ class KafkaForwarder {
 		});
 
 		consumer.on('message', (msg) => {
-			this.logger.info('[KafkaForwarder] relay message');
 			if(!msg.value) {
 				this.logger.warn('[KafkaForwarder] message empty, drop');
 

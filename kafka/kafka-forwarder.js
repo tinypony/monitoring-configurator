@@ -64,10 +64,10 @@ var KafkaForwarder = function () {
 		value: function send(msg, host, port) {
 			this.ou_socket.send(new Buffer(msg), 0, msg.length, port, host, function (err) {
 				if (err) return this.logger.warn(err);
-				//if (!firstMessageLogged) {
-				this.logger.info('Sent message "%s" to subscribed client %s:%d', msg, host, port);
-				firstMessageLogged = true;
-				//}
+				if (!firstMessageLogged) {
+					this.logger.info('Sent message "%s" to subscribed client %s:%d', msg, host, port);
+					firstMessageLogged = true;
+				}
 			}.bind(this));
 		}
 	}, {
@@ -123,7 +123,7 @@ var KafkaForwarder = function () {
 			});
 
 			this.logger.info('[KafkaForwarder] creating consumer');
-			var consumer = new HighLevelConsumer(client, payloads, {
+			var consumer = new _kafkaNode.HighLevelConsumer(client, payloads, {
 				autoCommit: true,
 				autoCommitIntervalMs: 5000,
 				encoding: 'utf8'
@@ -147,7 +147,6 @@ var KafkaForwarder = function () {
 			});
 
 			consumer.on('message', function (msg) {
-				_this.logger.info('[KafkaForwarder] relay message');
 				if (!msg.value) {
 					_this.logger.warn('[KafkaForwarder] message empty, drop');
 
