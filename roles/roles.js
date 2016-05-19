@@ -12,6 +12,10 @@ var _nodeType2 = _interopRequireDefault(_nodeType);
 
 var _netmask = require('netmask');
 
+var _winston = require('winston');
+
+var _winston2 = _interopRequireDefault(_winston);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -26,9 +30,23 @@ var Role = function () {
 		this.initId = initId;
 		this.config = config;
 		this.sockets = sockets;
+		this.logger = this.getLogger();
 	}
 
 	_createClass(Role, [{
+		key: 'getLogger',
+		value: function getLogger() {
+			var logger = new _winston2.default.Logger({
+				transports: [new _winston2.default.transports.Console({ level: 'info' })]
+			});
+
+			if (this.config.logging && this.config.logging.disable) {
+				logger.remove(_winston2.default.transports.Console);
+			}
+
+			return logger;
+		}
+	}, {
 		key: 'isDatasink',
 		value: function isDatasink() {
 			return _.contains(this.config.roles, _nodeType2.default.DATASINK);

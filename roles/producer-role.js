@@ -82,7 +82,7 @@ var ProducerRole = function (_Role) {
 			var defer = _q2.default.defer();
 			this.config.monitoring = _underscore2.default.extend(this.config.monitoring, msg.monitoring);
 			this.forwarder.reconfig(this.config);
-
+			this.logger.info('Producer has be configured with ' + JSON.stringify(msg));
 			defer.resolve(msg);
 			return defer.promise;
 		}

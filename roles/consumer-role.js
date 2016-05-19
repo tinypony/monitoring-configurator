@@ -80,7 +80,7 @@ var ConsumerRole = function (_Role) {
 				defer.reject();
 				return defer.promise;
 			}
-
+			this.logger.info('Consumer received configuration ' + JSON.stringify(msg));
 			var subscribeMsg = this.getSubscribeMessage();
 
 			this.sockets.unicast.send(new Buffer(subscribeMsg), 0, subscribeMsg.length, msg.port, msg.host, function (e) {
@@ -88,6 +88,7 @@ var ConsumerRole = function (_Role) {
 					_this3.logger.warn(JSON.stringify(e));
 					return defer.reject(e);
 				}
+				_this3.logger.info('Subscribed with ' + subscribeMsg);
 				defer.resolve(msg);
 			});
 

@@ -14,6 +14,10 @@ var _underscore = require('underscore');
 
 var _underscore2 = _interopRequireDefault(_underscore);
 
+var _winston = require('winston');
+
+var _winston2 = _interopRequireDefault(_winston);
+
 var _datasinkRole = require('./roles/datasink-role.js');
 
 var _datasinkRole2 = _interopRequireDefault(_datasinkRole);
@@ -42,8 +46,6 @@ var KafkaForwarder = require('./kafka/kafka-forwarder.js');
 var uuid = require('node-uuid');
 var q = require('q');
 
-var winston = require('winston');
-
 function isValidPort(port) {
 	return _underscore2.default.isNumber(port) && port > 0 && port < 65535;
 }
@@ -52,12 +54,12 @@ var ConfigurationDaemon = function () {
 	function ConfigurationDaemon(config, broadcastPort) {
 		_classCallCheck(this, ConfigurationDaemon);
 
-		this.logger = new winston.Logger({
-			transports: [new winston.transports.Console()]
+		this.logger = new _winston2.default.Logger({
+			transports: [new _winston2.default.transports.Console()]
 		});
 
 		if (config.logging && config.logging.disable) {
-			this.logger.remove(winston.transports.Console);
+			this.logger.remove(_winston2.default.transports.Console);
 		}
 
 		this.config = config;
