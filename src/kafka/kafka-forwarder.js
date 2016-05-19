@@ -1,7 +1,7 @@
 var dgram = require('dgram');
 var _ = require('underscore');
-var winston = require('winston');
-import {Client, HighLevelProducer} from 'kafka-node';
+import winston from 'winston';
+import { Client, HighLevelProducer } from 'kafka-node';
 
 var firstMessageLogged = false;
 
@@ -20,8 +20,9 @@ class KafkaForwarder {
 		this.config = config;
 		this.connections = [];
 		this.ou_socket = dgram.createSocket('udp4');
+
 		this.logger = new winston.Logger({
-			transports: [new winston.transports.Console()]
+			transports: [new winston.transports.Console({leve: 'info'})]
 		});
 
 		if( config.logging && config.logging.disable ) {
@@ -42,10 +43,10 @@ class KafkaForwarder {
 		 	host, 
 		 	function(err) {
 		 		if (err) this.logger.warn(err);
-		 		if (!firstMessageLogged) {
+		 		//if (!firstMessageLogged) {
 		 			this.logger.info('Sent message "%s" to subscribed client %s:%d', msg, host, port);
 		 			firstMessageLogged = true;
-		 		}
+		 		//}
 		 	}.bind(this)
 		);
 	}

@@ -99,7 +99,8 @@ class Forwarder {
 			}], (err, sent_data) => {
 				if(err) {
 					return this.logger.warn(JSON.stringify(err));
-				}			
+				}
+				this.logger.info('Forwarded messages: '+JSON.stringify(messages));
 			});
 		} catch(e) {
 			this.logger.info(e); //carry on

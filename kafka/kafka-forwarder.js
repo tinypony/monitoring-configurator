@@ -6,13 +6,18 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _winston = require('winston');
+
+var _winston2 = _interopRequireDefault(_winston);
+
 var _kafkaNode = require('kafka-node');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var dgram = require('dgram');
 var _ = require('underscore');
-var winston = require('winston');
 
 
 var firstMessageLogged = false;
@@ -35,12 +40,13 @@ var KafkaForwarder = function () {
 		this.config = config;
 		this.connections = [];
 		this.ou_socket = dgram.createSocket('udp4');
-		this.logger = new winston.Logger({
-			transports: [new winston.transports.Console()]
+
+		this.logger = new _winston2.default.Logger({
+			transports: [new _winston2.default.transports.Console({ leve: 'info' })]
 		});
 
 		if (config.logging && config.logging.disable) {
-			this.logger.remove(winston.transports.Console);
+			this.logger.remove(_winston2.default.transports.Console);
 		}
 	}
 
@@ -54,10 +60,10 @@ var KafkaForwarder = function () {
 		value: function send(msg, host, port) {
 			this.ou_socket.send(new Buffer(msg), 0, msg.length, port, host, function (err) {
 				if (err) this.logger.warn(err);
-				if (!firstMessageLogged) {
-					this.logger.info('Sent message "%s" to subscribed client %s:%d', msg, host, port);
-					firstMessageLogged = true;
-				}
+				//if (!firstMessageLogged) {
+				this.logger.info('Sent message "%s" to subscribed client %s:%d', msg, host, port);
+				firstMessageLogged = true;
+				//}
 			}.bind(this));
 		}
 	}, {

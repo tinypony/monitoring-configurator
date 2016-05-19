@@ -120,6 +120,7 @@ var Forwarder = function () {
 					if (err) {
 						return _this3.logger.warn(JSON.stringify(err));
 					}
+					_this3.logger.info('Forwarded messages: ' + JSON.stringify(messages));
 				});
 			} catch (e) {
 				this.logger.info(e); //carry on
