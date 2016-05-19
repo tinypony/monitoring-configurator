@@ -1,7 +1,7 @@
 import Role from './roles';
 import KafkaForwarder from '../kafka/kafka-forwarder.js';
 import q from 'q';
-
+import _ from 'underscore';
 
 class DatasinkRole extends Role {
 	constructor(initId, config, sockets) {
@@ -75,7 +75,7 @@ class DatasinkRole extends Role {
 
 	handleSubscribe(msg) {
 		var defer = q.defer();
-		this.logger.info('[Datasink] let\'s subscribe');
+		this.logger.info('[Datasink] handle subscribe ' + JSON.stringify(msg));
 		
 		if(_.isEmpty(msg.endpoints)) {
 			this.logger.info('[Datasink] no endpoints specified in subscribe request');

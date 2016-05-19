@@ -20,6 +20,10 @@ var _q = require('q');
 
 var _q2 = _interopRequireDefault(_q);
 
+var _underscore = require('underscore');
+
+var _underscore2 = _interopRequireDefault(_underscore);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -102,19 +106,19 @@ var DatasinkRole = function (_Role) {
 			var _this4 = this;
 
 			var defer = _q2.default.defer();
-			this.logger.info('[Datasink] let\'s subscribe');
+			this.logger.info('[Datasink] handle subscribe ' + JSON.stringify(msg));
 
-			if (_.isEmpty(msg.endpoints)) {
+			if (_underscore2.default.isEmpty(msg.endpoints)) {
 				this.logger.info('[Datasink] no endpoints specified in subscribe request');
 				defer.resolve(msg);
 			}
 
-			var callback = _.after(msg.endpoints.length, function () {
+			var callback = _underscore2.default.after(msg.endpoints.length, function () {
 				_this4.logger.info('[Datasink] all endpoints subscribed');
 				defer.resolve(msg);
 			});
 
-			_.each(msg.endpoints, function (ep) {
+			_underscore2.default.each(msg.endpoints, function (ep) {
 				_this4.logger.info('[Datasink] wire %s to %s:%d', ep.topics.join(","), msg.host, ep.port);
 				ep.host = msg.host;
 				ep.unicastport = msg.port;
