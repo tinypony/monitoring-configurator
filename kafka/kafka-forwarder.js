@@ -59,7 +59,7 @@ var KafkaForwarder = function () {
 		key: 'send',
 		value: function send(msg, host, port) {
 			this.ou_socket.send(new Buffer(msg), 0, msg.length, port, host, function (err) {
-				if (err) this.logger.warn(err);
+				if (err) return this.logger.warn(err);
 				//if (!firstMessageLogged) {
 				this.logger.info('Sent message "%s" to subscribed client %s:%d', msg, host, port);
 				firstMessageLogged = true;
@@ -109,7 +109,7 @@ var KafkaForwarder = function () {
 			if (this.hasConnection(sub)) {
 				return;
 			}
-
+			this.logger.info('[KafkaForwarder] Subscribing %s:%d', sub.host, sub.port);
 			var client = new _kafkaNode.Client(this.getConnectionString(), this.getClientId(sub));
 			var payloads = _.map(sub.topics, function (topic) {
 				return {
