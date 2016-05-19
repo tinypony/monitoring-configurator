@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mkdir /opt/monitoring-configurator
+mkdir -p /opt/monitoring-configurator
 cp -r . /opt/monitoring-configurator/
 
 cd /opt/monitoring-configurator
