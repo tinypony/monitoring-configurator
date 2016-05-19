@@ -104,17 +104,11 @@ var DatasinkSlaveRole = function (_Role) {
 	}, {
 		key: 'handleConfig',
 		value: function handleConfig(msg) {
-			if (!this.isDatasinkSlave()) {
-				return _get(Object.getPrototypeOf(DatasinkSlaveRole.prototype), 'handleConfig', this).call(this);
-			}
 			return this.configureClient(msg);
 		}
 	}, {
 		key: 'handleReconfig',
 		value: function handleReconfig(msg) {
-			if (!this.isDatasinkSlave()) {
-				return _get(Object.getPrototypeOf(DatasinkSlaveRole.prototype), 'handleReconfig', this).call(this);
-			}
 			return this.configureClient(msg);
 		}
 	}]);

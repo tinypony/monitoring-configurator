@@ -69,16 +69,10 @@ class DatasinkSlaveRole extends Role {
 	}
 
 	handleConfig(msg) {
-		if(!this.isDatasinkSlave()) {
-			return super.handleConfig();
-		}
 		return this.configureClient(msg);
 	}
 
 	handleReconfig(msg) {
-		if(!this.isDatasinkSlave()) {
-			return super.handleReconfig();
-		}
 		return this.configureClient(msg);
 	}
 }

@@ -60,7 +60,7 @@ var DatasinkRole = function (_Role) {
 					_this2.logger.warn(err);
 					return defer.reject(err);
 				}
-				_this2.logger.info('Broadcasted datasink config');
+				_this2.logger.info('[Datasink] Broadcasted datasink config');
 
 				defer.resolve();
 			});
@@ -89,7 +89,7 @@ var DatasinkRole = function (_Role) {
 					if (err) {
 						return defer.reject(err);
 					}
-					_this3.logger.info('Datasink responded to hello');
+					_this3.logger.info('[Datasink] Responded to hello');
 					defer.resolve(msg);
 				});
 			}
@@ -102,18 +102,20 @@ var DatasinkRole = function (_Role) {
 			var _this4 = this;
 
 			var defer = _q2.default.defer();
-			this.logger.info('let\'s subscribe');
+			this.logger.info('[Datasink] let\'s subscribe');
 
 			if (_.isEmpty(msg.endpoints)) {
+				this.logger.info('[Datasink] no endpoints specified in subscribe request');
 				defer.resolve(msg);
 			}
 
 			var callback = _.after(msg.endpoints.length, function () {
+				_this4.logger.info('[Datasink] all endpoints subscribed');
 				defer.resolve(msg);
 			});
 
 			_.each(msg.endpoints, function (ep) {
-				_this4.logger.info('wire %s to %s:%d', ep.topics.join(","), msg.host, ep.port);
+				_this4.logger.info('[Datasink] wire %s to %s:%d', ep.topics.join(","), msg.host, ep.port);
 				ep.host = msg.host;
 				ep.unicastport = msg.port;
 				_this4.kafkaForwarder.subscribe(ep);
