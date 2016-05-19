@@ -1,7 +1,7 @@
-var dgram = require('dgram');
-var _ = require('underscore');
-import winston from 'winston';
-import { Client, HighLevelProducer } from 'kafka-node';
+import dgram from 'dgram'
+import _ from 'underscore'
+import winston from 'winston'
+import { Client, HighLevelProducer } from 'kafka-node'
 
 var firstMessageLogged = false;
 
@@ -99,6 +99,7 @@ class KafkaForwarder {
 	    	autoCommitIntervalMs: 5000,
 	    	encoding: 'utf8'
 		});
+		this.logger.info('[KafkaForwarder] created consumer');
 
 		consumer.on("error", (err) => {
 			this.logger.warn('[KafkaForwarder]');
@@ -117,7 +118,10 @@ class KafkaForwarder {
 		});
 
 		consumer.on('message', (msg) => {
+			this.logger.info('[KafkaForwarder] relay message');
 			if(!msg.value) {
+				this.logger.warn('[KafkaForwarder] message empty, drop');
+
 				return;
 			}
 
@@ -134,6 +138,8 @@ class KafkaForwarder {
 			});
 			this.logger.info('Subscribed ' + this.getClientId(sub));
 		});
+
+		this.logger.info('[KafkaForwarder] Attached all required callbacks to consumer');
 	}
 }
 

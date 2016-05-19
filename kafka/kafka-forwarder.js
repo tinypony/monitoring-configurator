@@ -6,6 +6,14 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _dgram = require('dgram');
+
+var _dgram2 = _interopRequireDefault(_dgram);
+
+var _underscore = require('underscore');
+
+var _underscore2 = _interopRequireDefault(_underscore);
+
 var _winston = require('winston');
 
 var _winston2 = _interopRequireDefault(_winston);
@@ -16,18 +24,14 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var dgram = require('dgram');
-var _ = require('underscore');
-
-
 var firstMessageLogged = false;
 
 var KAFKA_ERROR = {
 	isNodeExists: function isNodeExists(err) {
-		return _.isString(err.message) && err.message.indexOf('NODE_EXISTS') > -1;
+		return _underscore2.default.isString(err.message) && err.message.indexOf('NODE_EXISTS') > -1;
 	},
 	isCouldNotFindBroker: function isCouldNotFindBroker(err) {
-		return _.isString(err.message) && err.message.indexOf('Could not find a broker') > -1;
+		return _underscore2.default.isString(err.message) && err.message.indexOf('Could not find a broker') > -1;
 	}
 };
 
@@ -39,7 +43,7 @@ var KafkaForwarder = function () {
 
 		this.config = config;
 		this.connections = [];
-		this.ou_socket = dgram.createSocket('udp4');
+		this.ou_socket = _dgram2.default.createSocket('udp4');
 
 		this.logger = new _winston2.default.Logger({
 			transports: [new _winston2.default.transports.Console({ leve: 'info' })]
@@ -80,7 +84,7 @@ var KafkaForwarder = function () {
 	}, {
 		key: 'hasConnection',
 		value: function hasConnection(sub) {
-			var existing = _.findWhere(this.connections, { host: sub.host, port: sub.port });
+			var existing = _underscore2.default.findWhere(this.connections, { host: sub.host, port: sub.port });
 
 			if (!existing) {
 				return false;
@@ -111,7 +115,7 @@ var KafkaForwarder = function () {
 			}
 			this.logger.info('[KafkaForwarder] Subscribing %s:%d', sub.host, sub.port);
 			var client = new _kafkaNode.Client(this.getConnectionString(), this.getClientId(sub));
-			var payloads = _.map(sub.topics, function (topic) {
+			var payloads = _underscore2.default.map(sub.topics, function (topic) {
 				return {
 					topic: topic
 				};
@@ -122,6 +126,7 @@ var KafkaForwarder = function () {
 				autoCommitIntervalMs: 5000,
 				encoding: 'utf8'
 			});
+			this.logger.info('[KafkaForwarder] created consumer');
 
 			consumer.on("error", function (err) {
 				_this.logger.warn('[KafkaForwarder]');
@@ -140,7 +145,10 @@ var KafkaForwarder = function () {
 			});
 
 			consumer.on('message', function (msg) {
+				_this.logger.info('[KafkaForwarder] relay message');
 				if (!msg.value) {
+					_this.logger.warn('[KafkaForwarder] message empty, drop');
+
 					return;
 				}
 
@@ -157,6 +165,8 @@ var KafkaForwarder = function () {
 				});
 				_this.logger.info('Subscribed ' + _this.getClientId(sub));
 			});
+
+			this.logger.info('[KafkaForwarder] Attached all required callbacks to consumer');
 		}
 	}]);
 
