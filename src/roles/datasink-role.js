@@ -31,6 +31,8 @@ class DatasinkRole extends Role {
 					this.logger.warn(err);
 					return defer.reject(err);
 				}
+				this.logger.info('Broadcasted datasink config');
+
 				defer.resolve();
 			}
 		);
@@ -62,6 +64,7 @@ class DatasinkRole extends Role {
 					if(err) {
 						return defer.reject(err);
 					} 
+					this.logger.info('Datasink responded to hello');
 					defer.resolve(msg);
 				}
 			);

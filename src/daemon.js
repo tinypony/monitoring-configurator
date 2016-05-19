@@ -5,8 +5,9 @@ import Forwarder from './forwarder/forwarder.js';
 var KafkaForwarder = require('./kafka/kafka-forwarder.js');
 var uuid = require('node-uuid');
 var q = require('q');
+
 import _ from 'underscore'
-var winston = require('winston');
+import winston from 'winston'
 
 import DatasinkRole from './roles/datasink-role.js'
 import ProducerRole from './roles/producer-role.js'

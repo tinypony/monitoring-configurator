@@ -17,7 +17,7 @@ let datasinkConf = {
 		port: 2181
 	},
 	logging: {
-		disable: true
+		disable: false
 	}
 };
 

@@ -1,7 +1,9 @@
 var _ = require('underscore');
 var q = require('q');
-import NODE_TYPE from '../node-type.js';
-import {Netmask} from 'netmask';
+
+import NODE_TYPE from '../node-type.js'
+import { Netmask } from 'netmask'
+import winston from 'winston'
 
 class Role {
 
@@ -9,6 +11,19 @@ class Role {
 		this.initId = initId;
 		this.config = config;
 		this.sockets = sockets;
+		this.logger = this.getLogger();
+	}
+
+	getLogger() {
+		var logger = new winston.Logger({
+			transports: [new winston.transports.Console({level: 'info'})]
+		});
+
+		if(this.config.logging && this.config.logging.disable) {
+			logger.remove(winston.transports.Console);
+		}
+
+		return logger;
 	}
 
 	isDatasink() {

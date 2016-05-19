@@ -63,6 +63,7 @@ class ConsumerRole extends Role {
 					this.logger.warn(JSON.stringify(e));
 					return defer.reject(e);
 				}
+				this.logger.info('Consumer has be configured');
 				defer.resolve(msg);
 			}
 		);

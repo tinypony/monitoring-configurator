@@ -19,7 +19,7 @@ let consumerConf = {
 		subnet: '10.0.0.0/16'
 	},
 	logging: {
-		disable: true
+		disable: false
 	}
 };
 
