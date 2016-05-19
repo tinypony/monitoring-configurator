@@ -115,12 +115,14 @@ var KafkaForwarder = function () {
 			}
 			this.logger.info('[KafkaForwarder] Subscribing %s:%d', sub.host, sub.port);
 			var client = new _kafkaNode.Client(this.getConnectionString(), this.getClientId(sub));
+			this.logger.info('[KafkaForwarder] created client');
 			var payloads = _underscore2.default.map(sub.topics, function (topic) {
 				return {
 					topic: topic
 				};
 			});
 
+			this.logger.info('[KafkaForwarder] creating consumer');
 			var consumer = new HighLevelConsumer(client, payloads, {
 				autoCommit: true,
 				autoCommitIntervalMs: 5000,
