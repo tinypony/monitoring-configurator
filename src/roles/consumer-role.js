@@ -49,7 +49,7 @@ class ConsumerRole extends Role {
 			defer.reject();
 			return defer.promise;
 		}
-
+		this.logger.info('Consumer received configuration ' + JSON.stringify(msg));
 		var subscribeMsg = this.getSubscribeMessage();
 
 		this.sockets.unicast.send(
@@ -63,7 +63,7 @@ class ConsumerRole extends Role {
 					this.logger.warn(JSON.stringify(e));
 					return defer.reject(e);
 				}
-				this.logger.info('Consumer has be configured');
+				this.logger.info('Subscribed with ' + subscribeMsg);
 				defer.resolve(msg);
 			}
 		);

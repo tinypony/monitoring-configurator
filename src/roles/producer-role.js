@@ -50,7 +50,7 @@ class ProducerRole extends Role {
 		var defer = q.defer();
 		this.config.monitoring = _.extend(this.config.monitoring, msg.monitoring);
 		this.forwarder.reconfig(this.config);
-		this.logger.info('Producer has be configured');
+		this.logger.info('Producer has be configured with ' + JSON.stringify(msg));
 		defer.resolve(msg);
 		return defer.promise;
 	}
