@@ -4,6 +4,7 @@ mkdir -p /opt/monitoring-configurator
 cp -r . /opt/monitoring-configurator/
 
 cd /opt/monitoring-configurator
+chmod u+x ./lifecyce/*.sh
 npm install
 
 if hash systemctl 2>/dev/null; then
