@@ -18,24 +18,11 @@ class ConsumerRole extends Role {
 
 		var defer = q.defer();
 		let message = this.getHelloMessage();
-
-		this.sockets.broadcast.send(
-			new Buffer(message), 
-			0, 
-			message.length, 
-			this.config.broadcastPort,
-			this.getBroadcastAddress(), 
-			(err) => {
-				if (err) {
-					this.logger.warn(err);
-					return defer.reject(err);
-				} else {
-					defer.resolve({
-						hello_sent: true
-					});
-				}
-			}
-		);
+		this.broadcast(message).then(() => {
+			defer.resolve({
+				hello_sent: true
+			});
+		}, err => defer.reject(err));
 
 		return defer.promise;
 	}
@@ -52,21 +39,13 @@ class ConsumerRole extends Role {
 		this.logger.info('Consumer received configuration ' + JSON.stringify(msg));
 		var subscribeMsg = this.getSubscribeMessage();
 
-		this.sockets.unicast.send(
-			new Buffer(subscribeMsg),
-			0,
-			subscribeMsg.length,
-			msg.port,
-			msg.host, 
-			(e) => {
-				if(e) {
-					this.logger.warn(JSON.stringify(e));
-					return defer.reject(e);
-				}
-				this.logger.info('Subscribed with ' + subscribeMsg);
-				defer.resolve(msg);
-			}
-		);
+		this.respondTo(msg, subscribeMsg).then(() => { 
+			this.logger.info('Subscribed with ' + subscribeMsg);
+			defer.resolve(msg);
+		}, err => {
+			this.logger.warn(JSON.stringify(err));
+			defer.reject(err);
+		});
 
 		return defer.promise;
 	}

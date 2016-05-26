@@ -19,7 +19,7 @@ let consumerConf = {
 		subnet: '10.0.0.0/16'
 	},
 	logging: {
-		disable: false
+		disable: true
 	}
 };
 
@@ -38,17 +38,21 @@ describe('Consumer role', () => {
 		d.close();
 	});
 
-	it('Broadcasts hello message on start', (done) => {
+	it('Broadcasts hello message on start', done => {
 		d.hasStarted.then(() => {
-			expect(broadcastScope.done()).to.be.true;
-			let msg = JSON.parse(broadcastScope.buffer.toString());
-			expect(msg.type).to.equal('hello');
-			expect(msg.port).to.equal(consumerConf.unicast.port);
-			done();
+			try {
+				expect(broadcastScope.done()).to.be.true;
+				let msg = JSON.parse(broadcastScope.buffer.toString());
+				expect(msg.type).to.equal('hello');
+				expect(msg.port).to.equal(consumerConf.unicast.port);
+				done();
+			} catch(e) {
+				done(e);
+			}
 		});
 	});
 
-	it('Handles config message', (done) => {
+	it('Handles config message', done => {
 		d.handleUnicastMessage({
 			type: 'config',
 			host: '10.0.0.1',
@@ -60,24 +64,21 @@ describe('Consumer role', () => {
 		}).then(() => {
 			try {
 				expect(unicastScope.done()).to.be.true;
-			} catch(e) {
-				console.log('Unicast scope was not called');
-				expect(false).to.be.true;
+				let msg = JSON.parse(unicastScope.buffer.toString());
+				expect(msg.type).to.equal('subscribe');
+				expect(msg.port).to.equal(consumerConf.unicast.port);
+				expect(msg.endpoints.length).to.equal(1);
+				expect(msg.endpoints[0].topics.length).to.equal(2);
+				expect(msg.endpoints[0].port).to.equal(10000);
 				done();
+			} catch(e) {
+				done(e);
 				return;
 			}
-
-			let msg = JSON.parse(unicastScope.buffer.toString());
-			expect(msg.type).to.equal('subscribe');
-			expect(msg.port).to.equal(consumerConf.unicast.port);
-			expect(msg.endpoints.length).to.equal(1);
-			expect(msg.endpoints[0].topics.length).to.equal(2);
-			expect(msg.endpoints[0].port).to.equal(10000);
-			done();
 		});
 	});
 
-	it('Handles reconfig message', (done) => {
+	it('Handles reconfig message', done => {
 		d.handleBroadcastMessage({
 			type: 'reconfig',
 			host: '10.0.0.1',
@@ -87,14 +88,18 @@ describe('Consumer role', () => {
 				port: 2181
 			}
 		}).then(() => {
-			expect(unicastScope.done()).to.be.true;
-			let msg = JSON.parse(unicastScope.buffer.toString());
-			expect(msg.type).to.equal('subscribe');
-			expect(msg.port).to.equal(consumerConf.unicast.port);
-			expect(msg.endpoints.length).to.equal(1);
-			expect(msg.endpoints[0].topics.length).to.equal(2);
-			expect(msg.endpoints[0].port).to.equal(10000);
-			done();
+			try {
+				expect(unicastScope.done()).to.be.true;
+				let msg = JSON.parse(unicastScope.buffer.toString());
+				expect(msg.type).to.equal('subscribe');
+				expect(msg.port).to.equal(consumerConf.unicast.port);
+				expect(msg.endpoints.length).to.equal(1);
+				expect(msg.endpoints[0].topics.length).to.equal(2);
+				expect(msg.endpoints[0].port).to.equal(10000);
+				done();
+			} catch(e) {
+				done(e);
+			}
 		});
 	});
 });

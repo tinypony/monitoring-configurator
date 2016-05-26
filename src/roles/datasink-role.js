@@ -2,13 +2,16 @@ import Role from './roles';
 import KafkaForwarder from '../kafka/kafka-forwarder.js';
 import q from 'q';
 import _ from 'underscore';
+import NODE_TYPE from '../node-type';
 
 class DatasinkRole extends Role {
 	constructor(initId, config, sockets) {
 		super(initId, config, sockets);
 
-		if(this.isDatasink()) {
+		if(this.isMe()) {
 			this.kafkaForwarder = new KafkaForwarder(config);
+			this.brokers = [0];
+			this.nextBrokerId = 1;
 		}
 	}
 
@@ -20,30 +23,19 @@ class DatasinkRole extends Role {
 		var defer = q.defer();
 		var message = this.getReconfigureMessage();
 
-		this.sockets.broadcast.send(
-			new Buffer(message), 
-			0, 
-			message.length, 
-			this.config.broadcastPort,
-			this.getBroadcastAddress(), 
-			(err) => {
-				if (err) {
-					this.logger.warn(err);
-					return defer.reject(err);
-				}
-				this.logger.info('[Datasink] Broadcasted datasink config');
-
-				defer.resolve();
-			}
-		);
+		this.broadcast(message).then(() => {
+			this.logger.info('[Datasink] Broadcasted datasink config');
+			defer.resolve();
+		}, err => defer.reject(err));
+			
 		return defer.promise;
 	}
 
-	handleHello(msg) {
-		if(!this.isDatasink()) {
-			return super.handleHello(msg); //does nothing just returns resolved promise
-		}
+	isSlave(msg) {
+		return msg.roles && _.contains(msg.roles, NODE_TYPE.DATASINK_SLAVE);
+	}	
 
+	handleHello(msg) {
 		var defer = q.defer();
 
 		if(this.initId && msg.uuid === this.initId) {
@@ -51,24 +43,17 @@ class DatasinkRole extends Role {
 			this.initId = null;
 		}
 
-		if( this.isDatasink() ) {
-			var configMessage = this.getConfigureMessage();
+		var configMessage = this.getConfigureMessage(this.isSlave(msg) ? { brokerId: this.nextBrokerId } : undefined);
 
-			this.sockets.unicast.send(
-				new Buffer(configMessage),
-				0,
-				configMessage.length,
-				msg.port,
-				msg.host,
-				(err) => {
-					if(err) {
-						return defer.reject(err);
-					} 
-					this.logger.info('[Datasink] Responded to hello');
-					defer.resolve(msg);
-				}
-			);
-		}
+		this.respondTo(msg, configMessage).then(() => {
+			this.logger.info('[Datasink] Responded to hello');
+			if(this.isSlave(msg)) {
+				this.logger.info('[Datasink] Responded to hello from slave');
+				this.nextBrokerId++;
+			}
+			defer.resolve(msg);
+		}, err => defer.reject(err));
+		
 
 		return defer.promise;
 	}
@@ -87,7 +72,7 @@ class DatasinkRole extends Role {
 			defer.resolve(msg);
 		});
 
-		_.each(msg.endpoints, (ep) => {
+		_.each(msg.endpoints, ep => {
 			this.logger.info('[Datasink] wire %s to %s:%d', ep.topics.join(","), msg.host, ep.port);
 			ep.host = msg.host;
 			ep.unicastport = msg.port;
@@ -95,6 +80,13 @@ class DatasinkRole extends Role {
 			callback();
 		});
 		
+		return defer.promise;
+	}
+
+	handleRegslave(msg) {
+		var defer = q.defer();
+		this.brokers.push(msg.brokerId);
+		defer.resolve(msg);
 		return defer.promise;
 	}
 }

@@ -2,6 +2,7 @@ import chai from 'chai';
 import spies from 'chai-spies'
 import mockudp from 'mock-udp'
 import sinon from 'sinon'
+import q from 'q';
 
 chai.use(spies);
 let expect = chai.expect;
@@ -24,40 +25,42 @@ let datasinkSlaveConf = {
 describe('Datasink slave role', () => {
 	var broadcastScope;
 	var unicastScope;
-	var d;
-	var spy;
+	var d, stub;
 
 	beforeEach(function() {
 		broadcastScope  = mockudp('10.0.255.255:12555');
 		unicastScope = mockudp('10.0.0.1:12556');
-		spy = sinon.spy(DatasinkSlave.prototype, 'modifyKafkaConfig');
+
+		var defer = q.defer();
+		defer.resolve();
+		stub = sinon.stub(DatasinkSlave.prototype, 'modifyKafkaConfig').returns(defer.promise);
 		d = new Daemon(datasinkSlaveConf, 12555);
 	});
 
 	afterEach(function() {
+		stub.restore();
 		d.close();
-		DatasinkSlave.prototype.modifyKafkaConfig.restore();
 	});
 
-	it('Broadcasts hello message on start', (done) => {
+	it('Broadcasts hello message on start', done => {
 		d.hasStarted.then(() => {
 			try {
 				expect(broadcastScope.done()).to.be.true;
-			} catch(e) {
-				console.log('broadcastScope was not called');
-				expect(false).to.be.true;
+				let msg = JSON.parse(broadcastScope.buffer.toString());
+				expect(msg.type).to.equal('hello');
+				expect(msg.roles).to.eql(['datasink-slave']);
 				done();
+			} catch(e) {
+				done(e);
 			}
-			let msg = JSON.parse(broadcastScope.buffer.toString());
-			expect(msg.type).to.equal('hello');
-			done();
 		});
 	});
 
-	it('Invokes kafka reconfiguration on config receive', (done) => {
+	it('Invokes kafka reconfiguration on config receive', done => {
 		d.handleUnicastMessage({
 			type: 'config',
 			uuid: 'lalalalala',
+			brokerId: 1,
 			host: '10.0.0.1',
 			port: 12556,
 			monitoring: {
@@ -65,10 +68,59 @@ describe('Datasink slave role', () => {
 				port: 2181
 			}
 		}).then(() => {
-			expect(spy.calledOnce).to.be.true;
-			expect(spy.getCall(0).args[0]).to.eql('10.0.0.1');
-			expect(spy.getCall(0).args[1]).to.eql(2181);
-			done();
+			try {
+				expect(stub.calledOnce);
+				expect(stub.getCall(0).args).to.eql([1, '10.0.0.1', 2181]);
+				done();
+			} catch(e) {
+				done(e);
+			}
+		});
+	});
+
+	it('Sends regslave message after receiving config and kafka reconfiguration', done => {
+		d.handleUnicastMessage({
+			type: 'config',
+			uuid: 'lalalalala',
+			brokerId: 1,
+			host: '10.0.0.1',
+			port: 12556,
+			monitoring: {
+				host: '10.0.0.1',
+				port: 2181
+			}
+		}).then(() => {
+			try {
+				expect(unicastScope.done()).to.be.true;
+				let msg = JSON.parse(unicastScope.buffer.toString());
+				expect(msg.brokerId).to.eql(1);
+				done();
+			} catch(e) {
+				done(e);
+			}
+		});
+	});
+
+	it('Broadcasts hello message on reconfigure to start hello-config-regslave sequence', done => {
+		d.handleBroadcastMessage({
+			type: 'reconfig',
+			uuid: 'foobar',
+			host: '10.0.0.1',
+			port: 12556,
+			monitoring: {
+				host: '10.0.0.1',
+				port: 2181
+			}
+		}).then(() => {
+			try {
+				expect(broadcastScope.done()).to.be.true;
+				let msg = JSON.parse(broadcastScope.buffer.toString());
+				expect(msg.type).to.equal('hello');
+				expect(msg.roles).to.eql(['datasink-slave']);
+				done();
+			} catch(e) {
+				done(e);
+			}
 		});
 	});
 });

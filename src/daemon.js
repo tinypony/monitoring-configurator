@@ -73,7 +73,6 @@ class ConfigurationDaemon {
 
 		this.hasStartedDefer = q.defer();
 		this.hasStarted = this.hasStartedDefer.promise;
-
 	}
 
 	initDatasink(config) {
@@ -151,6 +150,10 @@ class ConfigurationDaemon {
 		return this.handleInChain(msg, 'handleConfig');
 	}
 
+	handleRegslave(msg) {
+		return this.handleInChain(msg, 'handleRegslave');
+	}
+
 	close() {
 		this.uc_socket.close();
 		this.bc_socket.close();
@@ -164,6 +167,10 @@ class ConfigurationDaemon {
 
 		if( msg.type === 'subscribe' ) {
 			return this.handleSubscribe(msg);
+		}
+
+		if( msg.type === 'regslave' ) {
+			return this.handleRegslave(msg);
 		}
 	}
 

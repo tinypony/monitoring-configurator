@@ -19,7 +19,7 @@ class ProducerRole extends Role {
 
 	onStart(prev) {
 		if( prev && prev.hello_sent ) {
-			return super.onStart();
+			return super.onStart(prev);
 		}
 
 		var defer = q.defer();

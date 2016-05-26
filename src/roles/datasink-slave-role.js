@@ -14,13 +14,12 @@ class DatasinkSlaveRole extends Role {
 	}
 
 	onStart(prev) {
-		if(!this.isDatasinkSlave() || (prev && prev.hello_sent) ) {
+		if( prev && prev.hello_sent ) {
 			return super.onStart();
 		}
 
 		var defer = q.defer();
 		let message = this.getHelloMessage();
-
 
 		this.sockets.broadcast.send(
 			new Buffer(message), 
@@ -28,7 +27,7 @@ class DatasinkSlaveRole extends Role {
 			message.length, 
 			this.config.broadcastPort,
 			this.getBroadcastAddress(), 
-			(err) => {
+			err => {
 				if (err) {
 					this.logger.warn(err);
 					return defer.reject(err);
@@ -42,14 +41,32 @@ class DatasinkSlaveRole extends Role {
 		return defer.promise;
 	}
 
-	modifyKafkaConfig(zookeeper_host, zookeeper_port) {
-		exec('/opt/monitoring-configurator/lifecycle/on_configuration_receive.sh ' + zookeeper_host + ' ' + zookeeper_port,
+	registerSlave(broker_id, originalConfigMsg) {
+		return () => {
+			let registerMsg = this.getSlaveRegisterMessage(broker_id);
+			return this.respondTo(originalConfigMsg, registerMsg);
+		}
+	}
+
+	modifyKafkaConfig(broker_id, zookeeper_host, zookeeper_port) {
+		var defer = q.defer();
+		exec(`/opt/monitoring-configurator/lifecycle/on_configuration_receive.sh ${broker_id} ${zookeeper_host} ${zookeeper_port}`,
 			(error, stdout, stderr) => {
 			    if (error !== null) {
-			      return;// this.logger.warn(error);
+			      this.logger.warn(error);
+			      return defer.reject();
 			    }
 			    this.logger.info('Kafka reconfigured');
+			    defer.resolve();
 			});
+		return defer.promise;
+	}
+
+	//Don't configure client here, but initialize hello-config-regslave sequence.
+	reconfigureClient(msg) {
+		var defer = q.defer();
+		this.onStart().then(() => defer.resolve(msg), err => defer.reject(err));
+		return defer.promise;
 	}
 
 	configureClient(msg) {
@@ -57,14 +74,14 @@ class DatasinkSlaveRole extends Role {
 		this.config.monitoring = _.extend(this.config.monitoring, msg.monitoring);
 
 		if( !this.isValidPort(msg.port) ) {
-			this.logger.warn('trying to send subscription message to an invalid port');
 			defer.reject();
 			return defer.promise;
 		}
 
-		this.modifyKafkaConfig(msg.monitoring.host, msg.monitoring.port);
+		this.modifyKafkaConfig(msg.brokerId, msg.monitoring.host, msg.monitoring.port)
+			.then(this.registerSlave(msg.brokerId, msg), err => defer.reject(err))
+			.then(() => defer.resolve(msg), err => defer.reject(err));
 
-		defer.resolve();
 		return defer.promise;
 	}
 
@@ -73,7 +90,7 @@ class DatasinkSlaveRole extends Role {
 	}
 
 	handleReconfig(msg) {
-		return this.configureClient(msg);
+		return this.reconfigureClient(msg);
 	}
 }
 

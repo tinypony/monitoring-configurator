@@ -21,7 +21,7 @@ let producerConf = {
 		subnet: '10.0.0.0/16'
 	},
 	logging: {
-		disable: false
+		disable: true
 	}
 };
 
@@ -62,12 +62,15 @@ describe('Producer role', () => {
 				host: '10.0.0.10',
 				port: 2181
 			}
-		}).then(()=>{
-			expect(spy.calledOnce).to.be.true;
-			expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.host', '10.0.0.10');
-			expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.port', 2181);
-
-			done();
+		}).then(() => {
+			try{
+				expect(spy.calledOnce).to.be.true;
+				expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.host', '10.0.0.10');
+				expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.port', 2181);
+				done();
+			} catch(er) {
+				done(er);
+			}
 		});
 	});
 

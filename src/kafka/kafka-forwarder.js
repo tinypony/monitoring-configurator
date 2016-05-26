@@ -51,16 +51,6 @@ class KafkaForwarder {
 		);
 	}
 
-	getPingMessage() {
-		var msg = {
-			type: 'ping',
-			host: 'self',
-			port: this.config.unicast.port
-		}
-
-		return JSON.stringify(msg);
-	}
-
 	hasConnection(sub) {
 		var existing = _.findWhere(this.connections, {host: sub.host, port: sub.port });
 
@@ -103,7 +93,8 @@ class KafkaForwarder {
 		});
 		this.logger.info('[KafkaForwarder] created consumer');
 
-		consumer.on("error", (err) => {
+		//Handle consumer connection error
+		consumer.on("error", err => {
 			this.logger.warn('[KafkaForwarder]');
 			this.logger.warn(JSON.stringify(err));
 
@@ -119,10 +110,9 @@ class KafkaForwarder {
 			}
 		});
 
-		consumer.on('message', (msg) => {
+		consumer.on('message', msg => {
 			if(!msg.value) {
 				this.logger.warn('[KafkaForwarder] message empty, drop');
-
 				return;
 			}
 
