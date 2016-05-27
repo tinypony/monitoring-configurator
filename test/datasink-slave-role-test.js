@@ -8,12 +8,14 @@ chai.use(spies);
 let expect = chai.expect;
 import Daemon from '../src/daemon.js'
 import DatasinkSlave from '../src/roles/datasink-slave-role'
+import { MESSAGE_TYPE } from '../src/message-type'
+import NODE_TYPE from '../src/node-type'
 
 let datasinkSlaveConf = {
 	unicast: {
 		port: 12556
 	},
-	roles: ['datasink-slave'],
+	roles: [NODE_TYPE.DATASINK_SLAVE],
 	monitoring: {
 		subnet: '10.0.0.0/16'
 	},
@@ -47,8 +49,8 @@ describe('Datasink slave role', () => {
 			try {
 				expect(broadcastScope.done()).to.be.true;
 				let msg = JSON.parse(broadcastScope.buffer.toString());
-				expect(msg.type).to.equal('hello');
-				expect(msg.roles).to.eql(['datasink-slave']);
+				expect(msg.type).to.equal(MESSAGE_TYPE.HELLO);
+				expect(msg.roles).to.eql([NODE_TYPE.DATASINK_SLAVE]);
 				done();
 			} catch(e) {
 				done(e);
@@ -58,7 +60,7 @@ describe('Datasink slave role', () => {
 
 	it('Invokes kafka reconfiguration on config receive', done => {
 		d.handleUnicastMessage({
-			type: 'config',
+			type: MESSAGE_TYPE.CONFIG,
 			uuid: 'lalalalala',
 			brokerId: 1,
 			host: '10.0.0.1',
@@ -80,7 +82,7 @@ describe('Datasink slave role', () => {
 
 	it('Sends regslave message after receiving config and kafka reconfiguration', done => {
 		d.handleUnicastMessage({
-			type: 'config',
+			type: MESSAGE_TYPE.CONFIG,
 			uuid: 'lalalalala',
 			brokerId: 1,
 			host: '10.0.0.1',
@@ -103,7 +105,7 @@ describe('Datasink slave role', () => {
 
 	it('Broadcasts hello message on reconfigure to start hello-config-regslave sequence', done => {
 		d.handleBroadcastMessage({
-			type: 'reconfig',
+			type: MESSAGE_TYPE.RECONFIG,
 			uuid: 'foobar',
 			host: '10.0.0.1',
 			port: 12556,
@@ -115,8 +117,8 @@ describe('Datasink slave role', () => {
 			try {
 				expect(broadcastScope.done()).to.be.true;
 				let msg = JSON.parse(broadcastScope.buffer.toString());
-				expect(msg.type).to.equal('hello');
-				expect(msg.roles).to.eql(['datasink-slave']);
+				expect(msg.type).to.equal(MESSAGE_TYPE.HELLO);
+				expect(msg.roles).to.eql([NODE_TYPE.DATASINK_SLAVE]);
 				done();
 			} catch(e) {
 				done(e);

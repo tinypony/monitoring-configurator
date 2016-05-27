@@ -45,24 +45,18 @@ var ConsumerRole = function (_Role) {
 	}, {
 		key: 'onStart',
 		value: function onStart(prev) {
-			var _this2 = this;
-
 			if (prev && prev.hello_sent) {
 				return _get(Object.getPrototypeOf(ConsumerRole.prototype), 'onStart', this).call(this);
 			}
 
 			var defer = _q2.default.defer();
 			var message = this.getHelloMessage();
-
-			this.sockets.broadcast.send(new Buffer(message), 0, message.length, this.config.broadcastPort, this.getBroadcastAddress(), function (err) {
-				if (err) {
-					_this2.logger.warn(err);
-					return defer.reject(err);
-				} else {
-					defer.resolve({
-						hello_sent: true
-					});
-				}
+			this.broadcast(message).then(function () {
+				defer.resolve({
+					hello_sent: true
+				});
+			}, function (err) {
+				return defer.reject(err);
 			});
 
 			return defer.promise;
@@ -70,7 +64,7 @@ var ConsumerRole = function (_Role) {
 	}, {
 		key: 'configureClient',
 		value: function configureClient(msg) {
-			var _this3 = this;
+			var _this2 = this;
 
 			var defer = _q2.default.defer();
 			this.config.monitoring = _underscore2.default.extend(this.config.monitoring, msg.monitoring);
@@ -83,13 +77,12 @@ var ConsumerRole = function (_Role) {
 			this.logger.info('Consumer received configuration ' + JSON.stringify(msg));
 			var subscribeMsg = this.getSubscribeMessage();
 
-			this.sockets.unicast.send(new Buffer(subscribeMsg), 0, subscribeMsg.length, msg.port, msg.host, function (e) {
-				if (e) {
-					_this3.logger.warn(JSON.stringify(e));
-					return defer.reject(e);
-				}
-				_this3.logger.info('Subscribed with ' + subscribeMsg);
+			this.respondTo(msg, subscribeMsg).then(function () {
+				_this2.logger.info('Subscribed with ' + subscribeMsg);
 				defer.resolve(msg);
+			}, function (err) {
+				_this2.logger.warn(JSON.stringify(err));
+				defer.reject(err);
 			});
 
 			return defer.promise;

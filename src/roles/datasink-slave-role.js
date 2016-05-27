@@ -51,8 +51,8 @@ class DatasinkSlaveRole extends Role {
 	modifyKafkaConfig(broker_id, zookeeper_host, zookeeper_port) {
 		var defer = q.defer();
 		exec(`/opt/monitoring-configurator/lifecycle/on_configuration_receive.sh ${broker_id} ${zookeeper_host} ${zookeeper_port}`,
-			(error, stdout, stderr) => {
-			    if (error !== null) {
+			error => {
+			    if (error) {
 			      this.logger.warn(error);
 			      return defer.reject();
 			    }

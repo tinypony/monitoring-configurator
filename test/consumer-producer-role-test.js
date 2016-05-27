@@ -8,12 +8,14 @@ let expect = chai.expect;
 import Daemon from '../src/daemon.js';
 import Forwarder from '../src/forwarder/forwarder';
 import { Socket } from 'dgram';
+import NODE_TYPE from '../src/node-type';
+import { MESSAGE_TYPE } from '../src/message-type';
 
 let producerConf = {
 	unicast: {
 		port: 12556
 	},
-	roles: ['producer', 'consumer'],
+	roles: [NODE_TYPE.PRODUCER, NODE_TYPE.CONSUMER],
 	producers: [{
 		topic: 'foo',
 		port: 10000
@@ -59,7 +61,7 @@ describe('Hybrid (producer/consumer) role', () => {
 
 	it('handles config message for both consumer and producer', (done) => {
 		d.handleUnicastMessage({
-			type: 'config',
+			type: MESSAGE_TYPE.CONFIG,
 			host: '10.0.0.10',
 			port: 1337,
 			monitoring: {

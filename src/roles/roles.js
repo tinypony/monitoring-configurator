@@ -1,6 +1,7 @@
  import _ from 'underscore';
 import q from 'q';
 import NODE_TYPE from '../node-type'
+import { MESSAGE_TYPE } from '../message-type'
 import { Netmask } from 'netmask'
 import winston from 'winston'
 
@@ -136,7 +137,7 @@ class Role {
 
 	getReconfigureMessage() {
 		var msg = {
-			type: 'reconfig',
+			type: MESSAGE_TYPE.RECONFIG,
 			host: 'self',
 			port: this.config.unicast.port,
 			monitoring: {
@@ -150,7 +151,7 @@ class Role {
 
 	getConfigureMessage(extension) {
 		var msg = {
-			type: 'config',
+			type: MESSAGE_TYPE.CONFIG,
 			host: 'self',
 			port: this.config.unicast.port,
 			monitoring: {
@@ -166,7 +167,7 @@ class Role {
 
 	getHelloMessage() {
 		var msg = {
-			type: 'hello',
+			type: MESSAGE_TYPE.HELLO,
 			roles: this.config.roles,
 			uuid: this.initId,
 			host: 'self',
@@ -178,7 +179,7 @@ class Role {
 
 	getSubscribeMessage() {
 		var msg = {
-			type: 'subscribe',
+			type: MESSAGE_TYPE.SUBSCRIBE,
 			host: 'self',
 			port: this.config.unicast.port,
 			endpoints: this.config.consumers
@@ -189,7 +190,7 @@ class Role {
 
 	getSlaveRegisterMessage(brokerId, extension) {
 		var msg = {
-			type: 'regslave',
+			type: MESSAGE_TYPE.REGISTER_SLAVE,
 			host: 'self',
 			port: this.config.unicast.port,
 			brokerId: brokerId

@@ -7,13 +7,15 @@ import _ from 'underscore';
 chai.use(spies);
 let expect = chai.expect;
 import Daemon from '../src/daemon.js';
+import { MESSAGE_TYPE } from '../src/message-type';
+import NODE_TYPE from '../src/node-type';
 
 
 let datasinkConf = {
 	unicast: {
 		port: 12556
 	},
-	roles: ['datasink'],
+	roles: [NODE_TYPE.DATASINK],
 	monitoring: {
 		subnet: '10.0.0.0/16',
 		port: 2181
@@ -43,7 +45,7 @@ describe('Datasink role', () => {
 			try {
 				expect(broadcastScope.done()).to.be.true;
 				let msg = JSON.parse(broadcastScope.buffer.toString());
-				expect(msg.type).to.equal('reconfig');
+				expect(msg.type).to.equal(MESSAGE_TYPE.RECONFIG);
 				done();
 			} catch(e) {
 				done(e);
@@ -53,16 +55,16 @@ describe('Datasink role', () => {
 
 	it('Sends unicast response to hello message', done => {
 		d.handleBroadcastMessage({
-			type: 'hello',
+			type: MESSAGE_TYPE.HELLO,
 			uuid: 'lalalalala',
-			roles: ['producer'],
+			roles: [NODE_TYPE.PRODUCER],
 			host: '10.0.0.1',
 			port: 12556
 		}).then(() => {
 			try {
 				expect(unicastScope.done()).to.be.true;
 				let msg = JSON.parse(unicastScope.buffer.toString());
-				expect(msg.type).to.eql('config');
+				expect(msg.type).to.eql(MESSAGE_TYPE.CONFIG);
 				done();
 			} catch(e) {
 				done(e);
@@ -72,9 +74,9 @@ describe('Datasink role', () => {
 
 	it('Sends next unique broker id to a new slave', done => {
 		d.handleBroadcastMessage({
-			type: 'hello',
+			type: MESSAGE_TYPE.HELLO,
 			uuid: 'hop-la-lai-la',
-			roles: ['producer', 'datasink-slave'],
+			roles: [NODE_TYPE.PRODUCER, NODE_TYPE.DATASINK_SLAVE],
 			host: '10.0.0.1',
 			port: 12556
 		}).then(() => {
@@ -90,8 +92,8 @@ describe('Datasink role', () => {
 
 	it('updates broker list upon receiving slave register message', done => {
 		d.handleUnicastMessage({
-			type: 'regslave',
-			roles: ['datasink-slave', 'producer'],
+			type: MESSAGE_TYPE.REGISTER_SLAVE,
+			roles: [NODE_TYPE.DATASINK_SLAVE, NODE_TYPE.PRODUCER],
 			host: '10.0.0.2',
 			port: 12566,
 			brokerId: 42

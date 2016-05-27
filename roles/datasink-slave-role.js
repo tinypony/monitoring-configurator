@@ -53,7 +53,7 @@ var DatasinkSlaveRole = function (_Role) {
 		value: function onStart(prev) {
 			var _this2 = this;
 
-			if (!this.isDatasinkSlave() || prev && prev.hello_sent) {
+			if (prev && prev.hello_sent) {
 				return _get(Object.getPrototypeOf(DatasinkSlaveRole.prototype), 'onStart', this).call(this);
 			}
 
@@ -73,16 +73,44 @@ var DatasinkSlaveRole = function (_Role) {
 			return defer.promise;
 		}
 	}, {
-		key: 'modifyKafkaConfig',
-		value: function modifyKafkaConfig(zookeeper_host, zookeeper_port) {
+		key: 'registerSlave',
+		value: function registerSlave(broker_id, originalConfigMsg) {
 			var _this3 = this;
 
-			(0, _child_process.exec)('/opt/monitoring-configurator/lifecycle/on_configuration_receive.sh ' + zookeeper_host + ' ' + zookeeper_port, function (error, stdout, stderr) {
-				if (error !== null) {
-					return; // this.logger.warn(error);
+			return function () {
+				var registerMsg = _this3.getSlaveRegisterMessage(broker_id);
+				return _this3.respondTo(originalConfigMsg, registerMsg);
+			};
+		}
+	}, {
+		key: 'modifyKafkaConfig',
+		value: function modifyKafkaConfig(broker_id, zookeeper_host, zookeeper_port) {
+			var _this4 = this;
+
+			var defer = _q2.default.defer();
+			(0, _child_process.exec)('/opt/monitoring-configurator/lifecycle/on_configuration_receive.sh ' + broker_id + ' ' + zookeeper_host + ' ' + zookeeper_port, function (error) {
+				if (error) {
+					_this4.logger.warn(error);
+					return defer.reject();
 				}
-				_this3.logger.info('Kafka reconfigured');
+				_this4.logger.info('Kafka reconfigured');
+				defer.resolve();
 			});
+			return defer.promise;
+		}
+
+		//Don't configure client here, but initialize hello-config-regslave sequence.
+
+	}, {
+		key: 'reconfigureClient',
+		value: function reconfigureClient(msg) {
+			var defer = _q2.default.defer();
+			this.onStart().then(function () {
+				return defer.resolve(msg);
+			}, function (err) {
+				return defer.reject(err);
+			});
+			return defer.promise;
 		}
 	}, {
 		key: 'configureClient',
@@ -91,14 +119,18 @@ var DatasinkSlaveRole = function (_Role) {
 			this.config.monitoring = _underscore2.default.extend(this.config.monitoring, msg.monitoring);
 
 			if (!this.isValidPort(msg.port)) {
-				this.logger.warn('trying to send subscription message to an invalid port');
 				defer.reject();
 				return defer.promise;
 			}
 
-			this.modifyKafkaConfig(msg.monitoring.host, msg.monitoring.port);
+			this.modifyKafkaConfig(msg.brokerId, msg.monitoring.host, msg.monitoring.port).then(this.registerSlave(msg.brokerId, msg), function (err) {
+				return defer.reject(err);
+			}).then(function () {
+				return defer.resolve(msg);
+			}, function (err) {
+				return defer.reject(err);
+			});
 
-			defer.resolve();
 			return defer.promise;
 		}
 	}, {
@@ -109,7 +141,7 @@ var DatasinkSlaveRole = function (_Role) {
 	}, {
 		key: 'handleReconfig',
 		value: function handleReconfig(msg) {
-			return this.configureClient(msg);
+			return this.reconfigureClient(msg);
 		}
 	}]);
 

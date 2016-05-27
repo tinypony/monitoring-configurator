@@ -5,12 +5,14 @@ import mockudp from 'mock-udp';
 chai.use(spies);
 let expect = chai.expect;
 import Daemon from '../src/daemon.js';
+import { MESSAGE_TYPE } from '../src/message-type';
+import NODE_TYPE from '../src/node-type';
 
 let consumerConf = {
 	unicast: {
 		port: 12556
 	},
-	roles: ['consumer'],
+	roles: [NODE_TYPE.CONSUMER],
 	consumers: [{
 		topics: ['foo', 'bar'],
 		port: 10000
@@ -43,7 +45,7 @@ describe('Consumer role', () => {
 			try {
 				expect(broadcastScope.done()).to.be.true;
 				let msg = JSON.parse(broadcastScope.buffer.toString());
-				expect(msg.type).to.equal('hello');
+				expect(msg.type).to.equal(MESSAGE_TYPE.HELLO);
 				expect(msg.port).to.equal(consumerConf.unicast.port);
 				done();
 			} catch(e) {
@@ -54,7 +56,7 @@ describe('Consumer role', () => {
 
 	it('Handles config message', done => {
 		d.handleUnicastMessage({
-			type: 'config',
+			type: MESSAGE_TYPE.CONFIG,
 			host: '10.0.0.1',
 			port: 12556,
 			monitoring: {
@@ -65,7 +67,7 @@ describe('Consumer role', () => {
 			try {
 				expect(unicastScope.done()).to.be.true;
 				let msg = JSON.parse(unicastScope.buffer.toString());
-				expect(msg.type).to.equal('subscribe');
+				expect(msg.type).to.equal(MESSAGE_TYPE.SUBSCRIBE);
 				expect(msg.port).to.equal(consumerConf.unicast.port);
 				expect(msg.endpoints.length).to.equal(1);
 				expect(msg.endpoints[0].topics.length).to.equal(2);
@@ -80,7 +82,7 @@ describe('Consumer role', () => {
 
 	it('Handles reconfig message', done => {
 		d.handleBroadcastMessage({
-			type: 'reconfig',
+			type: MESSAGE_TYPE.RECONFIG,
 			host: '10.0.0.1',
 			port: 12556,
 			monitoring: {
@@ -91,7 +93,7 @@ describe('Consumer role', () => {
 			try {
 				expect(unicastScope.done()).to.be.true;
 				let msg = JSON.parse(unicastScope.buffer.toString());
-				expect(msg.type).to.equal('subscribe');
+				expect(msg.type).to.equal(MESSAGE_TYPE.SUBSCRIBE);
 				expect(msg.port).to.equal(consumerConf.unicast.port);
 				expect(msg.endpoints.length).to.equal(1);
 				expect(msg.endpoints[0].topics.length).to.equal(2);

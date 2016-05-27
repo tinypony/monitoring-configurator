@@ -57,7 +57,7 @@ var ProducerRole = function (_Role) {
 			var _this2 = this;
 
 			if (prev && prev.hello_sent) {
-				return _get(Object.getPrototypeOf(ProducerRole.prototype), 'onStart', this).call(this);
+				return _get(Object.getPrototypeOf(ProducerRole.prototype), 'onStart', this).call(this, prev);
 			}
 
 			var defer = _q2.default.defer();

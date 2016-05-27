@@ -7,12 +7,14 @@ chai.use(spies);
 let expect = chai.expect;
 import Daemon from '../src/daemon.js';
 import Forwarder from '../src/forwarder/forwarder';
+import { MESSAGE_TYPE } from '../src/message-type';
+import NODE_TYPE from '../src/node-type';
 
 let producerConf = {
 	unicast: {
 		port: 12556
 	},
-	roles: ['producer'],
+	roles: [NODE_TYPE.PRODUCER],
 	producers: [{
 		topic: 'foo',
 		port: 10000
@@ -35,7 +37,7 @@ describe('Producer role', () => {
 		broadcastScope  = mockudp('10.0.255.255:12555');
 		unicastScope = mockudp('10.0.0.1:12556');
 		d = new Daemon(producerConf, 12555);
-		spy = sinon.spy(Forwarder.prototype, 'reconfig');
+		spy = sinon.spy(Forwarder.prototype, MESSAGE_TYPE.RECONFIG);
 	});
 
 	afterEach(() => {
@@ -47,7 +49,7 @@ describe('Producer role', () => {
 		d.hasStarted.then(() => {
 			expect(broadcastScope.done()).to.be.true;
 			let msg = JSON.parse(broadcastScope.buffer.toString());
-			expect(msg.type).to.equal('hello');
+			expect(msg.type).to.equal(MESSAGE_TYPE.HELLO);
 			expect(msg.port).to.equal(producerConf.unicast.port);
 			done();
 		});
@@ -55,7 +57,7 @@ describe('Producer role', () => {
 
 	it('Handles config message', (done) => {
 		d.handleUnicastMessage({
-			type: 'config',
+			type: MESSAGE_TYPE.CONFIG,
 			host: '10.0.0.10',
 			port: 1337,
 			monitoring: {
@@ -76,7 +78,7 @@ describe('Producer role', () => {
 
 	it('Handles reconfig message', (done) => {
 		d.handleBroadcastMessage({
-			type: 'reconfig',
+			type: MESSAGE_TYPE.RECONFIG,
 			host: '10.0.0.10',
 			port: 1337,
 			monitoring: {

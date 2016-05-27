@@ -1,17 +1,17 @@
-var dgram = require('dgram');
-var Netmask = require('netmask').Netmask;
-var NODE_TYPE = require('./node-type.js');
-import Forwarder from './forwarder/forwarder.js';
-var KafkaForwarder = require('./kafka/kafka-forwarder.js');
-var uuid = require('node-uuid');
-var q = require('q');
-
+import dgram from 'dgram';
+import { Netmask } from 'netmask';
+import NODE_TYPE from './node-type';
+import { MESSAGE_TYPE } from './message-type';
+import Forwarder from './forwarder/forwarder';
+import KafkaForwarder from './kafka/kafka-forwarder';
+import uuid from 'node-uuid';
+import q from'q';
 import _ from 'underscore'
 import winston from 'winston'
 
-import DatasinkRole from './roles/datasink-role.js'
-import ProducerRole from './roles/producer-role.js'
-import ConsumerRole from './roles/consumer-role.js'
+import DatasinkRole from './roles/datasink-role'
+import ProducerRole from './roles/producer-role'
+import ConsumerRole from './roles/consumer-role'
 import DatasinkSlaveRole from './roles/datasink-slave-role'
 
 
@@ -161,26 +161,26 @@ class ConfigurationDaemon {
 
 	//Client node is provided with configuration by a manager node
 	handleUnicastMessage(msg) {
-		if( msg.type === 'config' ) {
+		if( msg.type === MESSAGE_TYPE.CONFIG ) {
 			return this.handleConfig(msg);
 		}
 
-		if( msg.type === 'subscribe' ) {
+		if( msg.type === MESSAGE_TYPE.SUBSCRIBE ) {
 			return this.handleSubscribe(msg);
 		}
 
-		if( msg.type === 'regslave' ) {
+		if( msg.type === MESSAGE_TYPE.REGISTER_SLAVE ) {
 			return this.handleRegslave(msg);
 		}
 	}
 
 	handleBroadcastMessage(msg) {
-		if(msg.type === 'hello') {
+		if(msg.type === MESSAGE_TYPE.HELLO) {
 			return this.handleHello(msg);
 		}
 
 		//Every type of node is being monitored and needs to be reconfigured
-		if( msg.type === 'reconfig' ) {
+		if( msg.type === MESSAGE_TYPE.RECONFIG ) {
 			return this.handleReconfig(msg);
 		}
 	}

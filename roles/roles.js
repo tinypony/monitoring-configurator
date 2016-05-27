@@ -6,9 +6,19 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _nodeType = require('../node-type.js');
+var _underscore = require('underscore');
+
+var _underscore2 = _interopRequireDefault(_underscore);
+
+var _q = require('q');
+
+var _q2 = _interopRequireDefault(_q);
+
+var _nodeType = require('../node-type');
 
 var _nodeType2 = _interopRequireDefault(_nodeType);
+
+var _messageType = require('../message-type');
 
 var _netmask = require('netmask');
 
@@ -19,9 +29,6 @@ var _winston2 = _interopRequireDefault(_winston);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var _ = require('underscore');
-var q = require('q');
 
 var Role = function () {
 	function Role(initId, config, sockets) {
@@ -46,70 +53,117 @@ var Role = function () {
 
 			return logger;
 		}
+
+		/**
+   * Method that is shared by all role subclasses to send unicast responses to the original sender of a message
+   */
+
+	}, {
+		key: 'respondTo',
+		value: function respondTo(receivedMessage, response) {
+			var defer = _q2.default.defer();
+			this.sockets.unicast.send(new Buffer(response), 0, response.length, receivedMessage.port, receivedMessage.host, function (err) {
+				if (err) {
+					return defer.reject(err);
+				} else {
+					return defer.resolve();
+				}
+			});
+			return defer.promise;
+		}
+
+		/**
+   * Method that is shared by all role subclasses to send broadcast messages to the monitoring network
+   */
+
+	}, {
+		key: 'broadcast',
+		value: function broadcast(message) {
+			var _this = this;
+
+			var defer = _q2.default.defer();
+			this.sockets.broadcast.send(new Buffer(message), 0, message.length, this.config.broadcastPort, this.getBroadcastAddress(), function (err) {
+				if (err) {
+					_this.logger.warn(err);
+					defer.reject(err);
+				} else {
+					defer.resolve();
+				}
+			});
+
+			return defer.promise;
+		}
 	}, {
 		key: 'isDatasink',
 		value: function isDatasink() {
-			return _.contains(this.config.roles, _nodeType2.default.DATASINK);
+			return _underscore2.default.contains(this.config.roles, _nodeType2.default.DATASINK);
 		}
 	}, {
 		key: 'isDatasinkSlave',
 		value: function isDatasinkSlave() {
-			return _.contains(this.config.roles, _nodeType2.default.DATASINK_SLAVE);
+			return _underscore2.default.contains(this.config.roles, _nodeType2.default.DATASINK_SLAVE);
 		}
 	}, {
 		key: 'isProducer',
 		value: function isProducer() {
-			return _.contains(this.config.roles, _nodeType2.default.PRODUCER);
+			return _underscore2.default.contains(this.config.roles, _nodeType2.default.PRODUCER);
 		}
 	}, {
 		key: 'isConsumer',
 		value: function isConsumer() {
-			return _.contains(this.config.roles, _nodeType2.default.CONSUMER);
+			return _underscore2.default.contains(this.config.roles, _nodeType2.default.CONSUMER);
 		}
 	}, {
 		key: 'isValidPort',
 		value: function isValidPort(port) {
-			return _.isNumber(port) && port > 0 && port < 65535;
+			return _underscore2.default.isNumber(port) && port > 0 && port < 65535;
 		}
 	}, {
 		key: 'onStart',
-		value: function onStart() {
-			var defer = q.defer();
-			defer.resolve();
+		value: function onStart(prev) {
+			var defer = _q2.default.defer();
+			defer.resolve(prev);
 			return defer.promise;
 		}
 	}, {
 		key: 'onStop',
 		value: function onStop() {
-			var defer = q.defer();
+			var defer = _q2.default.defer();
 			defer.resolve();
 			return defer.promise;
 		}
 	}, {
 		key: 'handleHello',
 		value: function handleHello(msg) {
-			var defer = q.defer();
+			var defer = _q2.default.defer();
 			defer.resolve(msg);
 			return defer.promise;
 		}
 	}, {
 		key: 'handleConfig',
 		value: function handleConfig(msg) {
-			var defer = q.defer();
+			var defer = _q2.default.defer();
 			defer.resolve(msg);
 			return defer.promise;
 		}
 	}, {
 		key: 'handleReconfig',
 		value: function handleReconfig(msg) {
-			var defer = q.defer();
+			var defer = _q2.default.defer();
 			defer.resolve(msg);
 			return defer.promise;
 		}
 	}, {
 		key: 'handleSubscribe',
-		value: function handleSubscribe() {
-			var defer = q.defer();
+		value: function handleSubscribe(msg) {
+			var defer = _q2.default.defer();
+			defer.resolve(msg);
+			return defer.promise;
+		}
+	}, {
+		key: 'handleRegslave',
+		value: function handleRegslave(msg) {
+			var defer = _q2.default.defer();
 			defer.resolve(msg);
 			return defer.promise;
 		}
@@ -123,7 +177,7 @@ var Role = function () {
 		key: 'getReconfigureMessage',
 		value: function getReconfigureMessage() {
 			var msg = {
-				type: 'reconfig',
+				type: _messageType.MESSAGE_TYPE.RECONFIG,
 				host: 'self',
 				port: this.config.unicast.port,
 				monitoring: {
@@ -136,9 +190,9 @@ var Role = function () {
 		}
 	}, {
 		key: 'getConfigureMessage',
-		value: function getConfigureMessage() {
+		value: function getConfigureMessage(extension) {
 			var msg = {
-				type: 'config',
+				type: _messageType.MESSAGE_TYPE.CONFIG,
 				host: 'self',
 				port: this.config.unicast.port,
 				monitoring: {
@@ -147,13 +201,16 @@ var Role = function () {
 				}
 			};
 
+			msg = _underscore2.default.extend(msg, extension);
+
 			return JSON.stringify(msg);
 		}
 	}, {
 		key: 'getHelloMessage',
 		value: function getHelloMessage() {
 			var msg = {
-				type: 'hello',
+				type: _messageType.MESSAGE_TYPE.HELLO,
+				roles: this.config.roles,
 				uuid: this.initId,
 				host: 'self',
 				port: this.config.unicast.port
@@ -165,12 +222,25 @@ var Role = function () {
 		key: 'getSubscribeMessage',
 		value: function getSubscribeMessage() {
 			var msg = {
-				type: 'subscribe',
+				type: _messageType.MESSAGE_TYPE.SUBSCRIBE,
 				host: 'self',
 				port: this.config.unicast.port,
 				endpoints: this.config.consumers
 			};
 
+			return JSON.stringify(msg);
+		}
+	}, {
+		key: 'getSlaveRegisterMessage',
+		value: function getSlaveRegisterMessage(brokerId, extension) {
+			var msg = {
+				type: _messageType.MESSAGE_TYPE.REGISTER_SLAVE,
+				host: 'self',
+				port: this.config.unicast.port,
+				brokerId: brokerId
+			};
+
+			msg = _underscore2.default.extend(msg, extension);
 			return JSON.stringify(msg);
 		}
 	}]);

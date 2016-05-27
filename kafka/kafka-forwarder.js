@@ -71,17 +71,6 @@ var KafkaForwarder = function () {
 			}.bind(this));
 		}
 	}, {
-		key: 'getPingMessage',
-		value: function getPingMessage() {
-			var msg = {
-				type: 'ping',
-				host: 'self',
-				port: this.config.unicast.port
-			};
-
-			return JSON.stringify(msg);
-		}
-	}, {
 		key: 'hasConnection',
 		value: function hasConnection(sub) {
 			var existing = _underscore2.default.findWhere(this.connections, { host: sub.host, port: sub.port });
@@ -130,6 +119,7 @@ var KafkaForwarder = function () {
 			});
 			this.logger.info('[KafkaForwarder] created consumer');
 
+			//Handle consumer connection error
 			consumer.on("error", function (err) {
 				_this.logger.warn('[KafkaForwarder]');
 				_this.logger.warn(JSON.stringify(err));
@@ -149,7 +139,6 @@ var KafkaForwarder = function () {
 			consumer.on('message', function (msg) {
 				if (!msg.value) {
 					_this.logger.warn('[KafkaForwarder] message empty, drop');
-
 					return;
 				}
 
