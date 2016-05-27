@@ -86,6 +86,7 @@ class DatasinkRole extends Role {
 	handleRegslave(msg) {
 		var defer = q.defer();
 		this.brokers.push(msg.brokerId);
+		this.logger.info(`Registered brokers: ${this.brokers}`);
 		defer.resolve(msg);
 		return defer.promise;
 	}
