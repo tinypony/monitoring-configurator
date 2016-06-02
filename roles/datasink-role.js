@@ -26,6 +26,8 @@ var _nodeType = require('../node-type');
 
 var _nodeType2 = _interopRequireDefault(_nodeType);
 
+var _child_process = require('child_process');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -141,7 +143,7 @@ var DatasinkRole = function (_Role) {
 			var command = '/opt/monitoring-configurator/lifecycle/on_cluster_expand.sh --brokers "' + this.brokers + '"';
 			this.logger.info('Running command ' + command);
 
-			exec(command, function (error, stdout, stderr) {
+			(0, _child_process.exec)(command, function (error, stdout, stderr) {
 				if (error) {
 					_this5.logger.warn(error);
 					_this5.logger.warn(stderr);

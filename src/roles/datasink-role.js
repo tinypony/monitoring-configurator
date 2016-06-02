@@ -3,6 +3,7 @@ import KafkaForwarder from '../kafka/kafka-forwarder.js';
 import q from 'q';
 import _ from 'underscore';
 import NODE_TYPE from '../node-type';
+import { exec } from 'child_process'
 
 class DatasinkRole extends Role {
 	constructor(initId, config, sockets) {
@@ -87,7 +88,7 @@ class DatasinkRole extends Role {
 		var defer = q.defer();
 		var command = `/opt/monitoring-configurator/lifecycle/on_cluster_expand.sh --brokers "${this.brokers}"`;
 		this.logger.info('Running command ' + command);
-		
+
 		exec(command, ( error, stdout, stderr ) => {
 		    if (error) {
 		      	this.logger.warn(error);
