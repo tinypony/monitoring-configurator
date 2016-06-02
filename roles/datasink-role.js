@@ -151,6 +151,7 @@ var DatasinkRole = function (_Role) {
 				}
 				_this5.logger.info('RebalanceCluster has finished');
 				_this5.logger.info(stdout);
+				_this5.kafkaForwarder.handleRebalance();
 				defer.resolve();
 			});
 			return defer.promise;

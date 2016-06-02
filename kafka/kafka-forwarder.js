@@ -42,7 +42,7 @@ var KafkaForwarder = function () {
 		_classCallCheck(this, KafkaForwarder);
 
 		this.config = config;
-		this.connections = [];
+		this.connections = {};
 		this.ou_socket = _dgram2.default.createSocket('udp4');
 
 		this.logger = new _winston2.default.Logger({
@@ -60,6 +60,18 @@ var KafkaForwarder = function () {
 			return this.config.monitoring.host + ':' + this.config.monitoring.port;
 		}
 	}, {
+		key: 'handleRebalance',
+		value: function handleRebalance() {
+			var _this = this;
+
+			_underscore2.default.each(this.connection, function (con) {
+				//recreate consumer for all connections
+				con.consumer.close(true, function () {
+					_this.createConsumer(con.subInfo);
+				});
+			});
+		}
+	}, {
 		key: 'send',
 		value: function send(msg, host, port) {
 			this.ou_socket.send(new Buffer(msg), 0, msg.length, port, host, function (err) {
@@ -73,7 +85,7 @@ var KafkaForwarder = function () {
 	}, {
 		key: 'hasConnection',
 		value: function hasConnection(sub) {
-			var existing = _underscore2.default.findWhere(this.connections, { host: sub.host, port: sub.port });
+			var existing = _underscore2.default.findWhere(_underscore2.default.values(this.connections), { host: sub.host, port: sub.port });
 
 			if (!existing) {
 				return false;
@@ -97,12 +109,17 @@ var KafkaForwarder = function () {
 	}, {
 		key: 'subscribe',
 		value: function subscribe(sub) {
-			var _this = this;
-
 			if (this.hasConnection(sub)) {
 				return;
 			}
 			this.logger.info('[KafkaForwarder] Subscribing %s:%d', sub.host, sub.port);
+			this.createConsumer(sub);
+		}
+	}, {
+		key: 'createConsumer',
+		value: function createConsumer(sub) {
+			var _this2 = this;
+
 			var client = new _kafkaNode.Client(this.getConnectionString(), this.getClientId(sub));
 			this.logger.info('[KafkaForwarder] created client');
 			var payloads = _underscore2.default.map(sub.topics, function (topic) {
@@ -121,18 +138,18 @@ var KafkaForwarder = function () {
 
 			//Handle consumer connection error
 			consumer.on("error", function (err) {
-				_this.logger.warn('[KafkaForwarder]');
-				_this.logger.warn(JSON.stringify(err));
+				_this2.logger.warn('[KafkaForwarder]');
+				_this2.logger.warn(JSON.stringify(err));
 
 				//Waiting for kafka to timeout and clear previous connection
 				if (KAFKA_ERROR.isNodeExists(err)) {
-					_this.logger.info('Waiting for kafka to clear previous connection');
-					setTimeout(_this.subscribe.bind(_this, sub), 5000);
+					_this2.logger.info('Waiting for kafka to clear previous connection');
+					setTimeout(_this2.createConsumer.bind(_this2, sub), 5000);
 				}
 				//Waiting for KAFKA to spin up (possibly)
 				else if (KAFKA_ERROR.isCouldNotFindBroker(err)) {
-						_this.logger.info('Waiting for kafka to spin up');
-						setTimeout(_this.subscribe.bind(_this, sub), 5000);
+						_this2.logger.info('Waiting for kafka to spin up');
+						setTimeout(_this2.createConsumer.bind(_this2, sub), 5000);
 					}
 			});
 
@@ -142,18 +159,19 @@ var KafkaForwarder = function () {
 					return;
 				}
 
-				_this.send(msg.value, sub.host, parseInt(sub.port));
+				_this2.send(msg.value, sub.host, parseInt(sub.port));
 			});
 
 			consumer.on('connect', function () {
-				_this.connections.push({
+				_this2.connections[_this2.getClientId(sub)] = {
 					host: sub.host,
 					port: sub.unicastport,
 					topics: sub.topics,
 					consumer: consumer,
-					liveStatus: 1 // 0 - unresponsive, 1 - live, 2 - pending check
-				});
-				_this.logger.info('Subscribed ' + _this.getClientId(sub));
+					liveStatus: 1, // 0 - unresponsive, 1 - live, 2 - pending check
+					subInfo: sub
+				};
+				_this2.logger.info('Subscribed ' + _this2.getClientId(sub));
 			});
 
 			this.logger.info('[KafkaForwarder] Attached all required callbacks to consumer');

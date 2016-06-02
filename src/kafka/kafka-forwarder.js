@@ -18,7 +18,7 @@ var KAFKA_ERROR = {
 class KafkaForwarder {
 	constructor (config) {
 		this.config = config;
-		this.connections = [];
+		this.connections = {};
 		this.ou_socket = dgram.createSocket('udp4');
 
 		this.logger = new winston.Logger({
@@ -32,6 +32,15 @@ class KafkaForwarder {
 
 	getConnectionString() {
 		return this.config.monitoring.host + ':' + this.config.monitoring.port;
+	}
+
+	handleRebalance() {
+		_.each(this.connection, con => {
+			//recreate consumer for all connections
+			con.consumer.close(true, () => {
+				this.createConsumer(con.subInfo);
+			});
+		});
 	}
 
 	send(msg, host, port) {
@@ -52,7 +61,7 @@ class KafkaForwarder {
 	}
 
 	hasConnection(sub) {
-		var existing = _.findWhere(this.connections, {host: sub.host, port: sub.port });
+		var existing = _.findWhere(_.values(this.connections), {host: sub.host, port: sub.port });
 
 		if(!existing) {
 			return false;
@@ -77,6 +86,10 @@ class KafkaForwarder {
 			return;
 		}
 		this.logger.info('[KafkaForwarder] Subscribing %s:%d', sub.host, sub.port);
+		this.createConsumer(sub);
+	}
+
+	createConsumer(sub) {
 		var client = new Client(this.getConnectionString(), this.getClientId(sub));
 		this.logger.info('[KafkaForwarder] created client');
 		var payloads = _.map(sub.topics, function(topic) {
@@ -101,12 +114,12 @@ class KafkaForwarder {
 			//Waiting for kafka to timeout and clear previous connection
 			if( KAFKA_ERROR.isNodeExists(err) ) {
 				this.logger.info('Waiting for kafka to clear previous connection');
-				setTimeout(this.subscribe.bind(this, sub), 5000);
+				setTimeout(this.createConsumer.bind(this, sub), 5000);
 			} 
 			//Waiting for KAFKA to spin up (possibly)
 			else if(KAFKA_ERROR.isCouldNotFindBroker(err)) {
 				this.logger.info('Waiting for kafka to spin up');
-				setTimeout(this.subscribe.bind(this, sub), 5000);
+				setTimeout(this.createConsumer.bind(this, sub), 5000);
 			}
 		});
 
@@ -120,13 +133,14 @@ class KafkaForwarder {
 		});
 
 		consumer.on('connect', () => {
-			this.connections.push({
+			this.connections[this.getClientId(sub)] = {
 				host: sub.host,
 				port: sub.unicastport,
 				topics: sub.topics,
 				consumer: consumer,
-				liveStatus: 1			// 0 - unresponsive, 1 - live, 2 - pending check
-			});
+				liveStatus: 1,			// 0 - unresponsive, 1 - live, 2 - pending check
+				subInfo: sub
+			};
 			this.logger.info('Subscribed ' + this.getClientId(sub));
 		});
 
