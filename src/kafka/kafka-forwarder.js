@@ -50,13 +50,13 @@ class KafkaForwarder {
 		 	msg.length, 
 		 	port,
 		 	host, 
-		 	function(err) {
-		 		if (err) return this.logger.warn(err);
+		 	err => {
+		 		if (err) return this.logger.warn(`[KafkaForwarder.send()] ${JSON.stringify(err)}`);
 		 		if (!firstMessageLogged) {
 		 			this.logger.info('Sent message "%s" to subscribed client %s:%d', msg, host, port);
 		 			firstMessageLogged = true;
 		 		}
-		 	}.bind(this)
+		 	}
 		);
 	}
 
@@ -108,8 +108,8 @@ class KafkaForwarder {
 
 		//Handle consumer connection error
 		consumer.on("error", err => {
-			//this.logger.warn('[KafkaForwarder]');
-			//this.logger.warn(JSON.stringify(err));
+		//	this.logger.warn('[KafkaForwarder]');
+		//	this.logger.warn(JSON.stringify(err));
 
 			//Waiting for kafka to timeout and clear previous connection
 			if( KAFKA_ERROR.isNodeExists(err) ) {
