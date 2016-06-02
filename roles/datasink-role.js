@@ -138,12 +138,16 @@ var DatasinkRole = function (_Role) {
 			var _this5 = this;
 
 			var defer = _q2.default.defer();
-			exec('/opt/monitoring-configurator/lifecycle/on_cluster_expand.sh --brokers "' + this.brokers + '"', function (error, stdout, stderr) {
+			var command = '/opt/monitoring-configurator/lifecycle/on_cluster_expand.sh --brokers "' + this.brokers + '"';
+			this.logger.info('Running command ' + command);
+
+			exec(command, function (error, stdout, stderr) {
 				if (error) {
 					_this5.logger.warn(error);
 					_this5.logger.warn(stderr);
 					return defer.reject(error);
 				}
+				_this5.logger('RebalanceCluster has finished');
 				_this5.logger.info(stdout);
 				defer.resolve();
 			});
