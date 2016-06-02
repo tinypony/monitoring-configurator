@@ -95,7 +95,7 @@ class DatasinkRole extends Role {
 		      	this.logger.warn(stderr);
 		      	return defer.reject(error);
 		    }
-		    this.logger('RebalanceCluster has finished');
+		    this.logger.info('RebalanceCluster has finished');
 		    this.logger.info(stdout);
 		    defer.resolve();
 		});

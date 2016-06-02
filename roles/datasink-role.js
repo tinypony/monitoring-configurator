@@ -149,7 +149,7 @@ var DatasinkRole = function (_Role) {
 					_this5.logger.warn(stderr);
 					return defer.reject(error);
 				}
-				_this5.logger('RebalanceCluster has finished');
+				_this5.logger.info('RebalanceCluster has finished');
 				_this5.logger.info(stdout);
 				defer.resolve();
 			});
