@@ -108,8 +108,8 @@ class KafkaForwarder {
 
 		//Handle consumer connection error
 		consumer.on("error", err => {
-			this.logger.warn('[KafkaForwarder]');
-			this.logger.warn(JSON.stringify(err));
+			//this.logger.warn('[KafkaForwarder]');
+			//this.logger.warn(JSON.stringify(err));
 
 			//Waiting for kafka to timeout and clear previous connection
 			if( KAFKA_ERROR.isNodeExists(err) ) {
