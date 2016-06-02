@@ -91,6 +91,7 @@ class DatasinkRole extends Role {
 			      	this.logger.warn(error);
 			      	return defer.reject(error);
 			    }
+			    this.logger.info('cluster is rebalancing OK');
 			    defer.resolve();
 			});
 		return defer.promise;
@@ -99,7 +100,7 @@ class DatasinkRole extends Role {
 	handleRegslave(msg) {
 		var defer = q.defer();
 		this.brokers.push(msg.brokerId);
-		this.logger.info(`Registered brokers: ${this.brokers}`);
+		this.logger.info(`Registered brokers: ${this.brokers.join(',')}`);
 		this.rebalanceCluster().then(()=>defer.resolve(msg), er => defer.reject(er));
 		return defer.promise;
 	}
