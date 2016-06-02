@@ -133,11 +133,32 @@ var DatasinkRole = function (_Role) {
 			return defer.promise;
 		}
 	}, {
+		key: 'rebalanceCluster',
+		value: function rebalanceCluster() {
+			var _this5 = this;
+
+			var defer = _q2.default.defer();
+			exec('/opt/monitoring-configurator/lifecycle/on_cluster_expand.sh --brokers "' + this.brokers + '"', function (error) {
+				if (error) {
+					_this5.logger.warn(error);
+					return defer.reject(error);
+				}
+				_this5.logger.info('cluster is rebalancing OK');
+				defer.resolve();
+			});
+			return defer.promise;
+		}
+	}, {
 		key: 'handleRegslave',
 		value: function handleRegslave(msg) {
 			var defer = _q2.default.defer();
 			this.brokers.push(msg.brokerId);
-			defer.resolve(msg);
+			this.logger.info('Registered brokers: ' + this.brokers.join(','));
+			this.rebalanceCluster().then(function () {
+				return defer.resolve(msg);
+			}, function (er) {
+				return defer.reject(er);
+			});
 			return defer.promise;
 		}
 	}]);

@@ -138,7 +138,7 @@ var KafkaForwarder = function () {
 
 			consumer.on('message', function (msg) {
 				if (!msg.value) {
-					_this.logger.warn('[KafkaForwarder] message empty, drop');
+					//this.logger.warn('[KafkaForwarder] message empty, drop');
 					return;
 				}
 

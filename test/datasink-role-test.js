@@ -6,6 +6,8 @@ import _ from 'underscore';
 
 chai.use(spies);
 let expect = chai.expect;
+import q from 'q';
+import sinon from 'sinon';
 import Daemon from '../src/daemon.js';
 import { MESSAGE_TYPE } from '../src/message-type';
 import NODE_TYPE from '../src/node-type';
@@ -28,15 +30,20 @@ let datasinkConf = {
 describe('Datasink role', () => {
 	let broadcastScope;
 	let unicastScope;
+	let stub;
 	let d;
 
 	beforeEach(() => {
 		broadcastScope  = mockudp('10.0.255.255:12555');
 		unicastScope = mockudp('10.0.0.1:12556');
+		let defer = q.defer();
+		defer.resolve();
+		stub = sinon.stub(DatasinkRole.prototype, 'rebalanceCluster').returns(defer.promise);
 		d = new Daemon(datasinkConf, 12555);
 	});
 
 	afterEach(() => {
+		DatasinkRole.prototype.rebalanceCluster.restore();
 		d.close();
 	});
 

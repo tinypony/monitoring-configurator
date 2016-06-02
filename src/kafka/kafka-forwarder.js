@@ -112,7 +112,7 @@ class KafkaForwarder {
 
 		consumer.on('message', msg => {
 			if(!msg.value) {
-				this.logger.warn('[KafkaForwarder] message empty, drop');
+				//this.logger.warn('[KafkaForwarder] message empty, drop');
 				return;
 			}
 
