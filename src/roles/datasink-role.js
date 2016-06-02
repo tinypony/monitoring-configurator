@@ -86,11 +86,13 @@ class DatasinkRole extends Role {
 	rebalanceCluster() {
 		var defer = q.defer();
 		exec(`/opt/monitoring-configurator/lifecycle/on_cluster_expand.sh --brokers "${this.brokers}"`,
-			error => {
+			( error, stdout, stderr ) => {
 			    if (error) {
 			      	this.logger.warn(error);
+			      	this.logger.warn(stderr);
 			      	return defer.reject(error);
 			    }
+			    this.logger.info(stdout);
 			    defer.resolve();
 			});
 		return defer.promise;

@@ -88,12 +88,14 @@ var DatasinkSlaveRole = function (_Role) {
 			var _this4 = this;
 
 			var defer = _q2.default.defer();
-			(0, _child_process.exec)('/opt/monitoring-configurator/lifecycle/on_configuration_receive.sh ' + broker_id + ' ' + zookeeper_host + ' ' + zookeeper_port, function (error) {
+			(0, _child_process.exec)('/opt/monitoring-configurator/lifecycle/on_configuration_receive.sh ' + broker_id + ' ' + zookeeper_host + ' ' + zookeeper_port, function (error, stdout, stderr) {
 				if (error) {
 					_this4.logger.warn(error);
+					_this4.logger.warn(stderr);
 					return defer.reject();
 				}
 				_this4.logger.info('Kafka reconfigured');
+				_this4.logger.info(stdout);
 				defer.resolve();
 			});
 			return defer.promise;
