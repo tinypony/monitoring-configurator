@@ -33,7 +33,7 @@ class Forwarder {
 			skt.bind(fwd.port, '127.0.0.1');
 
 			skt.on('error', (er) => {
-				this.logger.warn(er);
+				this.logger.warn(`[Forwarder.constructor()] ${er}`);
 			});
 
 			skt.on("message", this.forward.bind(this, fwd.topic));
@@ -49,7 +49,7 @@ class Forwarder {
 
 		this.forwardToAddress = config.monitoring.host;
 		this.forwardToPort = config.monitoring.port;
-		this.logger.info('[Forwarder] Reconfiguring forwarder');
+		this.logger.info('[Forwarder.reconfig()] Reconfiguring forwarder');
 
 
 		var createConnection = () => {
@@ -64,8 +64,8 @@ class Forwarder {
 				this.client = client;
 			});
 
-			producer.on('error', (err) => {
-				this.logger.warn('[Kafka producer] Error: %s', JSON.stringify(err));
+			producer.on('error', err => {
+				this.logger.warn('[Forwarder.reconfig()] Error: %s', JSON.stringify(err));
 			});
 
 			this.logger.info('[Forwarder] Created producer');
@@ -96,14 +96,14 @@ class Forwarder {
 			this.producer.send([{
 				topic: topic,
 				messages: messages
-			}], (err, sent_data) => {
+			}], err => {
 				if(err) {
-					return this.logger.warn(JSON.stringify(err));
+					return this.logger.warn(`[Forwarder.forward()] ${JSON.stringify(err)}`);
 				}
 				//this.logger.info('Forwarded messages: '+JSON.stringify(messages));
 			});
 		} catch(e) {
-			this.logger.info(e); //carry on
+			this.logger.warn(e); //carry on
 		}
 	}
 }

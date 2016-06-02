@@ -47,7 +47,7 @@ var Forwarder = function () {
 			skt.bind(fwd.port, '127.0.0.1');
 
 			skt.on('error', function (er) {
-				_this.logger.warn(er);
+				_this.logger.warn('[Forwarder.constructor()] ' + er);
 			});
 
 			skt.on("message", _this.forward.bind(_this, fwd.topic));
@@ -67,7 +67,7 @@ var Forwarder = function () {
 
 			this.forwardToAddress = config.monitoring.host;
 			this.forwardToPort = config.monitoring.port;
-			this.logger.info('[Forwarder] Reconfiguring forwarder');
+			this.logger.info('[Forwarder.reconfig()] Reconfiguring forwarder');
 
 			var createConnection = function createConnection() {
 				var connectionString = _this2.forwardToAddress + ':' + _this2.forwardToPort;
@@ -82,7 +82,7 @@ var Forwarder = function () {
 				});
 
 				producer.on('error', function (err) {
-					_this2.logger.warn('[Kafka producer] Error: %s', JSON.stringify(err));
+					_this2.logger.warn('[Forwarder.reconfig()] Error: %s', JSON.stringify(err));
 				});
 
 				_this2.logger.info('[Forwarder] Created producer');
@@ -116,14 +116,14 @@ var Forwarder = function () {
 				this.producer.send([{
 					topic: topic,
 					messages: messages
-				}], function (err, sent_data) {
+				}], function (err) {
 					if (err) {
-						return _this3.logger.warn(JSON.stringify(err));
+						return _this3.logger.warn('[Forwarder.forward()] ' + JSON.stringify(err));
 					}
 					//this.logger.info('Forwarded messages: '+JSON.stringify(messages));
 				});
 			} catch (e) {
-				this.logger.info(e); //carry on
+				this.logger.warn(e); //carry on
 			}
 		}
 	}]);
