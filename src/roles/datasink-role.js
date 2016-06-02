@@ -105,6 +105,7 @@ class DatasinkRole extends Role {
 
 	handleRegslave(msg) {
 		var defer = q.defer();
+		this.logger.info(`Register slave: ${JSON.stringify(msg)}`);
 		this.brokers.push(msg.brokerId);
 		this.logger.info(`Registered brokers: ${this.brokers.join(',')}`);
 		this.rebalanceCluster().then(()=>defer.resolve(msg), er => defer.reject(er));

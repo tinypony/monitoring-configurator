@@ -160,6 +160,7 @@ var DatasinkRole = function (_Role) {
 		key: 'handleRegslave',
 		value: function handleRegslave(msg) {
 			var defer = _q2.default.defer();
+			this.logger.info('Register slave: ' + JSON.stringify(msg));
 			this.brokers.push(msg.brokerId);
 			this.logger.info('Registered brokers: ' + this.brokers.join(','));
 			this.rebalanceCluster().then(function () {
