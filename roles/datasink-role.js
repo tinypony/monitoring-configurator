@@ -140,7 +140,7 @@ var DatasinkRole = function (_Role) {
 			var _this5 = this;
 
 			var defer = _q2.default.defer();
-			var command = '/opt/monitoring-configurator/lifecycle/on_cluster_expand.sh --brokers "' + this.brokers + '"';
+			var command = '/opt/monitoring-configurator/lifecycle/on_cluster_expand.py --brokers "' + this.brokers + '"';
 			this.logger.info('Running command ' + command);
 
 			(0, _child_process.exec)(command, function (error, stdout, stderr) {
