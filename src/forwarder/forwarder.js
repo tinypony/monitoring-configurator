@@ -70,7 +70,7 @@ class Forwarder {
 			defer.reject(err);
 		});
 
-		this.logger.info('[Forwarder] Created producer');
+		this.logger.info('[Forwarder] Created new producer');
 		return defer.promise;
 	}
 
@@ -78,6 +78,8 @@ class Forwarder {
 		var defer = q.defer();
 		if (this.producer) {
 			this.producer.close(() => {
+				this.logger.info('[Forwarder.reconnect()] Closed the producer, reconnecting');
+				this.producer = null;
 				this.createConnection()
 					.then(defer.resolve, err => defer.reject(err));
 			});

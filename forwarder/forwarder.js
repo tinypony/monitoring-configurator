@@ -106,7 +106,7 @@ var Forwarder = function () {
 				defer.reject(err);
 			});
 
-			this.logger.info('[Forwarder] Created producer');
+			this.logger.info('[Forwarder] Created new producer');
 			return defer.promise;
 		}
 	}, {
@@ -117,6 +117,8 @@ var Forwarder = function () {
 			var defer = _q2.default.defer();
 			if (this.producer) {
 				this.producer.close(function () {
+					_this3.logger.info('[Forwarder.reconnect()] Closed the producer, reconnecting');
+					_this3.producer = null;
 					_this3.createConnection().then(defer.resolve, function (err) {
 						return defer.reject(err);
 					});
