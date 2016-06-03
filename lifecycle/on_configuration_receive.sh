@@ -3,7 +3,10 @@ brokid=$1
 zookeeper_host=$2
 zookeeper_port=$3
 
+echo "stopping kafka"
 sudo stop kafka
+echo "kafka stopped"
+echo "Reconfigure kafka with broker.id = $brokid"
 
 sed -i "s/^.*broker\.id=.*$/broker.id=`echo $brokid`/g" /opt/kafka/config/server.properties
 
