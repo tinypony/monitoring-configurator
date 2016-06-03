@@ -154,6 +154,10 @@ class ConfigurationDaemon {
 		return this.handleInChain(msg, 'handleRegslave');
 	}
 
+	handleClusterResize(msg) {
+		return this.handleInChain(msg, 'handleClusterResize');
+	}
+
 	close() {
 		this.uc_socket.close();
 		this.bc_socket.close();
@@ -177,11 +181,10 @@ class ConfigurationDaemon {
 	handleBroadcastMessage(msg) {
 		if(msg.type === MESSAGE_TYPE.HELLO) {
 			return this.handleHello(msg);
-		}
-
-		//Every type of node is being monitored and needs to be reconfigured
-		if( msg.type === MESSAGE_TYPE.RECONFIG ) {
+		} else if( msg.type === MESSAGE_TYPE.RECONFIG ) {
 			return this.handleReconfig(msg);
+		} else if( msg.type === MESSAGE_TYPE.CLUSTER_RESIZE ) {
+			return this.handleClusterResize(msg);
 		}
 	}
 

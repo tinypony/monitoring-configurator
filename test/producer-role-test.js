@@ -2,6 +2,7 @@ import chai from 'chai';
 import spies from 'chai-spies';
 import sinon from 'sinon'
 import mockudp from 'mock-udp';
+import q from 'q';
 
 chai.use(spies);
 let expect = chai.expect;
@@ -32,26 +33,36 @@ describe('Producer role', () => {
 	let unicastScope;
 	let d;
 	let spy;
+	let stub;
 
 	beforeEach(() => {
 		broadcastScope  = mockudp('10.0.255.255:12555');
 		unicastScope = mockudp('10.0.0.1:12556');
 		d = new Daemon(producerConf, 12555);
-		spy = sinon.spy(Forwarder.prototype, MESSAGE_TYPE.RECONFIG);
+		spy = sinon.spy(Forwarder.prototype, 'reconfig');
+
+		let defer = q.defer();
+		defer.resolve();
+		stub = sinon.stub(Forwarder.prototype, 'reconnect').returns(defer.promise);
 	});
 
 	afterEach(() => {
 		Forwarder.prototype.reconfig.restore();
+		Forwarder.prototype.reconnect.restore();
 		d.close();
 	});
 
 	it('Broadcasts hello message on start', (done) => {
 		d.hasStarted.then(() => {
-			expect(broadcastScope.done()).to.be.true;
-			let msg = JSON.parse(broadcastScope.buffer.toString());
-			expect(msg.type).to.equal(MESSAGE_TYPE.HELLO);
-			expect(msg.port).to.equal(producerConf.unicast.port);
-			done();
+			try {
+				expect(broadcastScope.done()).to.be.true;
+				let msg = JSON.parse(broadcastScope.buffer.toString());
+				expect(msg.type).to.equal(MESSAGE_TYPE.HELLO);
+				expect(msg.port).to.equal(producerConf.unicast.port);
+				done();
+			} catch(e) {
+				done(e);
+			}
 		});
 	});
 
@@ -67,6 +78,7 @@ describe('Producer role', () => {
 		}).then(() => {
 			try{
 				expect(spy.calledOnce).to.be.true;
+				expect(stub.calledOnce).to.be.true;
 				expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.host', '10.0.0.10');
 				expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.port', 2181);
 				done();
@@ -86,10 +98,30 @@ describe('Producer role', () => {
 				port: 2181
 			}
 		}).then(() => {
-			expect(spy.calledOnce).to.be.true;
-			expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.host', '10.0.0.10');
-			expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.port', 2181);
-			done();
+			try {
+				expect(spy.calledOnce).to.be.true;
+				expect(stub.calledOnce).to.be.true;
+				expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.host', '10.0.0.10');
+				expect(spy.getCall(0).args[0]).to.have.deep.property('monitoring.port', 2181);
+				done();
+			} catch(er) {
+				done(er);
+			}
+		});
+	});
+
+	it('Handles cluster resize message', (done) => {
+		d.handleBroadcastMessage({
+			type: MESSAGE_TYPE.CLUSTER_RESIZE,
+			host: '10.0.0.10',
+			port: 1337
+		}).then(() => {
+			try {
+				expect(stub.calledOnce).to.be.true;
+				done();
+			} catch(er) {
+				done(er);
+			}
 		});
 	});
 });

@@ -216,6 +216,11 @@ var ConfigurationDaemon = function () {
 			return this.handleInChain(msg, 'handleRegslave');
 		}
 	}, {
+		key: 'handleClusterResize',
+		value: function handleClusterResize(msg) {
+			return this.handleInChain(msg, 'handleClusterResize');
+		}
+	}, {
 		key: 'close',
 		value: function close() {
 			this.uc_socket.close();
@@ -244,11 +249,10 @@ var ConfigurationDaemon = function () {
 		value: function handleBroadcastMessage(msg) {
 			if (msg.type === _messageType.MESSAGE_TYPE.HELLO) {
 				return this.handleHello(msg);
-			}
-
-			//Every type of node is being monitored and needs to be reconfigured
-			if (msg.type === _messageType.MESSAGE_TYPE.RECONFIG) {
+			} else if (msg.type === _messageType.MESSAGE_TYPE.RECONFIG) {
 				return this.handleReconfig(msg);
+			} else if (msg.type === _messageType.MESSAGE_TYPE.CLUSTER_RESIZE) {
+				return this.handleClusterResize(msg);
 			}
 		}
 	}, {

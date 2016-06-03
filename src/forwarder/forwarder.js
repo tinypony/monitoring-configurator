@@ -1,10 +1,9 @@
-var dgram = require('dgram');
-var _ = require('underscore');
-
+import dgram from 'dgram';
+import _ from 'underscore';
+import q from 'q';
 import {Client, HighLevelProducer} from 'kafka-node';
-
-var uuid = require('node-uuid');
-var winston = require('winston');
+import uuid from 'node-uuid';
+import winston from 'winston';
 
 function isValidPort(port) {
 	return _.isNumber(port) && port > 0 && port < 65535;
@@ -27,12 +26,12 @@ class Forwarder {
 		 * fwd.port,
 		 * fwd.topic
 		 */
-		this.forward_ports = _.map(config.producers, (fwd) => {
+		this.forward_ports = _.map(config.producers, fwd => {
 			this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
 			var skt = dgram.createSocket('udp4');
 			skt.bind(fwd.port, '127.0.0.1');
 
-			skt.on('error', (er) => {
+			skt.on('error', er => {
 				this.logger.warn(`[Forwarder.constructor()] ${er}`);
 			});
 
@@ -46,36 +45,48 @@ class Forwarder {
 			this.logger.info('trying to configure forwarder with an invalid port');
 			return;
 		}
-
 		this.forwardToAddress = config.monitoring.host;
 		this.forwardToPort = config.monitoring.port;
 		this.logger.info('[Forwarder.reconfig()] Reconfiguring forwarder');
+		this.reconnect();
+	}
 
+	createConnection() {
+		var defer = q.defer();
+		var connectionString = this.forwardToAddress + ':' + this.forwardToPort;
+		this.logger.info('Create zookeeper connection to %s', connectionString);
+		var client = new Client(connectionString, this.id);
+		var producer = new HighLevelProducer(client);
+		
+		producer.on('ready', () => {
+			this.logger.info('Forwader is ready');
+			this.producer = producer;
+			this.client = client;
+			defer.resolve();
+		});
 
-		var createConnection = () => {
-			var connectionString = this.forwardToAddress + ':' + this.forwardToPort;
-			this.logger.info('Create zookeeper connection to %s', connectionString);
-			var client = new Client(connectionString, this.id);
-			var producer = new HighLevelProducer(client);
-			
-			producer.on('ready', () => {
-				this.logger.info('Forwader is ready');
-				this.producer = producer;
-				this.client = client;
+		producer.on('error', err => {
+			this.logger.warn('[Forwarder.reconfig()] Error: %s', JSON.stringify(err));
+			defer.reject(err);
+		});
+
+		this.logger.info('[Forwarder] Created producer');
+		return defer.promise;
+	}
+
+	reconnect() {
+		var defer = q.defer();
+		if (this.producer) {
+			this.producer.close(() => {
+				this.createConnection()
+					.then(defer.resolve, err => defer.reject(err));
 			});
-
-			producer.on('error', err => {
-				this.logger.warn('[Forwarder.reconfig()] Error: %s', JSON.stringify(err));
-			});
-
-			this.logger.info('[Forwarder] Created producer');
+		} else {
+			this.createConnection()
+				.then(defer.resolve, err => defer.reject(err));
 		}
 
-		if (this.client) {
-			this.client.close(createConnection);
-		} else {
-			createConnection();
-		}	
+		return defer.promise;
 	}
 
 	forward(topic, data) {

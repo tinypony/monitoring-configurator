@@ -163,11 +163,15 @@ var DatasinkRole = function (_Role) {
 			this.logger.info('Register slave: ' + JSON.stringify(msg));
 			this.brokers.push(msg.brokerId);
 			this.logger.info('Registered brokers: ' + this.brokers.join(','));
-			this.rebalanceCluster().then(function () {
+
+			var broadcastClusterRebalance = this.broadcast.bind(this, this.getClusterResizeMessage());
+
+			this.rebalanceCluster().then(broadcastClusterRebalance).then(function () {
 				return defer.resolve(msg);
-			}, function (er) {
+			}).catch(function (er) {
 				return defer.reject(er);
-			});
+			}).done();
+
 			return defer.promise;
 		}
 	}]);

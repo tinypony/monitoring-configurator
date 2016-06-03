@@ -31,6 +31,7 @@ describe('Datasink role', () => {
 	let broadcastScope;
 	let unicastScope;
 	let stub;
+	let stubBroadcast;
 	let d;
 
 	beforeEach(() => {
@@ -39,19 +40,21 @@ describe('Datasink role', () => {
 		let defer = q.defer();
 		defer.resolve();
 		stub = sinon.stub(DatasinkRole.prototype, 'rebalanceCluster').returns(defer.promise);
+		stubBroadcast = sinon.stub(DatasinkRole.prototype, 'broadcast').returns(defer.promise);
 		d = new Daemon(datasinkConf, 12555);
 	});
 
 	afterEach(() => {
 		DatasinkRole.prototype.rebalanceCluster.restore();
+		DatasinkRole.prototype.broadcast.restore();
 		d.close();
 	});
 
 	it('Broadcasts reconfigure message on start', done => {
 		d.hasStarted.then(() => {
 			try {
-				expect(broadcastScope.done()).to.be.true;
-				let msg = JSON.parse(broadcastScope.buffer.toString());
+				expect(stubBroadcast.calledOnce).to.be.true;
+				let msg = JSON.parse(stubBroadcast.getCall(0).args[0]);
 				expect(msg.type).to.equal(MESSAGE_TYPE.RECONFIG);
 				done();
 			} catch(e) {
@@ -98,6 +101,7 @@ describe('Datasink role', () => {
 	});
 
 	it('updates broker list upon receiving slave register message', done => {
+
 		d.handleUnicastMessage({
 			type: MESSAGE_TYPE.REGISTER_SLAVE,
 			roles: [NODE_TYPE.DATASINK_SLAVE, NODE_TYPE.PRODUCER],
@@ -114,5 +118,26 @@ describe('Datasink role', () => {
 			}
 		});
 	});
+
+	it('broadcasts cluster resize message message after handling slave registration', done => {
+
+		d.handleUnicastMessage({
+			type: MESSAGE_TYPE.REGISTER_SLAVE,
+			roles: [NODE_TYPE.DATASINK_SLAVE, NODE_TYPE.PRODUCER],
+			host: '10.0.0.2',
+			port: 12566,
+			brokerId: 42
+		}).then(() => {
+			try {
+				expect(stubBroadcast.calledOnce);
+				let clusterResize = JSON.parse(stubBroadcast.getCall(0).args[0]);
+				expect(clusterResize.type === MESSAGE_TYPE.CLUSTER_RESIZE);
+				done();
+			} catch(er) {
+				done(er);
+			}
+		});
+	});
+
 });
 

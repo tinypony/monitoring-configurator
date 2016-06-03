@@ -168,6 +168,13 @@ var Role = function () {
 			return defer.promise;
 		}
 	}, {
+		key: 'handleClusterResize',
+		value: function handleClusterResize(msg) {
+			var defer = _q2.default.defer();
+			defer.resolve(msg);
+			return defer.promise;
+		}
+	}, {
 		key: 'getBroadcastAddress',
 		value: function getBroadcastAddress() {
 			var block = new _netmask.Netmask(this.config.monitoring.subnet);
@@ -241,6 +248,17 @@ var Role = function () {
 			};
 
 			msg = _underscore2.default.extend(msg, extension);
+			return JSON.stringify(msg);
+		}
+	}, {
+		key: 'getClusterResizeMessage',
+		value: function getClusterResizeMessage() {
+			var msg = {
+				type: _messageType.MESSAGE_TYPE.CLUSTER_RESIZE,
+				host: 'self',
+				port: this.config.unicast.port
+			};
+
 			return JSON.stringify(msg);
 		}
 	}]);

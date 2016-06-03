@@ -8,5 +8,7 @@ var MESSAGE_TYPE = exports.MESSAGE_TYPE = {
 	CONFIG: 'config',
 	RECONFIG: 'reconfig',
 	SUBSCRIBE: 'subscribe',
-	REGISTER_SLAVE: 'regslave'
+	REGISTER_SLAVE: 'regslave',
+	CLUSTER_RESIZE: 'clusterresize',
+	UNSUBSCRIBE: 'unsubscribe'
 };

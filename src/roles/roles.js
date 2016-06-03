@@ -130,6 +130,12 @@ class Role {
 		return defer.promise;
 	}
 
+	handleClusterResize(msg) {
+		var defer = q.defer();
+		defer.resolve(msg);
+		return defer.promise;
+	}
+
 	getBroadcastAddress() {
 		var block = new Netmask(this.config.monitoring.subnet);
 		return block.broadcast;
@@ -197,6 +203,16 @@ class Role {
 		};
 		
 		msg = _.extend(msg, extension);
+		return JSON.stringify(msg);
+	}
+
+	getClusterResizeMessage() {
+		var msg = {
+			type: MESSAGE_TYPE.CLUSTER_RESIZE,
+			host: 'self',
+			port: this.config.unicast.port
+		};
+
 		return JSON.stringify(msg);
 	}
 }

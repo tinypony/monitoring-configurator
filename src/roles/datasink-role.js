@@ -108,7 +108,16 @@ class DatasinkRole extends Role {
 		this.logger.info(`Register slave: ${JSON.stringify(msg)}`);
 		this.brokers.push(msg.brokerId);
 		this.logger.info(`Registered brokers: ${this.brokers.join(',')}`);
-		this.rebalanceCluster().then(()=>defer.resolve(msg), er => defer.reject(er));
+
+		let broadcastClusterRebalance = this.broadcast.bind(this, this.getClusterResizeMessage());
+
+		this.rebalanceCluster()
+			.then(broadcastClusterRebalance)
+			.then(() => defer.resolve(msg))
+			.catch(er => defer.reject(er))
+			.done();
+
+		
 		return defer.promise;
 	}
 }
