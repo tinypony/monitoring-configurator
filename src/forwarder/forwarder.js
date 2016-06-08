@@ -13,6 +13,7 @@ class Forwarder {
 	constructor(config) {
 		this.ou_socket = dgram.createSocket('udp4');
 		this.id = uuid.v4();
+		this.debug = true;
 
 		this.logger = new winston.Logger({
 			transports: [new winston.transports.Console()]
@@ -112,6 +113,11 @@ class Forwarder {
 			}], err => {
 				if(err) {
 					return this.logger.warn(`[Forwarder.forward()] ${JSON.stringify(err)}`);
+				}
+
+				if(this.debug) {
+					this.logger.info(`Forwarded ${messages}`);
+					this.debug = false;
 				}
 				//this.logger.info('Forwarded messages: '+JSON.stringify(messages));
 			});

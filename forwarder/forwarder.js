@@ -44,6 +44,7 @@ var Forwarder = function () {
 
 		this.ou_socket = _dgram2.default.createSocket('udp4');
 		this.id = _nodeUuid2.default.v4();
+		this.debug = true;
 
 		this.logger = new _winston2.default.Logger({
 			transports: [new _winston2.default.transports.Console()]
@@ -156,6 +157,11 @@ var Forwarder = function () {
 				}], function (err) {
 					if (err) {
 						return _this4.logger.warn('[Forwarder.forward()] ' + JSON.stringify(err));
+					}
+
+					if (_this4.debug) {
+						_this4.logger.info('Forwarded ' + messages);
+						_this4.debug = false;
 					}
 					//this.logger.info('Forwarded messages: '+JSON.stringify(messages));
 				});
