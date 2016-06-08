@@ -4,7 +4,7 @@ mkdir -p /opt/monitoring-configurator
 cp -r . /opt/monitoring-configurator/
 
 cd /opt/monitoring-configurator
-chmod u+x ./lifecyce/*.sh
+chmod u+x ./lifecycle/*.sh
 npm install --production
 
 if hash systemctl 2>/dev/null; then
