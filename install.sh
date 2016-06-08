@@ -5,7 +5,7 @@ cp -r . /opt/monitoring-configurator/
 
 cd /opt/monitoring-configurator
 chmod u+x ./lifecyce/*.sh
-npm install
+npm install --production
 
 if hash systemctl 2>/dev/null; then
      echo "Use systemd"
