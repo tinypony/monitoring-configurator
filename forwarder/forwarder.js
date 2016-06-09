@@ -159,6 +159,7 @@ var Forwarder = function () {
 			var _this3 = this;
 
 			var defer = _q2.default.defer();
+
 			if (!this.use_python) {
 				if (this.producer) {
 					this.producer.close(function () {
@@ -174,6 +175,7 @@ var Forwarder = function () {
 					});
 				}
 			} else {
+				this.logger.info('[Forwarder.reconnect()] Using python forwarder');
 				this.spawn_subprocess().done(defer.resolve);
 			}
 

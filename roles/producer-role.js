@@ -41,7 +41,7 @@ var ProducerRole = function (_Role) {
 		var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(ProducerRole).call(this, initId, config, sockets));
 
 		if (_this.isProducer()) {
-			_this.forwarder = new _forwarder2.default(_this.config, false);
+			_this.forwarder = new _forwarder2.default(_this.config, true);
 		}
 		return _this;
 	}

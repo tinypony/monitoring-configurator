@@ -20,10 +20,8 @@ function kill(pid, signal, callback) {
     if(killTree) {
         psTree(pid, function (err, children) {
             [pid].concat(
-                children.map(function (p) {
-                    return p.PID;
-                })
-            ).forEach(function (tpid) {
+                children.map(p => p.PID)
+            ).forEach(tpid => {
                 try { process.kill(tpid, signal) }
                 catch (ex) { }
             });
@@ -113,6 +111,7 @@ class Forwarder {
 
 	reconnect() {
 		var defer = q.defer();
+
 		if(!this.use_python) {
 			if (this.producer) {
 				this.producer.close(() => {
@@ -126,6 +125,7 @@ class Forwarder {
 					.then(defer.resolve, err => defer.reject(err));
 			}
 		} else {
+			this.logger.info('[Forwarder.reconnect()] Using python forwarder');
 			this.spawn_subprocess().done(defer.resolve);
 		}
 
