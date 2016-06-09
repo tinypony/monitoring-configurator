@@ -188,6 +188,7 @@ var Forwarder = function () {
 			var bindings = _underscore2.default.map(this.config.producers, function (fwd) {
 				return fwd.port + ':' + fwd.topic;
 			});
+			this.logger.info('Run python /opt/monitoring-configurator/python/forwarder/daemon.py --bindings ' + bindings.join(' ') + ' --zk ' + this.getZK());
 			this.python_subprocess = (0, _child_process.exec)('python /opt/monitoring-configurator/python/forwarder/daemon.py --bindings ' + bindings.join(' ') + ' --zk ' + this.getZK());
 			// this.python_subprocess.stdout.on('data', data => {
 			//     this.logger.info('stdout: ' + data);
@@ -212,7 +213,8 @@ var Forwarder = function () {
 				//take down existing process
 				var defer = _q2.default.defer();
 
-				kill(this.python_subprocess.id, 'SIGKILL', function () {
+				this.logger.info('Killing python subprocess id=' + this.python_subprocess.id + ', parent id=' + process.pid);
+				kill(this.python_subprocess.pid, 'SIGKILL', function () {
 					_this4.python_subprocess = null;
 					_this4.run_daemon();
 					_this4.logger.info('Python subprocess restarted');
