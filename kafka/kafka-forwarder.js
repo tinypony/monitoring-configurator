@@ -40,13 +40,10 @@ var KAFKA_ERROR = {
 
 var KafkaForwarder = function () {
 	function KafkaForwarder(config) {
-		var usePython = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
-
 		_classCallCheck(this, KafkaForwarder);
 
 		this.config = config;
 		this.connections = {};
-		this.use_python = usePython;
 		this.ou_socket = _dgram2.default.createSocket('udp4');
 
 		this.logger = new _winston2.default.Logger({

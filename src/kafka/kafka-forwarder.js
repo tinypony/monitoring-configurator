@@ -17,10 +17,9 @@ var KAFKA_ERROR = {
 
 //forwards message from kafka to clients who subscribed to particular topics
 class KafkaForwarder {
-	constructor (config, usePython = true) {
+	constructor (config) {
 		this.config = config;
 		this.connections = {};
-		this.use_python = usePython;
 		this.ou_socket = dgram.createSocket('udp4');
 
 		this.logger = new winston.Logger({
