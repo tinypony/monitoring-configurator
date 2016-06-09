@@ -9,8 +9,7 @@ class Forwarder(Thread):
 		self.zk_host = zookeeper_host;
 		self.producer = self.createKafkaProducer()
 		self.runnable = False
-		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
-		self.sock.bind(('localhost', self.local_port))
+		
 
 	def createKafkaProducer(self):
 		client = KafkaClient(zookeeper_hosts=self.zk_host)
@@ -24,9 +23,14 @@ class Forwarder(Thread):
 
 	def finish(self):
 		self.runnable = False
+		self.producer.stop()
 
 	def run(self):
-		
+		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+		self.sock.bind(('localhost', self.local_port))
+
 		while(self.runnable):
 			data, addr = self.sock.recvfrom(4096)
 			self.producer.produce(data)
+
+		self.sock.close()

@@ -4,6 +4,7 @@ import winston from 'winston'
 import { Client, HighLevelConsumer } from 'kafka-node'
 
 var firstMessageLogged = false;
+var latencyC= 0;
 
 var KAFKA_ERROR = {
 	isNodeExists: function(err) {
@@ -16,9 +17,10 @@ var KAFKA_ERROR = {
 
 //forwards message from kafka to clients who subscribed to particular topics
 class KafkaForwarder {
-	constructor (config) {
+	constructor (config, usePython = true) {
 		this.config = config;
 		this.connections = {};
+		this.use_python = usePython;
 		this.ou_socket = dgram.createSocket('udp4');
 
 		this.logger = new winston.Logger({
@@ -108,16 +110,11 @@ class KafkaForwarder {
 
 		//Handle consumer connection error
 		consumer.on("error", err => {
-		//	this.logger.warn('[KafkaForwarder]');
-		//	this.logger.warn(JSON.stringify(err));
-
 			//Waiting for kafka to timeout and clear previous connection
 			if( KAFKA_ERROR.isNodeExists(err) ) {
 				this.logger.info('Waiting for kafka to clear previous connection');
-				setTimeout(this.createConsumer.bind(this, sub), 5000);
-			} 
-			//Waiting for KAFKA to spin up (possibly)
-			else if(KAFKA_ERROR.isCouldNotFindBroker(err)) {
+				setTimeout(this.createConsumer.bind(this, sub), 5000); 			
+			} else if(KAFKA_ERROR.isCouldNotFindBroker(err)) { //Waiting for KAFKA to spin up (possibly)
 				this.logger.info('Waiting for kafka to spin up');
 				setTimeout(this.createConsumer.bind(this, sub), 5000);
 			}
@@ -125,10 +122,11 @@ class KafkaForwarder {
 
 		consumer.on('message', msg => {
 			if(!msg.value) {
-				//this.logger.warn('[KafkaForwarder] message empty, drop');
 				return;
 			}
-			
+			if(_.contains(sub.topics, 'latency')) {
+				this.logger.info(latencyC++);
+			}
 			this.send(msg.value, sub.host, parseInt(sub.port));
 		});
 

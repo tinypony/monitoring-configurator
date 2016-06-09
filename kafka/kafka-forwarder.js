@@ -25,6 +25,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var firstMessageLogged = false;
+var latencyC = 0;
 
 var KAFKA_ERROR = {
 	isNodeExists: function isNodeExists(err) {
@@ -39,10 +40,13 @@ var KAFKA_ERROR = {
 
 var KafkaForwarder = function () {
 	function KafkaForwarder(config) {
+		var usePython = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+
 		_classCallCheck(this, KafkaForwarder);
 
 		this.config = config;
 		this.connections = {};
+		this.use_python = usePython;
 		this.ou_socket = _dgram2.default.createSocket('udp4');
 
 		this.logger = new _winston2.default.Logger({
@@ -140,27 +144,24 @@ var KafkaForwarder = function () {
 
 			//Handle consumer connection error
 			consumer.on("error", function (err) {
-				//	this.logger.warn('[KafkaForwarder]');
-				//	this.logger.warn(JSON.stringify(err));
-
 				//Waiting for kafka to timeout and clear previous connection
 				if (KAFKA_ERROR.isNodeExists(err)) {
 					_this3.logger.info('Waiting for kafka to clear previous connection');
 					setTimeout(_this3.createConsumer.bind(_this3, sub), 5000);
+				} else if (KAFKA_ERROR.isCouldNotFindBroker(err)) {
+					//Waiting for KAFKA to spin up (possibly)
+					_this3.logger.info('Waiting for kafka to spin up');
+					setTimeout(_this3.createConsumer.bind(_this3, sub), 5000);
 				}
-				//Waiting for KAFKA to spin up (possibly)
-				else if (KAFKA_ERROR.isCouldNotFindBroker(err)) {
-						_this3.logger.info('Waiting for kafka to spin up');
-						setTimeout(_this3.createConsumer.bind(_this3, sub), 5000);
-					}
 			});
 
 			consumer.on('message', function (msg) {
 				if (!msg.value) {
-					//this.logger.warn('[KafkaForwarder] message empty, drop');
 					return;
 				}
-
+				if (_underscore2.default.contains(sub.topics, 'latency')) {
+					_this3.logger.info(latencyC++);
+				}
 				_this3.send(msg.value, sub.host, parseInt(sub.port));
 			});
 
