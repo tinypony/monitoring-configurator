@@ -135,7 +135,7 @@ class Forwarder {
 	run_daemon() {
 		var defer = q.defer();
 		let bindings = _.map(this.config.producers, fwd => `${fwd.port}:${fwd.topic}`);
-		this.python_subprocess = exec(`python ./python/forwarder/daemon.py --bindings ${bindings.join(' ')} --zk ${this.getZK()}`);
+		this.python_subprocess = exec(`python /opt/monitoring-configurator/python/forwarder/daemon.py --bindings ${bindings.join(' ')} --zk ${this.getZK()}`);
 		this.python_subprocess.stdout.on('data', data => {
 		    this.logger.info('stdout: ' + data);
 		});

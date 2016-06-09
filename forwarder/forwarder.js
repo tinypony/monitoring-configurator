@@ -188,7 +188,7 @@ var Forwarder = function () {
 			var bindings = _underscore2.default.map(this.config.producers, function (fwd) {
 				return fwd.port + ':' + fwd.topic;
 			});
-			this.python_subprocess = (0, _child_process.exec)('python ./python/forwarder/daemon.py --bindings ' + bindings.join(' ') + ' --zk ' + this.getZK());
+			this.python_subprocess = (0, _child_process.exec)('python /opt/monitoring-configurator/python/forwarder/daemon.py --bindings ' + bindings.join(' ') + ' --zk ' + this.getZK());
 			this.python_subprocess.stdout.on('data', function (data) {
 				_this4.logger.info('stdout: ' + data);
 			});
