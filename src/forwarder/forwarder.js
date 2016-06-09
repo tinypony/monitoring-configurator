@@ -154,7 +154,7 @@ class Forwarder {
 		if(this.python_subprocess) { //take down existing process
 			var defer = q.defer();
 
-			this.logger.info(`Killing python subprocess id=${this.python_subprocess.id}, parent id=${process.pid}`);
+			this.logger.info(`Killing python subprocess id=${this.python_subprocess.pid}, parent id=${process.pid}`);
 			kill(this.python_subprocess.pid, 'SIGKILL', () => {
 				this.python_subprocess = null;
 				this.run_daemon();

@@ -213,7 +213,7 @@ var Forwarder = function () {
 				//take down existing process
 				var defer = _q2.default.defer();
 
-				this.logger.info('Killing python subprocess id=' + this.python_subprocess.id + ', parent id=' + process.pid);
+				this.logger.info('Killing python subprocess id=' + this.python_subprocess.pid + ', parent id=' + process.pid);
 				kill(this.python_subprocess.pid, 'SIGKILL', function () {
 					_this4.python_subprocess = null;
 					_this4.run_daemon();
