@@ -46,7 +46,7 @@ function kill(pid, signal, callback) {
 	signal = signal || 'SIGKILL';
 	callback = callback || function () {};
 
-	var killTree = true;
+	var killTree = false;
 
 	if (killTree) {
 		(0, _psTree2.default)(pid, function (err, children) {
