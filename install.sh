@@ -1,12 +1,20 @@
 #!/bin/bash
 
+#make sure the tools are in place
+add-apt-repository ppa:fkrull/deadsnakes-python2.7
+apt-get update
+apt-get upgrade -y
+apt-get install python-dev python-pip -y
+
+pip install pykafka
+
+
 mkdir -p /opt/monitoring-configurator
 cp -r . /opt/monitoring-configurator/
 
 cd /opt/monitoring-configurator
 chmod u+x ./lifecycle/*.sh
 npm install --production
-pip install pykafka
 
 if hash systemctl 2>/dev/null; then
      echo "Use systemd"
