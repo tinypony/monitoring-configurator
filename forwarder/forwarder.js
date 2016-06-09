@@ -182,12 +182,19 @@ var Forwarder = function () {
 	}, {
 		key: 'run_daemon',
 		value: function run_daemon() {
+			var _this4 = this;
+
 			var defer = _q2.default.defer();
 			var bindings = _underscore2.default.map(this.config.producers, function (fwd) {
 				return fwd.port + ':' + fwd.topic;
 			});
 			this.python_subprocess = (0, _child_process.exec)('python ./python/forwarder/daemon.py --bindings ' + bindings.join(' ') + ' --zk ' + this.getZK());
-
+			this.python_subprocess.stdout.on('data', function (data) {
+				_this4.logger.info('stdout: ' + data);
+			});
+			this.python_subprocess.stderr.on('data', function (data) {
+				_this4.logger.warn('stderr: ' + data);
+			});
 			defer.resolve();
 			return defer.promise;
 		}
@@ -197,27 +204,29 @@ var Forwarder = function () {
 	}, {
 		key: 'spawn_subprocess',
 		value: function spawn_subprocess() {
-			var _this4 = this;
+			var _this5 = this;
 
 			if (this.python_subprocess) {
 				//take down existing process
 				var defer = _q2.default.defer();
 
 				kill(this.python_subprocess.id, 'SIGKILL', function () {
-					_this4.python_subprocess = null;
-					_this4.run_daemon();
+					_this5.python_subprocess = null;
+					_this5.run_daemon();
+					_this5.logger.info('Python subprocess restarted');
 					defer.resolve();
 				});
 
 				return defer.promise;
 			} else {
+				this.logger.info('Python subprocess is starting up');
 				return this.run_daemon();
 			}
 		}
 	}, {
 		key: 'forward',
 		value: function forward(topic, data) {
-			var _this5 = this;
+			var _this6 = this;
 
 			var msgStr = data.toString();
 			var messages = msgStr.split('\n');
@@ -238,11 +247,11 @@ var Forwarder = function () {
 					messages: messages
 				}], function (err) {
 					if (err) {
-						return _this5.logger.warn('[Forwarder.forward()] ' + JSON.stringify(err));
+						return _this6.logger.warn('[Forwarder.forward()] ' + JSON.stringify(err));
 					}
-					if (_this5.debug) {
-						_this5.logger.info('Forwarded ' + messages);
-						_this5.debug = false;
+					if (_this6.debug) {
+						_this6.logger.info('Forwarded ' + messages);
+						_this6.debug = false;
 					}
 				});
 			} catch (e) {

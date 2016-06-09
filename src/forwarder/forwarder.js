@@ -136,7 +136,12 @@ class Forwarder {
 		var defer = q.defer();
 		let bindings = _.map(this.config.producers, fwd => `${fwd.port}:${fwd.topic}`);
 		this.python_subprocess = exec(`python ./python/forwarder/daemon.py --bindings ${bindings.join(' ')} --zk ${this.getZK()}`);
-
+		this.python_subprocess.stdout.on('data', data => {
+		    this.logger.info('stdout: ' + data);
+		});
+		this.python_subprocess.stderr.on('data', data => {
+		    this.logger.warn('stderr: ' + data);
+		});
 		defer.resolve();
 		return defer.promise;
 	}
@@ -149,11 +154,13 @@ class Forwarder {
 			kill(this.python_subprocess.id, 'SIGKILL', () => {
 				this.python_subprocess = null;
 				this.run_daemon();
+				this.logger.info('Python subprocess restarted');
 				defer.resolve();
 			});
 
 			return defer.promise;
 		} else {
+			this.logger.info('Python subprocess is starting up');
 			return this.run_daemon();
 		}
 	}
