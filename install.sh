@@ -6,6 +6,7 @@ cp -r . /opt/monitoring-configurator/
 cd /opt/monitoring-configurator
 chmod u+x ./lifecycle/*.sh
 npm install --production
+pip install pykafka
 
 if hash systemctl 2>/dev/null; then
      echo "Use systemd"
