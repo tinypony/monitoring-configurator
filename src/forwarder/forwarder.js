@@ -142,6 +142,8 @@ class Forwarder {
 		// this.python_subprocess.stderr.on('data', data => {
 		//     this.logger.warn('stderr: ' + data);
 		// });
+
+		this.logger.log('Started python daemon');
 		defer.resolve();
 		return defer.promise;
 	}
