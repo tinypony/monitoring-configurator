@@ -9,7 +9,7 @@ class ProducerRole extends Role {
 		super(initId, config, sockets);
 
 		if(this.isProducer()) {
-			this.forwarder = new Forwarder(this.config);
+			this.forwarder = new Forwarder(this.config, false);
 		}
 	}
 
