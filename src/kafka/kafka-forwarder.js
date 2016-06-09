@@ -128,7 +128,7 @@ class KafkaForwarder {
 				//this.logger.warn('[KafkaForwarder] message empty, drop');
 				return;
 			}
-
+			
 			this.send(msg.value, sub.host, parseInt(sub.port));
 		});
 

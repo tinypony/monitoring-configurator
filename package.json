@@ -7,6 +7,7 @@
     "kafka-node": "^0.3.2",
     "netmask": "^1.0.5",
     "node-uuid": "^1.4.7",
+    "ps-tree": "^1.1.0",
     "q": "^1.4.1",
     "sprintf-js": "^1.0.3",
     "sprintfjs": "^1.2.2",

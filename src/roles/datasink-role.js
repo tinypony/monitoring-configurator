@@ -3,7 +3,7 @@ import KafkaForwarder from '../kafka/kafka-forwarder.js';
 import q from 'q';
 import _ from 'underscore';
 import NODE_TYPE from '../node-type';
-import { exec } from 'child_process'
+import { exec } from 'child_process';
 
 class DatasinkRole extends Role {
 	constructor(initId, config, sockets) {
