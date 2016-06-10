@@ -53,10 +53,10 @@ class Daemon(object):
 		return self._consumers
 
 	def send_to_subscribers(self, topic_name, msg):
-		print 'sending {}'.format(str(msg))
+		print 'sending {}'.format(str(msg.value))
 		endpoints = self.store.get_subscribed_endpoints(topic_name)
 		for ep in endpoints:
-			self.sock.sendto(str(msg), ep)
+			self.sock.sendto(str(msg.value), ep)
 
 	def run(self):
 		while True:
@@ -78,4 +78,5 @@ if __name__ == '__main__':
 	daemon = Daemon(args.zk)
 	for b in args.bindings:
 		daemon.subscribe(b)
+	daemon.run()
 
