@@ -1,7 +1,7 @@
 import threading
 
 def to_tuple(sub):
-	return (sub.host, sub.port,)
+	return (sub.host, sub.port)
 
 class Subscription(object):
 	def __init__(self, topic, host, port):
@@ -54,14 +54,15 @@ class SubscriptionStore:
 	def subscribe(self, subscription_string):
 		new_subscriptions = self._parse_subscription_string(subscription_string)
 		self._lock.acquire()
-		
 		for sub in new_subscriptions:
 			topic_subscribers = self.subscriptions.get(sub.topic, [])
 
 			if not self._is_subscribed(topic_subscribers, sub):
 				topic_subscribers.append(sub)
-		
+
+			self.subscriptions[sub.topic] = topic_subscribers
 		self._lock.release()
+
 
 	def get_subscribed_endpoints(self, topic_name):
 		self._lock.acquire()
