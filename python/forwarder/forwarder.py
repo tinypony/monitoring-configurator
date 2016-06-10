@@ -14,7 +14,7 @@ class Forwarder(Thread):
 	def createKafkaProducer(self):
 		client = KafkaClient(zookeeper_hosts=self.zk_host)
 		client.update_cluster()
-		producer = Producer(client.cluster, client.cluster.topics[self.topic], sync=True)
+		producer = Producer(client.cluster, client.cluster.topics[self.topic])
 		producer.start()
 		return producer
 
