@@ -38,7 +38,8 @@ class Daemon(object):
 
 	def create_kafka_consumer(self, topic):
 		try:
-			consumer = SimpleConsumer(topic, self._kafka_client.cluster, consumer_id='python_kafka_forwarder_{}'.format(topic.name))
+			consumer_gid = 'python_kafka_forwarder_{}'.format(topic.name)
+			consumer = SimpleConsumer(topic, self._kafka_client.cluster, consumer_group=consumer_gid, consumer_id=uuid4(), auto_commit_enable=True)
 			consumer.start()
 			self._consumers.append(consumer)
 		except:
