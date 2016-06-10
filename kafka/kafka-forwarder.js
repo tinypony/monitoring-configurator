@@ -160,6 +160,7 @@ var KafkaForwarder = function () {
 					_this3.logger.info(latencyC++);
 				}
 				_this3.send(msg.value, sub.host, parseInt(sub.port));
+				_this3.logger.info('Pushed ' + msg.value);
 			});
 
 			consumer.on('connect', function () {

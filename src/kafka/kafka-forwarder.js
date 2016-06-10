@@ -127,6 +127,7 @@ class KafkaForwarder {
 				this.logger.info(latencyC++);
 			}
 			this.send(msg.value, sub.host, parseInt(sub.port));
+			this.logger.info('Pushed ' + msg.value);
 		});
 
 		consumer.on('connect', () => {
