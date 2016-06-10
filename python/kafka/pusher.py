@@ -58,7 +58,8 @@ class Daemon(object):
 		endpoints = self.store.get_subscribed_endpoints(topic_name)
 		for host, port in endpoints:
 			self.sock.sendto(str(msg.value), (host, port))
-			print 'pushed {}'.format(self.counter++)
+			print 'pushed {}'.format(self.counter)
+			self.counter =+ 1
 
 	def run(self):
 		while True:
