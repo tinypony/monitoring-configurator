@@ -5,7 +5,7 @@ def to_tuple(sub):
 
 class Subscription(object):
 	def __init__(self, topic, host, port):
-		self._topic = topics
+		self._topic = topic
 		self._host = host
 		self._port = port
 
