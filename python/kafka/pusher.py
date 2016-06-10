@@ -53,10 +53,12 @@ class Daemon(object):
 		return self._consumers
 
 	def send_to_subscribers(self, topic_name, msg):
-		print 'sending {}'.format(str(msg.value))
+		
 		endpoints = self.store.get_subscribed_endpoints(topic_name)
-		for ep in endpoints:
-			self.sock.sendto(str(msg.value), ep)
+
+		for host, port in endpoints:
+			print 'sending {} to {}:{}'.format(str(msg.value), host, port)	
+			self.sock.sendto(str(msg.value), (host, port))
 
 	def run(self):
 		while True:
