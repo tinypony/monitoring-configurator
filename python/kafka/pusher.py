@@ -69,7 +69,7 @@ class Daemon(object):
 
 
 parser = argparse.ArgumentParser('Process that forwards messages from kafka to subscribed consumers')
-parser.add_argument('--zk', dest='zk' type=str, help='Zookeeper connection string', required=True)
+parser.add_argument('--zk', dest='zk', type=str, help='Zookeeper connection string', required=True)
 #parser.add_argument('--ip', dest='ip', type=str, help='Subscriber ip adress', required=True)
 parser.add_argument('--bindings', dest='bindings', type=str, nargs='+', required=True, help='Forwarding configuration in format topic1,topic2=host1:port1 topic3=host1:port2')
 args = parser.parse_args()
