@@ -23,6 +23,7 @@ class Daemon(object):
 		self._consumers = []
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		self._kafka_client = self.create_kafka_client(zk_host)
+		self.counter = 0
 
 		for t in self._kafka_client.cluster.topics.values():
 			self.create_kafka_consumer(t)
@@ -56,8 +57,8 @@ class Daemon(object):
 	def send_to_subscribers(self, topic_name, msg):		
 		endpoints = self.store.get_subscribed_endpoints(topic_name)
 		for host, port in endpoints:
-			print 'sending {} to {}:{}'.format(str(msg.value), host, port)
 			self.sock.sendto(str(msg.value), (host, port))
+			print 'pushed {}'.format(self.counter++)
 
 	def run(self):
 		while True:

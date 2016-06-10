@@ -9,6 +9,7 @@ class Forwarder(Thread):
 		self.zk_host = zookeeper_host;
 		self.producer = self.createKafkaProducer()
 		self.runnable = False
+		self.counter = 0
 		
 
 	def createKafkaProducer(self):
@@ -32,6 +33,6 @@ class Forwarder(Thread):
 		while(self.runnable):
 			data, addr = self.sock.recvfrom(4096)
 			self.producer.produce(data)
-			print 'Sent {}'.format(data)
+			print 'forwarded {}'.format(self.counter++)
 
 		self.sock.close()
