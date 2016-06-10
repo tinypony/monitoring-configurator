@@ -1,6 +1,6 @@
 from pykafka import KafkaClient, SimpleConsumer
 from subscription_store import SubscriptionStore
-from UUID import uuid4
+from uuid import uuid4
 import sys
 import argparse
 import socket
