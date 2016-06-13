@@ -33,7 +33,5 @@ class Forwarder(Thread):
 		while(self.runnable):
 			data, addr = self.sock.recvfrom(4096)
 			self.producer.produce(data)
-			print 'forwarded {}'.format(self.counter)
-			self.counter += 1
 
 		self.sock.close()
