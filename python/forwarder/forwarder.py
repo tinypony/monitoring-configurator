@@ -34,4 +34,9 @@ class Forwarder(Thread):
 			data, addr = self.sock.recvfrom(4096)
 			self.producer.produce(data)
 
+			if self.counter < 2:
+				print 'Forwarded {}'.format(data)
+
+			self.counter += 1
+
 		self.sock.close()
