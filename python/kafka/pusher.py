@@ -87,6 +87,10 @@ class Daemon(Thread):
 		for host, port in endpoints:
 			self.sock.sendto(str(msg.value), (host, port))
 
+			if self.counter < 2:
+				print 'pushed {}'.format(self.counter)
+			self.counter += 1
+
 	def run(self):
 		while True:
 			for consumer in self._consumers:
