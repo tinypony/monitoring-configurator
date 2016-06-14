@@ -83,7 +83,8 @@ class Daemon(Thread):
 	def consumers(self):
 		return self._consumers
 
-	def send_to_subscribers(self, topic_name, msg):		
+	def send_to_subscribers(self, topic_name, msg):
+		print 'need to push'
 		endpoints = self.store.get_subscribed_endpoints(topic_name)
 		for host, port in endpoints:
 			self.sock.sendto(str(msg.value), (host, port))
