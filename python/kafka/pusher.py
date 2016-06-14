@@ -84,13 +84,9 @@ class Daemon(Thread):
 		return self._consumers
 
 	def send_to_subscribers(self, topic_name, msg):
-		print 'need to push'
 		endpoints = self.store.get_subscribed_endpoints(topic_name)
 		for host, port in endpoints:
 			self.sock.sendto(str(msg.value), (host, port))
-
-			print 'pushed {}'.format(self.counter)
-			self.counter += 1
 
 	def run(self):
 		while True:
@@ -109,7 +105,8 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
 	daemon = Daemon(args.zk)
-	front = Frontend(daemon.get_store())
+	daemon.subscribe('latency=10.0.0.93:8089')
+	#front = Frontend(daemon.get_store())
 
 	front.run()
 	daemon.run()
