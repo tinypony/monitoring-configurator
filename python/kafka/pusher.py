@@ -108,9 +108,9 @@ if __name__ == '__main__':
 	daemon.subscribe('latency=10.0.0.93:8089')
 	#front = Frontend(daemon.get_store())
 
-	front.run()
+	#front.run()
 	daemon.run()
 
-	front.join()
+	#front.join()
 	daemon.join()
 
