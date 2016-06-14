@@ -23,6 +23,7 @@ class Frontend(Thread):
 	def __init__(self, store):
 		self.store = store
 		self.socket_addr = '/tmp/kafka-pusher'
+		
 		if os.path.exists( self.socket_addr ):
   			os.remove( self.socket_addr )
 
@@ -87,8 +88,7 @@ class Daemon(Thread):
 		for host, port in endpoints:
 			self.sock.sendto(str(msg.value), (host, port))
 
-			if self.counter < 2:
-				print 'pushed {}'.format(self.counter)
+			print 'pushed {}'.format(self.counter)
 			self.counter += 1
 
 	def run(self):
