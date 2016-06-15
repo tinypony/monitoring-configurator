@@ -71,7 +71,7 @@ var Forwarder = function () {
 	function Forwarder(config) {
 		var _this = this;
 
-		var usePython = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+		var usePython = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
 		_classCallCheck(this, Forwarder);
 
@@ -190,12 +190,6 @@ var Forwarder = function () {
 			});
 			this.logger.info('Run python /opt/monitoring-configurator/python/forwarder/daemon.py --bindings ' + bindings.join(' ') + ' --zk ' + this.getZK());
 			this.python_subprocess = (0, _child_process.exec)('python /opt/monitoring-configurator/python/forwarder/daemon.py --bindings ' + bindings.join(' ') + ' --zk ' + this.getZK());
-			// this.python_subprocess.stdout.on('data', data => {
-			//     this.logger.info('stdout: ' + data);
-			// });
-			// this.python_subprocess.stderr.on('data', data => {
-			//     this.logger.warn('stderr: ' + data);
-			// });
 
 			this.logger.log('Started python daemon');
 			defer.resolve();

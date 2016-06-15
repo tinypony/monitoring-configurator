@@ -35,7 +35,7 @@ function kill(pid, signal, callback) {
 };
 
 class Forwarder {
-	constructor(config, usePython = true) {
+	constructor(config, usePython = false) {
 		this.id = uuid.v4();
 		this.debug = true;
 		this.use_python = usePython;
@@ -137,12 +137,6 @@ class Forwarder {
 		let bindings = _.map(this.config.producers, fwd => `${fwd.port}:${fwd.topic}`);
 		this.logger.info(`Run python /opt/monitoring-configurator/python/forwarder/daemon.py --bindings ${bindings.join(' ')} --zk ${this.getZK()}`);
 		this.python_subprocess = exec(`python /opt/monitoring-configurator/python/forwarder/daemon.py --bindings ${bindings.join(' ')} --zk ${this.getZK()}`);
-		// this.python_subprocess.stdout.on('data', data => {
-		//     this.logger.info('stdout: ' + data);
-		// });
-		// this.python_subprocess.stderr.on('data', data => {
-		//     this.logger.warn('stderr: ' + data);
-		// });
 
 		this.logger.log('Started python daemon');
 		defer.resolve();
