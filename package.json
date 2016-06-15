@@ -4,6 +4,7 @@
   "description": "Auto configurator for monitoring in dynamic nfv deployments",
   "main": "app.js",
   "dependencies": {
+    "dequeue": "^1.0.5",
     "kafka-node": "^0.3.2",
     "netmask": "^1.0.5",
     "node-uuid": "^1.4.7",

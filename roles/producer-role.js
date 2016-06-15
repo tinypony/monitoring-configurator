@@ -40,6 +40,7 @@ var ProducerRole = function (_Role) {
 
 		var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(ProducerRole).call(this, initId, config, sockets));
 
+		console.log('Create producer role');
 		if (_this.isProducer()) {
 			_this.forwarder = new _forwarder2.default(_this.config, false);
 		}

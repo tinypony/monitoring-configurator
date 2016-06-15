@@ -83,18 +83,6 @@ var ConfigurationDaemon = function () {
 		this.address = null;
 		this.initId = _nodeUuid2.default.v4();
 
-		if (this.isProducer()) {
-			this.initProducer(config);
-		}
-
-		if (this.isDatasink()) {
-			this.initDatasink(config);
-		}
-
-		if (this.isConsumer()) {
-			this.initConsumer(config);
-		}
-
 		this.broadcastPort = broadcastPort;
 		this.bc_socket = _dgram2.default.createSocket('udp4');
 		this.uc_socket = _dgram2.default.createSocket('udp4');
@@ -120,19 +108,6 @@ var ConfigurationDaemon = function () {
 	}
 
 	_createClass(ConfigurationDaemon, [{
-		key: 'initDatasink',
-		value: function initDatasink(config) {
-			this.kafkaForwarder = new _kafkaForwarder2.default(config);
-		}
-	}, {
-		key: 'initConsumer',
-		value: function initConsumer(config) {}
-	}, {
-		key: 'initProducer',
-		value: function initProducer(config) {
-			this.forwarder = new _forwarder2.default(config);
-		}
-	}, {
 		key: 'getRoleFunctions',
 		value: function getRoleFunctions(func) {
 			var funcs = [];

@@ -7,7 +7,7 @@ import _ from 'underscore';
 class ProducerRole extends Role {
 	constructor(initId, config, sockets) {
 		super(initId, config, sockets);
-
+		console.log('Create producer role');
 		if(this.isProducer()) {
 			this.forwarder = new Forwarder(this.config, false);
 		}

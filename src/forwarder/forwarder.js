@@ -4,43 +4,21 @@ import q from 'q';
 import {Client, HighLevelProducer} from 'kafka-node';
 import uuid from 'node-uuid';
 import winston from 'winston';
-import psTree from 'ps-tree';
-import { exec } from 'child_process';
+import Dequeue from 'dequeue';
 
 function isValidPort(port) {
 	return _.isNumber(port) && port > 0 && port < 65535;
 }
 
-function kill(pid, signal, callback) {
-    signal   = signal || 'SIGKILL';
-    callback = callback || function () {};
-
-    var killTree = false;
-    
-    if(killTree) {
-        psTree(pid, function (err, children) {
-            [pid].concat(
-                children.map(p => p.PID)
-            ).forEach(tpid => {
-                try { process.kill(tpid, signal) }
-                catch (ex) { }
-            });
-            callback();
-        });
-    } else {
-        try { process.kill(pid, signal) }
-        catch (ex) { }
-        callback();
-    }
-};
 
 class Forwarder {
-	constructor(config, usePython = false) {
+	constructor(config) {
 		this.id = uuid.v4();
 		this.debug = true;
-		this.use_python = usePython;
 		this.config = config;
-
+		this.count = 0;
+		this.store = 0;
+		console.log('create forwarder');
 		this.logger = new winston.Logger({
 			transports: [new winston.transports.Console()]
 		});
@@ -49,24 +27,42 @@ class Forwarder {
 			this.logger.remove(winston.transports.Console);
 		}
 
-		if(!this.use_python) {
+		this.FIFO = new Dequeue();
 
-			/**
-			 * fwd.port,
-			 * fwd.topic
-			 */
-			this.forward_ports = _.map(config.producers, fwd => {
-				this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
-				var skt = dgram.createSocket('udp4');
-				skt.bind(fwd.port, '127.0.0.1');
+		/**
+		 * fwd.port,
+		 * fwd.topic
+		 */
+		this.forward_ports = _.map(config.producers, fwd => {
+			this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
+			var skt = dgram.createSocket('udp4');
+			skt.bind(fwd.port, '127.0.0.1');
 
-				skt.on('error', er => {
-					this.logger.warn(`[Forwarder.constructor()] ${er}`);
-				});
-
-				skt.on("message", this.forward.bind(this, fwd.topic));
-				return skt;
+			skt.on('error', er => {
+				this.logger.warn(`[Forwarder.constructor()] ${er}`);
 			});
+
+			skt.on("message", this.storeInQueue.bind(this, fwd.topic));
+			return skt;
+		});
+	}
+
+	storeInQueue(topic, data_buf) {
+		let data = data_buf.toString()
+		this.FIFO.push({
+			topic,
+			data
+		});
+
+		if(this.FIFO.length === 1)
+			setImmediate(this.run.bind(this));
+	}
+
+	/* Continuously polls the queue and forwards messages from it */
+	run() {
+		while(this.FIFO.length > 0) {
+			let item = this.FIFO.shift();
+			this.forward(item.topic, item.data);
 		}
 	}
 	
@@ -111,57 +107,21 @@ class Forwarder {
 
 	reconnect() {
 		var defer = q.defer();
+		this.logger.info('[Forwarder.reconnect()] Using nodejs forwarder');
 
-		if(!this.use_python) {
-			this.logger.info('[Forwarder.reconnect()] Using nodejs forwarder');
-			if (this.producer) {
-				this.producer.close(() => {
-					this.logger.info('[Forwarder.reconnect()] Closed the producer, reconnecting');
-					this.producer = null;
-					this.createConnection()
-						.then(defer.resolve, err => defer.reject(err));
-				});
-			} else {
+		if (this.producer) {
+			this.producer.close(() => {
+				this.logger.info('[Forwarder.reconnect()] Closed the producer, reconnecting');
+				this.producer = null;
 				this.createConnection()
 					.then(defer.resolve, err => defer.reject(err));
-			}
-		} else {
-			this.logger.info('[Forwarder.reconnect()] Using python forwarder');
-			this.spawn_subprocess().done(defer.resolve);
-		}
-
-		return defer.promise;
-	}
-
-	run_daemon() {
-		var defer = q.defer();
-		let bindings = _.map(this.config.producers, fwd => `${fwd.port}:${fwd.topic}`);
-		this.logger.info(`Run python /opt/monitoring-configurator/python/forwarder/daemon.py --bindings ${bindings.join(' ')} --zk ${this.getZK()}`);
-		this.python_subprocess = exec(`python /opt/monitoring-configurator/python/forwarder/daemon.py --bindings ${bindings.join(' ')} --zk ${this.getZK()}`);
-
-		this.logger.log('Started python daemon');
-		defer.resolve();
-		return defer.promise;
-	}
-
-	//(re)spawns python daemon that takes care of forwarding message from local ports to datasink
-	spawn_subprocess() {
-		if(this.python_subprocess) { //take down existing process
-			var defer = q.defer();
-
-			this.logger.info(`Killing python subprocess id=${this.python_subprocess.pid}, parent id=${process.pid}`);
-			kill(this.python_subprocess.pid, 'SIGKILL', () => {
-				this.python_subprocess = null;
-				this.run_daemon();
-				this.logger.info('Python subprocess restarted');
-				defer.resolve();
 			});
-
-			return defer.promise;
 		} else {
-			this.logger.info('Python subprocess is starting up');
-			return this.run_daemon();
+			this.createConnection()
+				.then(defer.resolve, err => defer.reject(err));
 		}
+
+		return defer.promise;
 	}
 
 	forward(topic, data) {

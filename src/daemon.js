@@ -34,18 +34,6 @@ class ConfigurationDaemon {
 		this.address = null;
 		this.initId = uuid.v4();
 
-		if(this.isProducer()) {
-			this.initProducer(config);
-		}
-
-		if(this.isDatasink()) {
-			this.initDatasink(config);
-		}
-
-		if(this.isConsumer()) {
-			this.initConsumer(config);
-		}
-
 		this.broadcastPort = broadcastPort;
 		this.bc_socket = dgram.createSocket('udp4');
 		this.uc_socket = dgram.createSocket('udp4');
@@ -73,18 +61,6 @@ class ConfigurationDaemon {
 
 		this.hasStartedDefer = q.defer();
 		this.hasStarted = this.hasStartedDefer.promise;
-	}
-
-	initDatasink(config) {
-		this.kafkaForwarder = new KafkaForwarder(config);
-	}
-
-	initConsumer(config) {
-
-	}
-
-	initProducer(config) {
-		this.forwarder = new Forwarder(config);
 	}
 
 	getRoleFunctions(func) {
