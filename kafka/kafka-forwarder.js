@@ -156,9 +156,6 @@ var KafkaForwarder = function () {
 				if (!msg.value) {
 					return;
 				}
-				if (_underscore2.default.contains(sub.topics, 'latency')) {
-					_this3.logger.info(latencyC++);
-				}
 				_this3.send(msg.value, sub.host, parseInt(sub.port));
 			});
 

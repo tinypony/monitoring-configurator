@@ -123,9 +123,6 @@ class KafkaForwarder {
 			if(!msg.value) {
 				return;
 			}
-			if(_.contains(sub.topics, 'latency')) {
-				this.logger.info(latencyC++);
-			}
 			this.send(msg.value, sub.host, parseInt(sub.port));
 		});
 
