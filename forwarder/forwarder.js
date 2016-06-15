@@ -51,7 +51,6 @@ var Forwarder = function () {
 		this.config = config;
 		this.count = 0;
 		this.store = 0;
-		console.log('create forwarder');
 		this.logger = new _winston2.default.Logger({
 			transports: [new _winston2.default.transports.Console()]
 		});

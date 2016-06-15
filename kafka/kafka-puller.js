@@ -178,7 +178,7 @@ var KafkaPuller = function () {
 
 			var connStr = this.getConnectionString(monitoring);
 
-			this.logger.info('Creating consumer for ' + connStr + ', ' + sub.topics.join(' ') + ' => ' + sub.port);
+			this.logger.info('[KafkaPuller] Creating consumer for ' + connStr + ', ' + sub.topics.join(' ') + ' => ' + sub.port);
 			var defer = _q2.default.defer();
 			var client = new _kafkaNode.Client(connStr, this.getClientId(sub));
 			var FIFO = new _dequeue2.default();
@@ -202,11 +202,12 @@ var KafkaPuller = function () {
 				defer.reject(err);
 			});
 
+			this.logger.info('[KafkaPuller] Attach connect handler');
 			consumer.on('connect', function () {
 				_this4.logger.info('[KafkaPuller] Consumer connected');
 				defer.resolve(consumer, FIFO, parseInt(sub.port));
 			});
-
+			this.logger.info('[KafkaPuller] Attached connect handler');
 			return defer.promise;
 		}
 	}, {

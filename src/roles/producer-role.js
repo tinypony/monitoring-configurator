@@ -7,7 +7,6 @@ import _ from 'underscore';
 class ProducerRole extends Role {
 	constructor(initId, config, sockets) {
 		super(initId, config, sockets);
-		console.log('Create producer role');
 		if(this.isProducer()) {
 			this.forwarder = new Forwarder(this.config, false);
 		}
@@ -59,7 +58,7 @@ class ProducerRole extends Role {
 		var defer = q.defer();
 		this.config.monitoring = _.extend(this.config.monitoring, msg.monitoring);
 		this.forwarder.reconfig(this.config);
-		this.logger.info('Producer has be configured with ' + JSON.stringify(msg));
+		this.logger.info('[Producer] Producer has be configured with ' + JSON.stringify(msg));
 		defer.resolve(msg);
 		return defer.promise;
 	}

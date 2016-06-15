@@ -18,7 +18,6 @@ class Forwarder {
 		this.config = config;
 		this.count = 0;
 		this.store = 0;
-		console.log('create forwarder');
 		this.logger = new winston.Logger({
 			transports: [new winston.transports.Console()]
 		});

@@ -131,7 +131,7 @@ class KafkaPuller {
 	createConsumer(sub, monitoring) {
 		var connStr = this.getConnectionString(monitoring);
 
-		this.logger.info(`Creating consumer for ${connStr}, ${sub.topics.join(' ')} => ${sub.port}`);
+		this.logger.info(`[KafkaPuller] Creating consumer for ${connStr}, ${sub.topics.join(' ')} => ${sub.port}`);
 		var defer = q.defer();
 		var client = new Client(connStr, this.getClientId(sub));
 		var FIFO = new Dequeue();
@@ -155,11 +155,12 @@ class KafkaPuller {
 			defer.reject(err);
 		});
 
+		this.logger.info('[KafkaPuller] Attach connect handler');
 		consumer.on('connect', () => {
 			this.logger.info('[KafkaPuller] Consumer connected');
-			defer.resolve(consumer, FIFO, parseInt(sub.port));
+			defer.resolve( consumer, FIFO, parseInt(sub.port) );
 		});
-
+		this.logger.info('[KafkaPuller] Attached connect handler');
 		return defer.promise;
 
 	}
