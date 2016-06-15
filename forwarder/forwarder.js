@@ -161,6 +161,7 @@ var Forwarder = function () {
 			var defer = _q2.default.defer();
 
 			if (!this.use_python) {
+				this.logger.info('[Forwarder.reconnect()] Using nodejs forwarder');
 				if (this.producer) {
 					this.producer.close(function () {
 						_this3.logger.info('[Forwarder.reconnect()] Closed the producer, reconnecting');

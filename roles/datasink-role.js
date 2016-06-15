@@ -45,7 +45,7 @@ var DatasinkRole = function (_Role) {
 		var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DatasinkRole).call(this, initId, config, sockets));
 
 		if (_this.isMe()) {
-			_this.kafkaForwarder = new _kafkaForwarder2.default(config);
+			_this.kafkaForwarder = new _kafkaForwarder2.default(config, false);
 			_this.brokers = [0];
 			_this.nextBrokerId = 1;
 		}
