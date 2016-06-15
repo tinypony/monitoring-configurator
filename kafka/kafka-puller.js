@@ -94,9 +94,11 @@ var KafkaPuller = function () {
 			var _this2 = this;
 
 			this.ou_socket.send(new Buffer(msg), 0, msg.length, port, '127.0.0.1', function (err) {
-				if (err) return _this2.logger.warn('[KafkaPuller.send()] ' + JSON.stringify(err));
+				if (err) {
+					return _this2.logger.warn('[KafkaPuller.send()] ' + JSON.stringify(err));
+				}
 				if (!firstMessageLogged) {
-					_this2.logger.info('Sent message "%s" to subscribed client %s:%d', msg, host, port);
+					_this2.logger.info('Passed message "%s" to subscribed client 127.0.0.1:%d', msg, port);
 					firstMessageLogged = true;
 				}
 			});
@@ -142,7 +144,7 @@ var KafkaPuller = function () {
 					_this3.subscribe(sub.monitoring);
 				});
 			} else {
-				this.logger.info('[KafkaPuller] Subscribing %s:%d', sub.host, sub.port);
+				this.logger.info('[KafkaPuller] Subscribing 127.0.0.1:%d', sub.port);
 				this.createConsumer(sub, monitoring).then(function (consumer, FIFO, port) {
 					_this3.consumer = consumer;
 
@@ -201,7 +203,7 @@ var KafkaPuller = function () {
 			});
 
 			consumer.on('connect', function () {
-				_this4.logger.info('Subscribed ' + _this4.getClientId(sub));
+				_this4.logger.info('[KafkaPuller] Consumer connected');
 				defer.resolve(consumer, FIFO, parseInt(sub.port));
 			});
 

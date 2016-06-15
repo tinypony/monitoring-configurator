@@ -56,9 +56,9 @@ class KafkaPuller {
 		 	port,
 		 	'127.0.0.1', 
 		 	err => {
-		 		if (err) return this.logger.warn(`[KafkaPuller.send()] ${JSON.stringify(err)}`);
+		 		if (err) { return this.logger.warn(`[KafkaPuller.send()] ${JSON.stringify(err)}`); }
 		 		if (!firstMessageLogged) {
-		 			this.logger.info('Sent message "%s" to subscribed client %s:%d', msg, host, port);
+		 			this.logger.info('Passed message "%s" to subscribed client 127.0.0.1:%d', msg, port);
 		 			firstMessageLogged = true;
 		 		}
 		 	}
@@ -98,7 +98,7 @@ class KafkaPuller {
 				this.subscribe(sub. monitoring);
 			});
 		} else {
-			this.logger.info('[KafkaPuller] Subscribing %s:%d', sub.host, sub.port);
+			this.logger.info('[KafkaPuller] Subscribing 127.0.0.1:%d', sub.port);
 			this.createConsumer(sub, monitoring)
 				.then( (consumer, FIFO, port ) => {
 					this.consumer = consumer;
@@ -129,12 +129,12 @@ class KafkaPuller {
 	}
 
 	createConsumer(sub, monitoring) {
-		let connStr = this.getConnectionString(monitoring);
+		var connStr = this.getConnectionString(monitoring);
 
 		this.logger.info(`Creating consumer for ${connStr}, ${sub.topics.join(' ')} => ${sub.port}`);
-		let defer = q.defer();
-		let client = new Client(connStr, this.getClientId(sub));
-		let FIFO = new Dequeue();
+		var defer = q.defer();
+		var client = new Client(connStr, this.getClientId(sub));
+		var FIFO = new Dequeue();
 
 		let payloads = _.map(sub.topics, function(topic) {
 			return {
@@ -142,7 +142,7 @@ class KafkaPuller {
 			};
 		});
 
-		let consumer = new HighLevelConsumer(client, payloads, {
+		var consumer = new HighLevelConsumer(client, payloads, {
 			autoCommit: true,
 	    	autoCommitIntervalMs: 5000,
 	    	encoding: 'utf8'
@@ -156,7 +156,7 @@ class KafkaPuller {
 		});
 
 		consumer.on('connect', () => {
-			this.logger.info('Subscribed ' + this.getClientId(sub));
+			this.logger.info('[KafkaPuller] Consumer connected');
 			defer.resolve(consumer, FIFO, parseInt(sub.port));
 		});
 
