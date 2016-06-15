@@ -174,8 +174,6 @@ var KafkaPuller = function () {
 	}, {
 		key: 'createConsumer',
 		value: function createConsumer(sub, monitoring) {
-			var _this4 = this;
-
 			var connStr = this.getConnectionString(monitoring);
 
 			this.logger.info('[KafkaPuller] Creating consumer for ' + connStr + ', ' + sub.topics.join(' ') + ' => ' + sub.port);
@@ -202,12 +200,7 @@ var KafkaPuller = function () {
 				defer.reject(err);
 			});
 
-			this.logger.info('[KafkaPuller] Attach connect handler');
-			consumer.on('connect', function () {
-				_this4.logger.info('[KafkaPuller] Consumer connected');
-				defer.resolve(consumer, FIFO, parseInt(sub.port));
-			});
-			this.logger.info('[KafkaPuller] Attached connect handler');
+			defer.resolve(consumer, FIFO, parseInt(sub.port));
 			return defer.promise;
 		}
 	}, {

@@ -155,14 +155,8 @@ class KafkaPuller {
 			defer.reject(err);
 		});
 
-		this.logger.info('[KafkaPuller] Attach connect handler');
-		consumer.on('connect', () => {
-			this.logger.info('[KafkaPuller] Consumer connected');
-			defer.resolve( consumer, FIFO, parseInt(sub.port) );
-		});
-		this.logger.info('[KafkaPuller] Attached connect handler');
+		defer.resolve( consumer, FIFO, parseInt(sub.port) );
 		return defer.promise;
-
 	}
 
 	run(FIFO) {
