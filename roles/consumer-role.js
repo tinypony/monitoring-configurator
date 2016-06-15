@@ -20,6 +20,10 @@ var _underscore = require('underscore');
 
 var _underscore2 = _interopRequireDefault(_underscore);
 
+var _kafkaPuller = require('../kafka/kafka-puller');
+
+var _kafkaPuller2 = _interopRequireDefault(_kafkaPuller);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -34,7 +38,12 @@ var ConsumerRole = function (_Role) {
 	function ConsumerRole(initId, config, sockets) {
 		_classCallCheck(this, ConsumerRole);
 
-		return _possibleConstructorReturn(this, Object.getPrototypeOf(ConsumerRole).call(this, initId, config, sockets));
+		var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(ConsumerRole).call(this, initId, config, sockets));
+
+		if (_this.isMe()) {
+			_this.puller = new _kafkaPuller2.default(_this.config);
+		}
+		return _this;
 	}
 
 	_createClass(ConsumerRole, [{
@@ -51,6 +60,7 @@ var ConsumerRole = function (_Role) {
 
 			var defer = _q2.default.defer();
 			var message = this.getHelloMessage();
+
 			this.broadcast(message).then(function () {
 				defer.resolve({
 					hello_sent: true
@@ -64,8 +74,6 @@ var ConsumerRole = function (_Role) {
 	}, {
 		key: 'configureClient',
 		value: function configureClient(msg) {
-			var _this2 = this;
-
 			var defer = _q2.default.defer();
 			this.config.monitoring = _underscore2.default.extend(this.config.monitoring, msg.monitoring);
 
@@ -74,16 +82,19 @@ var ConsumerRole = function (_Role) {
 				defer.reject();
 				return defer.promise;
 			}
-			this.logger.info('Consumer received configuration ' + JSON.stringify(msg));
-			var subscribeMsg = this.getSubscribeMessage();
 
-			this.respondTo(msg, subscribeMsg).then(function () {
-				_this2.logger.info('Subscribed with ' + subscribeMsg);
-				defer.resolve(msg);
-			}, function (err) {
-				_this2.logger.warn(JSON.stringify(err));
-				defer.reject(err);
-			});
+			this.puller.subscribe(this.config.consumers[0], this.config.monitoring);
+			defer.resolve(msg);
+			// this.logger.info('Consumer received configuration ' + JSON.stringify(msg));
+			// var subscribeMsg = this.getSubscribeMessage();
+
+			// this.respondTo(msg, subscribeMsg).then(() => {
+			// 	this.logger.info('Subscribed with ' + subscribeMsg);
+			// 	defer.resolve(msg);
+			// }, err => {
+			// 	this.logger.warn(JSON.stringify(err));
+			// 	defer.reject(err);
+			// });
 
 			return defer.promise;
 		}

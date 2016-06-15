@@ -18,6 +18,10 @@ var _winston = require('winston');
 
 var _winston2 = _interopRequireDefault(_winston);
 
+var _dequeue = require('dequeue');
+
+var _dequeue2 = _interopRequireDefault(_dequeue);
+
 var _kafkaNode = require('kafka-node');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -124,7 +128,6 @@ var KafkaForwarder = function () {
 			var _this3 = this;
 
 			var client = new _kafkaNode.Client(this.getConnectionString(), this.getClientId(sub));
-			this.logger.info('[KafkaForwarder] created client');
 			var payloads = _underscore2.default.map(sub.topics, function (topic) {
 				return {
 					topic: topic
@@ -156,6 +159,7 @@ var KafkaForwarder = function () {
 				if (!msg.value) {
 					return;
 				}
+
 				_this3.send(msg.value, sub.host, parseInt(sub.port));
 			});
 

@@ -79,10 +79,10 @@ var Forwarder = function () {
 			return skt;
 		});
 
-		setInterval(function () {
-			//console.log(this.count);
-			console.log(_this.store);
-		}, 5000);
+		// setInterval(() => {
+		// 	console.log(this.count);
+		// 	console.log(this.store);
+		// }, 5000);
 	}
 
 	_createClass(Forwarder, [{
@@ -95,8 +95,7 @@ var Forwarder = function () {
 			});
 			this.store++;
 
-			// if(this.FIFO.length === 1)
-			// 	setImmediate(this.run.bind(this));
+			if (this.FIFO.length === 1) setImmediate(this.run.bind(this));
 		}
 
 		/* Continuously polls the queue and forwards messages from it */
