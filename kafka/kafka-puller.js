@@ -144,6 +144,7 @@ var KafkaPuller = function () {
 				this.createConsumer(sub, monitoring).then(function (consumer, FIFO, port) {
 					_this3.consumer = consumer;
 
+					_this3.logger.info('[KafkaPuller] Attach message handler consumer');
 					_this3.consumer.on('message', function (msg) {
 						if (!msg.value) {
 							return;
@@ -164,10 +165,10 @@ var KafkaPuller = function () {
 					});
 
 					_this3.logger.info('[KafkaPuller] Attached all required callbacks to consumer');
+				}).catch(function (err) {
+					_this3.logger.warn('Here we have error in catch ' + JSON.stringify(err));
+					//this.handleConsumerError(err, sub, monitoring);
 				});
-				// .catch( err => {
-				// 	//this.handleConsumerError(err, sub, monitoring);
-				// });
 			}
 		}
 	}, {
@@ -175,8 +176,11 @@ var KafkaPuller = function () {
 		value: function createConsumer(sub, monitoring) {
 			var _this4 = this;
 
+			var connStr = this.getConnectionString(monitoring);
+
+			this.logger.info('Creating consumer for ' + connStr + ', ' + sub.topics.join(' ') + ' => ' + sub.port);
 			var defer = _q2.default.defer();
-			var client = new _kafkaNode.Client(this.getConnectionString(monitoring), this.getClientId(sub));
+			var client = new _kafkaNode.Client(connStr, this.getClientId(sub));
 			var FIFO = new _dequeue2.default();
 
 			var payloads = _underscore2.default.map(sub.topics, function (topic) {
@@ -194,7 +198,7 @@ var KafkaPuller = function () {
 			this.logger.info('[KafkaPuller] created consumer');
 
 			//Handle consumer connection error
-			consumer.on("error", function (err) {
+			consumer.on('error', function (err) {
 				_this4.logger.warn('Whaaat? ' + JSON.stringify(err));
 				defer.reject(err);
 			});
@@ -211,7 +215,7 @@ var KafkaPuller = function () {
 		value: function run(FIFO) {
 			while (FIFO.length) {
 				var item = FIFO.shift();
-				this.send(item.msg, '127.0.0.1', msg.port);
+				this.send(item.msg, '127.0.0.1', item.port);
 			}
 		}
 	}]);

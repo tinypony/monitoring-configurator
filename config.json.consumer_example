@@ -1,0 +1,13 @@
+{
+  "unicast": {
+    "port": 12556
+  },
+  "roles": ["producer"],
+  "producers" : [{
+    "port": 2004,
+    "topic": "latency"
+  }],
+  "monitoring": {
+    "subnet": "10.0.0.0/16"
+  }
+}

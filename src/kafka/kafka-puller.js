@@ -101,6 +101,7 @@ class KafkaPuller {
 				.then( (consumer, FIFO, port ) => {
 					this.consumer = consumer;
 
+					this.logger.info('[KafkaPuller] Attach message handler consumer');
 					this.consumer.on('message', msg => {
 						if(!msg.value) {
 							return;
@@ -122,16 +123,19 @@ class KafkaPuller {
 
 					this.logger.info('[KafkaPuller] Attached all required callbacks to consumer');
 
+				}).catch( err => {
+					this.logger.warn('Here we have error in catch ' + JSON.stringify(err));
+					//this.handleConsumerError(err, sub, monitoring);
 				});
-				// .catch( err => {
-				// 	//this.handleConsumerError(err, sub, monitoring);
-				// });
 		}
 	}
 
 	createConsumer(sub, monitoring) {
+		let connStr = this.getConnectionString(monitoring);
+
+		this.logger.info(`Creating consumer for ${connStr}, ${sub.topics.join(' ')} => ${sub.port}`);
 		let defer = q.defer();
-		let client = new Client(this.getConnectionString(monitoring), this.getClientId(sub));
+		let client = new Client(connStr, this.getClientId(sub));
 		let FIFO = new Dequeue();
 
 		let payloads = _.map(sub.topics, function(topic) {
@@ -149,7 +153,7 @@ class KafkaPuller {
 		this.logger.info('[KafkaPuller] created consumer');
 
 		//Handle consumer connection error
-		consumer.on("error", err => {
+		consumer.on('error', err => {
 			this.logger.warn('Whaaat? ' + JSON.stringify(err));
 			defer.reject(err);
 		});
@@ -166,7 +170,7 @@ class KafkaPuller {
 	run(FIFO) {
 		while(FIFO.length) {
 			let item = FIFO.shift();
-			this.send(item.msg, '127.0.0.1', msg.port);
+			this.send(item.msg, '127.0.0.1', item.port);
 		}
 	}
 }
