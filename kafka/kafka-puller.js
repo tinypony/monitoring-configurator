@@ -199,7 +199,7 @@ var KafkaPuller = function () {
 
 			consumer.on('connect', function () {
 				_this4.logger.info('Subscribed ' + _this4.getClientId(sub));
-				promise.resolve(consumer, FIFO, parseInt(sub.port));
+				defer.resolve(consumer, FIFO, parseInt(sub.port));
 			});
 
 			return defer.promise;
