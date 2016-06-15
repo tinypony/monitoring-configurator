@@ -111,10 +111,12 @@ var KafkaPuller = function () {
 		value: function handleConsumerError(err, sub, monitoring) {
 			if (KAFKA_ERROR.isNodeExists(err)) {
 				this.logger.info('Waiting for kafka to clear previous connection');
+				this.consumer = null;
 				setTimeout(this.subscribe.bind(this, sub, monitoring), 5000);
 			} else if (KAFKA_ERROR.isCouldNotFindBroker(err)) {
 				//Waiting for KAFKA to spin up (possibly)
 				this.logger.info('Waiting for kafka to spin up');
+				this.consumer = null;
 				setTimeout(this.subscribe.bind(this, sub, monitoring), 5000);
 			} else {
 				this.logger.warn(JSON.stringify(err));
@@ -160,14 +162,10 @@ var KafkaPuller = function () {
 						}
 					});
 
-					_this3.consumer.on('error', function (err) {
-						_this3.handleConsumerError(err, sub, monitoring);
-					});
-
 					_this3.logger.info('[KafkaPuller] Attached all required callbacks to consumer');
 				}).catch(function (err) {
 					_this3.logger.warn('Here we have error in catch ' + JSON.stringify(err));
-					//this.handleConsumerError(err, sub, monitoring);
+					_this3.handleConsumerError(err, sub, monitoring);
 				});
 			}
 		}
@@ -199,7 +197,6 @@ var KafkaPuller = function () {
 
 			//Handle consumer connection error
 			consumer.on('error', function (err) {
-				_this4.logger.warn('Whaaat? ' + JSON.stringify(err));
 				defer.reject(err);
 			});
 
