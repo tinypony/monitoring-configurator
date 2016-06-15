@@ -159,7 +159,7 @@ var KafkaPuller = function () {
 						}
 					});
 
-					_this3.consumer.on(error, function (err) {
+					_this3.consumer.on('error', function (err) {
 						_this3.handleConsumerError(err, sub, monitoring);
 					});
 
@@ -178,6 +178,7 @@ var KafkaPuller = function () {
 			var defer = _q2.default.defer();
 			var client = new _kafkaNode.Client(this.getConnectionString(monitoring), this.getClientId(sub));
 			var FIFO = new _dequeue2.default();
+
 			var payloads = _underscore2.default.map(sub.topics, function (topic) {
 				return {
 					topic: topic
@@ -194,6 +195,7 @@ var KafkaPuller = function () {
 
 			//Handle consumer connection error
 			consumer.on("error", function (err) {
+				_this4.logger.warn('Whaaat? ' + JSON.stringify(err));
 				defer.reject(err);
 			});
 

@@ -116,9 +116,8 @@ class KafkaPuller {
 						}
 					});
 
-					this.consumer.on(error, err => {
+					this.consumer.on('error', err => {
 						this.handleConsumerError(err, sub, monitoring);
-
 					});
 
 					this.logger.info('[KafkaPuller] Attached all required callbacks to consumer');
@@ -134,6 +133,7 @@ class KafkaPuller {
 		let defer = q.defer();
 		let client = new Client(this.getConnectionString(monitoring), this.getClientId(sub));
 		let FIFO = new Dequeue();
+
 		let payloads = _.map(sub.topics, function(topic) {
 			return {
 				topic: topic
@@ -150,6 +150,7 @@ class KafkaPuller {
 
 		//Handle consumer connection error
 		consumer.on("error", err => {
+			this.logger.warn('Whaaat? ' + JSON.stringify(err));
 			defer.reject(err);
 		});
 
