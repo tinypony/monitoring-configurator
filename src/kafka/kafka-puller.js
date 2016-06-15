@@ -155,7 +155,7 @@ class KafkaPuller {
 
 		consumer.on('connect', () => {
 			this.logger.info('Subscribed ' + this.getClientId(sub));
-			promise.resolve(consumer, FIFO, parseInt(sub.port));
+			defer.resolve(consumer, FIFO, parseInt(sub.port));
 		});
 
 		return defer.promise;
