@@ -159,6 +159,8 @@ var KafkaPuller = function () {
 							msg: msg.value
 						});
 
+						console.log('Put to queue: ' + msg.value);
+
 						if (FIFO.length === 1) {
 							setImmediate(_this3.run.bind(_this3, FIFO));
 						}
@@ -209,6 +211,7 @@ var KafkaPuller = function () {
 			while (FIFO.length) {
 				var item = FIFO.shift();
 				this.send(item.msg, '127.0.0.1', item.port);
+				console.log('Send to endpoint: ' + item.msg);
 			}
 		}
 	}]);

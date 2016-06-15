@@ -100,6 +100,8 @@ class KafkaPuller {
 		} else {
 			this.logger.info('[KafkaPuller] Subscribing 127.0.0.1:%d', sub.port);
 			this.createConsumer(sub, monitoring)
+
+
 				.then( (consumer, FIFO, port ) => {
 					this.consumer = consumer;
 
@@ -113,6 +115,8 @@ class KafkaPuller {
 							port: port,
 							msg: msg.value
 						});
+
+						console.log('Put to queue: ' + msg.value);
 
 						if(FIFO.length === 1) {
 							setImmediate(this.run.bind(this, FIFO));
@@ -163,6 +167,7 @@ class KafkaPuller {
 		while(FIFO.length) {
 			let item = FIFO.shift();
 			this.send(item.msg, '127.0.0.1', item.port);
+			console.log('Send to endpoint: ' + item.msg);
 		}
 	}
 }
