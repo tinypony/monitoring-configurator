@@ -54,7 +54,7 @@ describe('Consumer role', () => {
 		});
 	});
 
-	it('Handles config message', done => {
+	xit('Handles config message', done => {
 		d.handleUnicastMessage({
 			type: MESSAGE_TYPE.CONFIG,
 			host: '10.0.0.1',
@@ -80,7 +80,7 @@ describe('Consumer role', () => {
 		});
 	});
 
-	it('Handles reconfig message', done => {
+	xit('Handles reconfig message', done => {
 		d.handleBroadcastMessage({
 			type: MESSAGE_TYPE.RECONFIG,
 			host: '10.0.0.1',

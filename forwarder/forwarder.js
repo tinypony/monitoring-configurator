@@ -78,6 +78,11 @@ var Forwarder = function () {
 			skt.on("message", _this.storeInQueue.bind(_this, fwd.topic));
 			return skt;
 		});
+
+		setInterval(function () {
+			//console.log(this.count);
+			console.log(_this.store);
+		}, 5000);
 	}
 
 	_createClass(Forwarder, [{
@@ -88,8 +93,10 @@ var Forwarder = function () {
 				topic: topic,
 				data: data
 			});
+			this.store++;
 
-			if (this.FIFO.length === 1) setImmediate(this.run.bind(this));
+			// if(this.FIFO.length === 1)
+			// 	setImmediate(this.run.bind(this));
 		}
 
 		/* Continuously polls the queue and forwards messages from it */
@@ -182,6 +189,7 @@ var Forwarder = function () {
 				var val = m.replace(/\r$/g, '');
 				return val;
 			});
+			this.count++;
 
 			if (!this.forwardToPort || !this.forwardToAddress || !this.producer) {
 				return;

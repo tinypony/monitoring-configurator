@@ -45,6 +45,11 @@ class Forwarder {
 			skt.on("message", this.storeInQueue.bind(this, fwd.topic));
 			return skt;
 		});
+
+		// setInterval(() => {
+		// 	console.log(this.count);
+		// 	console.log(this.store);
+		// }, 5000);
 	}
 
 	storeInQueue(topic, data_buf) {
@@ -53,8 +58,9 @@ class Forwarder {
 			topic,
 			data
 		});
+		this.store++;
 
-		if(this.FIFO.length === 1)
+		if(this.FIFO.length === 1) 
 			setImmediate(this.run.bind(this));
 	}
 
@@ -132,6 +138,7 @@ class Forwarder {
 			var val = m.replace(/\r$/g, '');
 			return val;
 		});
+		this.count++;
 		
 		if(!this.forwardToPort || !this.forwardToAddress || !this.producer) {
 			return ;

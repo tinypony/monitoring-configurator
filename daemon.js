@@ -142,21 +142,6 @@ var ConfigurationDaemon = function () {
 			return block.broadcast;
 		}
 	}, {
-		key: 'isDatasink',
-		value: function isDatasink() {
-			return _underscore2.default.contains(this.config.roles, _nodeType2.default.DATASINK);
-		}
-	}, {
-		key: 'isProducer',
-		value: function isProducer() {
-			return _underscore2.default.contains(this.config.roles, _nodeType2.default.PRODUCER);
-		}
-	}, {
-		key: 'isConsumer',
-		value: function isConsumer() {
-			return _underscore2.default.contains(this.config.roles, _nodeType2.default.CONSUMER);
-		}
-	}, {
 		key: 'handleInChain',
 		value: function handleInChain(msg, func) {
 			var funcs = this.getRoleFunctions(func);

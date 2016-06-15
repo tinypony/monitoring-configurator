@@ -1,10 +1,15 @@
 import Role from './roles';
 import q from 'q';
+
 import _ from 'underscore';
+import KafkaPuller from '../kafka/kafka-puller';
 
 class ConsumerRole extends Role {
 	constructor(initId, config, sockets) {
 		super(initId, config, sockets);
+		if(this.isMe()) {
+			this.puller =  new KafkaPuller(this.config);
+		}
 	}
 
 	isMe() {
@@ -18,6 +23,7 @@ class ConsumerRole extends Role {
 
 		var defer = q.defer();
 		let message = this.getHelloMessage();
+
 		this.broadcast(message).then(() => {
 			defer.resolve({
 				hello_sent: true
@@ -36,16 +42,19 @@ class ConsumerRole extends Role {
 			defer.reject();
 			return defer.promise;
 		}
-		this.logger.info('Consumer received configuration ' + JSON.stringify(msg));
-		var subscribeMsg = this.getSubscribeMessage();
 
-		this.respondTo(msg, subscribeMsg).then(() => { 
-			this.logger.info('Subscribed with ' + subscribeMsg);
-			defer.resolve(msg);
-		}, err => {
-			this.logger.warn(JSON.stringify(err));
-			defer.reject(err);
-		});
+		this.puller.subscribe(this.config.consumers[0], this.config.monitoring);
+		defer.resolve(msg);
+		// this.logger.info('Consumer received configuration ' + JSON.stringify(msg));
+		// var subscribeMsg = this.getSubscribeMessage();
+
+		// this.respondTo(msg, subscribeMsg).then(() => { 
+		// 	this.logger.info('Subscribed with ' + subscribeMsg);
+		// 	defer.resolve(msg);
+		// }, err => {
+		// 	this.logger.warn(JSON.stringify(err));
+		// 	defer.reject(err);
+		// });
 
 		return defer.promise;
 	}

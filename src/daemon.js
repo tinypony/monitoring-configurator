@@ -90,18 +90,6 @@ class ConfigurationDaemon {
 		return block.broadcast;
 	}
 
-	isDatasink() {
-		return _.contains(this.config.roles, NODE_TYPE.DATASINK);
-	}
-
-	isProducer() {
-		return _.contains(this.config.roles, NODE_TYPE.PRODUCER);
-	}
-
-	isConsumer() {
-		return _.contains(this.config.roles, NODE_TYPE.CONSUMER);
-	}
-
 	handleInChain(msg, func) {
 		var funcs = this.getRoleFunctions(func);
 

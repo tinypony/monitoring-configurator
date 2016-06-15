@@ -1,7 +1,8 @@
-import dgram from 'dgram'
-import _ from 'underscore'
-import winston from 'winston'
-import { Client, HighLevelConsumer } from 'kafka-node'
+import dgram from 'dgram';
+import _ from 'underscore';
+import winston from 'winston';
+import Dequeue from 'dequeue';
+import { Client, HighLevelConsumer } from 'kafka-node';
 
 var firstMessageLogged = false;
 var latencyC= 0;
@@ -92,7 +93,6 @@ class KafkaForwarder {
 
 	createConsumer(sub) {
 		var client = new Client(this.getConnectionString(), this.getClientId(sub));
-		this.logger.info('[KafkaForwarder] created client');
 		var payloads = _.map(sub.topics, function(topic) {
 			return {
 				topic: topic
@@ -123,6 +123,7 @@ class KafkaForwarder {
 			if(!msg.value) {
 				return;
 			}
+
 			this.send(msg.value, sub.host, parseInt(sub.port));
 		});
 

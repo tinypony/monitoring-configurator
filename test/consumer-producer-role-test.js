@@ -73,8 +73,8 @@ describe('Hybrid (producer/consumer) role', () => {
 			expect(forwarderSpy.getCall(0).args[0]).to.have.deep.property('monitoring.host', '10.0.0.10');
 			expect(forwarderSpy.getCall(0).args[0]).to.have.deep.property('monitoring.port', 2181);
 
-			//called once to send subscribe message (10.0.0.10:1337) and once to broadcast hello (10.0.255.255:12555)
-			expect(socketSpy.callCount).to.equal(2);
+			//called once to broadcast hello (10.0.255.255:12555)
+			expect(socketSpy.callCount).to.equal(1);
 
 			expect(socketSpy.calledWith(
 				sinon.match.any,
@@ -84,13 +84,13 @@ describe('Hybrid (producer/consumer) role', () => {
 				'10.0.255.255'
 			)).to.be.true;
 
-			expect(socketSpy.calledWith(
-				sinon.match.any,
-				sinon.match.any,
-				sinon.match.any,
-				1337,
-				'10.0.0.10'
-			)).to.be.true;
+			// expect(socketSpy.calledWith(
+			// 	sinon.match.any,
+			// 	sinon.match.any,
+			// 	sinon.match.any,
+			// 	1337,
+			// 	'10.0.0.10'
+			// )).to.be.true;
 
 
 			done();

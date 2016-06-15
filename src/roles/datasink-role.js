@@ -10,7 +10,7 @@ class DatasinkRole extends Role {
 		super(initId, config, sockets);
 
 		if(this.isMe()) {
-			this.kafkaForwarder = new KafkaForwarder(config, false);
+		//	this.kafkaForwarder = new KafkaForwarder(config, false);
 			this.brokers = [0];
 			this.nextBrokerId = 1;
 		}
