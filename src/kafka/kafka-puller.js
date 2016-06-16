@@ -106,6 +106,7 @@ class KafkaPuller {
 					this.consumer = consumer;
 
 					this.logger.info('[KafkaPuller] Attach message handler consumer');
+					this.logger.info(FIFO, port);
 					this.consumer.on('message', msg => {
 						if(!msg.value) {
 							return;
@@ -158,6 +159,8 @@ class KafkaPuller {
 		consumer.on('error', err => {
 			defer.reject(err);
 		});
+
+		this.logger.info(FIFO);
 
 		defer.resolve( consumer, FIFO, parseInt(sub.port) );
 		return defer.promise;

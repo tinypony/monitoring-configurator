@@ -149,6 +149,7 @@ var KafkaPuller = function () {
 					_this3.consumer = consumer;
 
 					_this3.logger.info('[KafkaPuller] Attach message handler consumer');
+					_this3.logger.info(FIFO, port);
 					_this3.consumer.on('message', function (msg) {
 						if (!msg.value) {
 							return;
@@ -201,6 +202,8 @@ var KafkaPuller = function () {
 			consumer.on('error', function (err) {
 				defer.reject(err);
 			});
+
+			this.logger.info(FIFO);
 
 			defer.resolve(consumer, FIFO, parseInt(sub.port));
 			return defer.promise;

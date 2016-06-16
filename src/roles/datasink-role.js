@@ -34,7 +34,7 @@ class DatasinkRole extends Role {
 
 	isSlave(msg) {
 		return msg.roles && _.contains(msg.roles, NODE_TYPE.DATASINK_SLAVE);
-	}	
+	}
 
 	handleHello(msg) {
 		var defer = q.defer();
