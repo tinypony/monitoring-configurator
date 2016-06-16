@@ -16,7 +16,6 @@ class Forwarder {
 		this.id = uuid.v4();
 		this.debug = true;
 		this.config = config;
-		this.FIFO_flushed = true;
 		this.logger = new winston.Logger({
 			transports: [new winston.transports.Console()]
 		});
@@ -25,7 +24,6 @@ class Forwarder {
 			this.logger.remove(winston.transports.Console);
 		}
 
-		this.FIFO = new Dequeue();
 
 		/**
 		 * fwd.port,
@@ -34,43 +32,52 @@ class Forwarder {
 		this.forward_ports = _.map(config.producers, fwd => {
 			this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
 			var skt = dgram.createSocket('udp4');
+			var FIFO = new Dequeue();
 			skt.bind(fwd.port, '127.0.0.1');
 
 			skt.on('error', er => {
 				this.logger.warn(`[Forwarder.constructor()] ${er}`);
 			});
 
-			skt.on("message", this.storeInQueue.bind(this, fwd.topic));
-			return skt;
-		});
+			var binding = {
+				socket: skt,
+				port: fwd.port,
+				topic: fwd.topic,
+				FIFO,
+				FIFO_flushed: true
+			};
 
-		// setInterval(() => {
-		// 	console.log(this.count);
-		// 	console.log(this.store);
-		// }, 5000);
+			skt.on("message", this.storeInQueue.bind(this, fwd.topic, binding));
+
+			return binding;
+		});
 	}
 
-	storeInQueue(topic, data_buf) {
-		let data = data_buf.toString()
-		this.FIFO.push({
-			topic,
-			data
-		});
+	storeInQueue(topic, binding, data_buf) {
+		let data = data_buf.toString();
+		var { FIFO } = binding;
+
+		FIFO.push(data);
+
 		this.logger.info(`[Forwarder] Sotred in queue ${data}`);
 
-		if(this.FIFO_flushed) {
-			this.FIFO_flushed = false;
-			setImmediate(this.run.bind(this));
+		if(binding.FIFO_flushed) {
+			binding.FIFO_flushed = false;
+			setImmediate(this.run.bind(this, binding));
 		}
 	}
 
 	/* Continuously polls the queue and forwards messages from it */
-	run() {
-		while(this.FIFO.length) {
-			let { topic, data } = this.FIFO.shift();
-			this.forward(topic, data);
+	run(binding) {
+		let messages = [];
+		let { FIFO, FIFO_flushed, topic } = binding;
+
+		while(FIFO.length) {
+			let data = FIFO.shift();
+			messages.push(data);
 		}
-		this.FIFO_flushed = true;
+		this.forward(topic, messages.join('\n'));
+		FIFO_flushed = true;
 	}
 	
 	reconfig(config) {
@@ -142,7 +149,7 @@ class Forwarder {
 		if(!this.forwardToPort || !this.forwardToAddress || !this.producer) {
 			return ;
 		}
-			
+
 		//contain possible errors if datasink is temporarily down
 		try {
 			this.producer.send([{

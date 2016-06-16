@@ -49,7 +49,6 @@ var Forwarder = function () {
 		this.id = _nodeUuid2.default.v4();
 		this.debug = true;
 		this.config = config;
-		this.FIFO_flushed = true;
 		this.logger = new _winston2.default.Logger({
 			transports: [new _winston2.default.transports.Console()]
 		});
@@ -58,8 +57,6 @@ var Forwarder = function () {
 			this.logger.remove(_winston2.default.transports.Console);
 		}
 
-		this.FIFO = new _doubleEndedQueue2.default();
-
 		/**
    * fwd.port,
    * fwd.topic
@@ -67,14 +64,24 @@ var Forwarder = function () {
 		this.forward_ports = _underscore2.default.map(config.producers, function (fwd) {
 			_this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
 			var skt = _dgram2.default.createSocket('udp4');
+			var FIFO = new _doubleEndedQueue2.default();
 			skt.bind(fwd.port, '127.0.0.1');
 
 			skt.on('error', function (er) {
 				_this.logger.warn('[Forwarder.constructor()] ' + er);
 			});
 
-			skt.on("message", _this.storeInQueue.bind(_this, fwd.topic));
-			return skt;
+			var binding = {
+				socket: skt,
+				port: fwd.port,
+				topic: fwd.topic,
+				FIFO: FIFO,
+				FIFO_flushed: true
+			};
+
+			skt.on("message", _this.storeInQueue.bind(_this, fwd.topic, binding));
+
+			return binding;
 		});
 
 		// setInterval(() => {
@@ -85,17 +92,19 @@ var Forwarder = function () {
 
 	_createClass(Forwarder, [{
 		key: 'storeInQueue',
-		value: function storeInQueue(topic, data_buf) {
+		value: function storeInQueue(topic, binding, data_buf) {
 			var data = data_buf.toString();
-			this.FIFO.push({
-				topic: topic,
-				data: data
-			});
+			var FIFO = binding.FIFO;
+			var FIFO_flushed = binding.FIFO_flushed;
+
+
+			FIFO.push(data);
+
 			this.logger.info('[Forwarder] Sotred in queue ' + data);
 
-			if (this.FIFO_flushed) {
-				this.FIFO_flushed = false;
-				setImmediate(this.run.bind(this));
+			if (FIFO_flushed) {
+				FIFO_flushed = false;
+				setImmediate(this.run.bind(this, binding));
 			}
 		}
 
@@ -103,16 +112,19 @@ var Forwarder = function () {
 
 	}, {
 		key: 'run',
-		value: function run() {
-			while (this.FIFO.length) {
-				var _FIFO$shift = this.FIFO.shift();
+		value: function run(binding) {
+			var messages = [];
+			var FIFO = binding.FIFO;
+			var FIFO_flushed = binding.FIFO_flushed;
+			var topic = binding.topic;
 
-				var topic = _FIFO$shift.topic;
-				var data = _FIFO$shift.data;
 
-				this.forward(topic, data);
+			while (FIFO.length) {
+				var data = FIFO.shift();
+				messages.push(data);
 			}
-			this.FIFO_flushed = true;
+			this.forward(topic, messages.join('\n'));
+			FIFO_flushed = true;
 		}
 	}, {
 		key: 'reconfig',
