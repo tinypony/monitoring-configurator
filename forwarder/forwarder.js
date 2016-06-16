@@ -49,8 +49,7 @@ var Forwarder = function () {
 		this.id = _nodeUuid2.default.v4();
 		this.debug = true;
 		this.config = config;
-		this.count = 0;
-		this.store = 0;
+		this.FIFO_flushed = true;
 		this.logger = new _winston2.default.Logger({
 			transports: [new _winston2.default.transports.Console()]
 		});

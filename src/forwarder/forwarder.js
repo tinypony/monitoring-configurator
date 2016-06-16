@@ -16,8 +16,7 @@ class Forwarder {
 		this.id = uuid.v4();
 		this.debug = true;
 		this.config = config;
-		this.count = 0;
-		this.store = 0;
+		this.FIFO_flushed = true;
 		this.logger = new winston.Logger({
 			transports: [new winston.transports.Console()]
 		});
