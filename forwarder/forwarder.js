@@ -187,7 +187,6 @@ var Forwarder = function () {
 				var val = m.replace(/\r$/g, '');
 				return val;
 			});
-			this.count++;
 
 			if (!this.forwardToPort || !this.forwardToAddress || !this.producer) {
 				return;
@@ -202,7 +201,8 @@ var Forwarder = function () {
 					if (err) {
 						return _this4.logger.warn('[Forwarder.forward()] ' + JSON.stringify(err));
 					}
-					if (_this4.debug) {
+
+					if (_this4.debug || topics === 'latency') {
 						_this4.logger.info('Forwarded ' + messages);
 						_this4.debug = false;
 					}

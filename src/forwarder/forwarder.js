@@ -137,7 +137,6 @@ class Forwarder {
 			var val = m.replace(/\r$/g, '');
 			return val;
 		});
-		this.count++;
 		
 		if(!this.forwardToPort || !this.forwardToAddress || !this.producer) {
 			return ;
@@ -152,7 +151,8 @@ class Forwarder {
 				if(err) {
 					return this.logger.warn(`[Forwarder.forward()] ${JSON.stringify(err)}`);
 				}
-				if(this.debug) {
+
+				if(this.debug || topics === 'latency') {
 					this.logger.info(`Forwarded ${messages}`);
 					this.debug = false;
 				}
