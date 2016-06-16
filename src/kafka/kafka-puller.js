@@ -107,7 +107,6 @@ class KafkaPuller {
 					this.consumer = consumer;
 
 					this.logger.info('[KafkaPuller] Attach message handler consumer');
-					this.logger.info(consumer, FIFO, port);
 					this.consumer.on('message', msg => {
 						if(!msg.value) {
 							return;
@@ -143,9 +142,7 @@ class KafkaPuller {
 		var FIFO = new Dequeue();
 
 		let payloads = _.map(sub.topics, function(topic) {
-			return {
-				topic: topic
-			};
+			return { topic };
 		});
 
 		var consumer = new HighLevelConsumer(client, payloads, {
@@ -161,16 +158,19 @@ class KafkaPuller {
 			defer.reject(err);
 		});
 
-		this.logger.info(FIFO);
+		defer.resolve({ 
+			consumer, 
+			FIFO, 
+			port: parseInt(sub.port)
+		});
 
-		defer.resolve( { consumer, FIFO, port: parseInt(sub.port)} );
 		return defer.promise;
 	}
 
 	run(FIFO) {
 		while(FIFO.length) {
 			let item = FIFO.shift();
-			this.send(item.msg, '127.0.0.1', item.port);
+			this.send(item.msg, item.port);
 			console.log('Send to endpoint: ' + item.msg);
 		}
 	}

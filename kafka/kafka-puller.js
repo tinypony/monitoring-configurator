@@ -153,7 +153,6 @@ var KafkaPuller = function () {
 					_this3.consumer = consumer;
 
 					_this3.logger.info('[KafkaPuller] Attach message handler consumer');
-					_this3.logger.info(consumer, FIFO, port);
 					_this3.consumer.on('message', function (msg) {
 						if (!msg.value) {
 							return;
@@ -189,9 +188,7 @@ var KafkaPuller = function () {
 			var FIFO = new _dequeue2.default();
 
 			var payloads = _underscore2.default.map(sub.topics, function (topic) {
-				return {
-					topic: topic
-				};
+				return { topic: topic };
 			});
 
 			var consumer = new _kafkaNode.HighLevelConsumer(client, payloads, {
@@ -207,9 +204,12 @@ var KafkaPuller = function () {
 				defer.reject(err);
 			});
 
-			this.logger.info(FIFO);
+			defer.resolve({
+				consumer: consumer,
+				FIFO: FIFO,
+				port: parseInt(sub.port)
+			});
 
-			defer.resolve({ consumer: consumer, FIFO: FIFO, port: parseInt(sub.port) });
 			return defer.promise;
 		}
 	}, {
@@ -217,7 +217,7 @@ var KafkaPuller = function () {
 		value: function run(FIFO) {
 			while (FIFO.length) {
 				var item = FIFO.shift();
-				this.send(item.msg, '127.0.0.1', item.port);
+				this.send(item.msg, item.port);
 				console.log('Send to endpoint: ' + item.msg);
 			}
 		}
