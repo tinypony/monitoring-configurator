@@ -109,18 +109,22 @@ var Forwarder = function () {
 	}, {
 		key: 'run',
 		value: function run(binding) {
-			var messages = [];
 			var FIFO = binding.FIFO;
-			var FIFO_flushed = binding.FIFO_flushed;
 			var topic = binding.topic;
 
 
 			while (FIFO.length) {
-				var data = FIFO.shift();
-				messages.push(data);
+				var messages = [];
+
+				for (var i = 0; i < 10; i++) {
+					var data = FIFO.shift();
+					if (data) messages.push(data);
+				}
+
+				this.forward(topic, messages.join('\n'));
 			}
-			this.forward(topic, messages.join('\n'));
-			FIFO_flushed = true;
+
+			binding.FIFO_flushed = true;
 		}
 	}, {
 		key: 'reconfig',

@@ -71,15 +71,21 @@ class Forwarder {
 
 	/* Continuously polls the queue and forwards messages from it */
 	run(binding) {
-		let messages = [];
-		let { FIFO, FIFO_flushed, topic } = binding;
+		
+		let { FIFO, topic } = binding;
 
 		while(FIFO.length) {
-			let data = FIFO.shift();
-			messages.push(data);
+			let messages = [];
+
+			for(let i=0; i<10; i++) {
+				let data = FIFO.shift();
+				if(data) messages.push(data);
+			}
+			
+			this.forward(topic, messages.join('\n'));
 		}
-		this.forward(topic, messages.join('\n'));
-		FIFO_flushed = true;
+		
+		binding.FIFO_flushed = true;
 	}
 	
 	reconfig(config) {
