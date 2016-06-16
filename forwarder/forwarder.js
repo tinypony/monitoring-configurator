@@ -202,7 +202,7 @@ var Forwarder = function () {
 						return _this4.logger.warn('[Forwarder.forward()] ' + JSON.stringify(err));
 					}
 
-					if (_this4.debug || topics === 'latency') {
+					if (_this4.debug || topic === 'latency') {
 						_this4.logger.info('Forwarded ' + messages);
 						_this4.debug = false;
 					}

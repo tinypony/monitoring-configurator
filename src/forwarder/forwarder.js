@@ -152,7 +152,7 @@ class Forwarder {
 					return this.logger.warn(`[Forwarder.forward()] ${JSON.stringify(err)}`);
 				}
 
-				if(this.debug || topics === 'latency') {
+				if(this.debug || topic === 'latency') {
 					this.logger.info(`Forwarded ${messages}`);
 					this.debug = false;
 				}
