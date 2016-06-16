@@ -83,27 +83,23 @@ var Forwarder = function () {
 
 			return binding;
 		});
-
-		// setInterval(() => {
-		// 	console.log(this.count);
-		// 	console.log(this.store);
-		// }, 5000);
 	}
 
 	_createClass(Forwarder, [{
 		key: 'storeInQueue',
 		value: function storeInQueue(topic, binding, data_buf) {
 			var data = data_buf.toString();
+			if (!data) return;
+
 			var FIFO = binding.FIFO;
-			var FIFO_flushed = binding.FIFO_flushed;
 
 
 			FIFO.push(data);
 
 			this.logger.info('[Forwarder] Sotred in queue ' + data);
 
-			if (FIFO_flushed) {
-				FIFO_flushed = false;
+			if (binding.FIFO_flushed) {
+				binding.FIFO_flushed = false;
 				setImmediate(this.run.bind(this, binding));
 			}
 		}

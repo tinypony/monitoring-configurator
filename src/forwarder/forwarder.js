@@ -55,6 +55,8 @@ class Forwarder {
 
 	storeInQueue(topic, binding, data_buf) {
 		let data = data_buf.toString();
+		if(!data) return;
+
 		var { FIFO } = binding;
 
 		FIFO.push(data);
