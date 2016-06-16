@@ -145,11 +145,15 @@ var KafkaPuller = function () {
 				});
 			} else {
 				this.logger.info('[KafkaPuller] Subscribing 127.0.0.1:%d', sub.port);
-				this.createConsumer(sub, monitoring).then(function (consumer, FIFO, port) {
+				this.createConsumer(sub, monitoring).then(function (args) {
+					var consumer = args.consumer;
+					var FIFO = args.FIFO;
+					var port = args.port;
+
 					_this3.consumer = consumer;
 
 					_this3.logger.info('[KafkaPuller] Attach message handler consumer');
-					_this3.logger.info(FIFO, port);
+					_this3.logger.info(consumer, FIFO, port);
 					_this3.consumer.on('message', function (msg) {
 						if (!msg.value) {
 							return;
@@ -205,7 +209,7 @@ var KafkaPuller = function () {
 
 			this.logger.info(FIFO);
 
-			defer.resolve(consumer, FIFO, parseInt(sub.port));
+			defer.resolve({ consumer: consumer, FIFO: FIFO, port: parseInt(sub.port) });
 			return defer.promise;
 		}
 	}, {
