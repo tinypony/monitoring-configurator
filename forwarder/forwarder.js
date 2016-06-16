@@ -28,9 +28,9 @@ var _winston = require('winston');
 
 var _winston2 = _interopRequireDefault(_winston);
 
-var _dequeue = require('dequeue');
+var _doubleEndedQueue = require('double-ended-queue');
 
-var _dequeue2 = _interopRequireDefault(_dequeue);
+var _doubleEndedQueue2 = _interopRequireDefault(_doubleEndedQueue);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -59,7 +59,7 @@ var Forwarder = function () {
 			this.logger.remove(_winston2.default.transports.Console);
 		}
 
-		this.FIFO = new _dequeue2.default();
+		this.FIFO = new _doubleEndedQueue2.default();
 
 		/**
    * fwd.port,
@@ -94,7 +94,10 @@ var Forwarder = function () {
 			});
 			this.logger.info('[Forwarder] Sotred in queue ' + data);
 
-			if (this.FIFO.length === 1) setImmediate(this.run.bind(this));
+			if (this.FIFO_flushed) {
+				this.FIFO_flushed = false;
+				setImmediate(this.run.bind(this));
+			}
 		}
 
 		/* Continuously polls the queue and forwards messages from it */
@@ -102,10 +105,11 @@ var Forwarder = function () {
 	}, {
 		key: 'run',
 		value: function run() {
-			while (this.FIFO.length > 0) {
+			while (this.FIFO.length) {
 				var item = this.FIFO.shift();
 				this.forward(item.topic, item.data);
 			}
+			this.FIFO_flushed = true;
 		}
 	}, {
 		key: 'reconfig',

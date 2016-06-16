@@ -5,6 +5,7 @@
   "main": "app.js",
   "dependencies": {
     "dequeue": "^1.0.5",
+    "double-ended-queue": "^2.1.0-0",
     "kafka-node": "^0.3.2",
     "netmask": "^1.0.5",
     "node-uuid": "^1.4.7",

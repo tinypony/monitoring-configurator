@@ -4,7 +4,7 @@ import q from 'q';
 import {Client, HighLevelProducer} from 'kafka-node';
 import uuid from 'node-uuid';
 import winston from 'winston';
-import Dequeue from 'dequeue';
+import Dequeue from 'double-ended-queue';
 
 function isValidPort(port) {
 	return _.isNumber(port) && port > 0 && port < 65535;
@@ -59,16 +59,19 @@ class Forwarder {
 		});
 		this.logger.info(`[Forwarder] Sotred in queue ${data}`);
 
-		if(this.FIFO.length === 1)
+		if(this.FIFO_flushed) {
+			this.FIFO_flushed = false;
 			setImmediate(this.run.bind(this));
+		}
 	}
 
 	/* Continuously polls the queue and forwards messages from it */
 	run() {
-		while(this.FIFO.length > 0) {
+		while(this.FIFO.length) {
 			let item = this.FIFO.shift();
 			this.forward(item.topic, item.data);
 		}
+		this.FIFO_flushed = true;
 	}
 	
 	reconfig(config) {
