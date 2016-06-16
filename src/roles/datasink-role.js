@@ -97,7 +97,7 @@ class DatasinkRole extends Role {
 		    }
 		    this.logger.info('RebalanceCluster has finished');
 		    this.logger.info(stdout);
-		    this.kafkaForwarder.handleRebalance();
+		    //this.kafkaForwarder.handleRebalance();
 		    defer.resolve();
 		});
 		return defer.promise;

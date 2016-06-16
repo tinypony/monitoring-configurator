@@ -256,7 +256,11 @@ var Role = function () {
 			var msg = {
 				type: _messageType.MESSAGE_TYPE.CLUSTER_RESIZE,
 				host: 'self',
-				port: this.config.unicast.port
+				port: this.config.unicast.port,
+				monitoring: {
+					host: 'self',
+					port: this.config.monitoring.port
+				}
 			};
 
 			return JSON.stringify(msg);

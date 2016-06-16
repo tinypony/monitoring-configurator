@@ -99,6 +99,11 @@ var ConsumerRole = function (_Role) {
 			return defer.promise;
 		}
 	}, {
+		key: 'handleClusterResize',
+		value: function handleClusterResize(msg) {
+			return this.configureClient(msg);
+		}
+	}, {
 		key: 'handleConfig',
 		value: function handleConfig(msg) {
 			return this.configureClient(msg);

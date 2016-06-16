@@ -59,6 +59,10 @@ class ConsumerRole extends Role {
 		return defer.promise;
 	}
 
+	handleClusterResize(msg) {
+		return this.configureClient(msg);
+	}
+
 	handleConfig(msg) {
 		return this.configureClient(msg);
 	}
