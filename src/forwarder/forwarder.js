@@ -57,9 +57,9 @@ class Forwarder {
 			topic,
 			data
 		});
-		this.store++;
+		this.logger.info(`[Forwarder] Sotred in queue ${data}`);
 
-		if(this.FIFO.length === 1) 
+		if(this.FIFO.length === 1)
 			setImmediate(this.run.bind(this));
 	}
 

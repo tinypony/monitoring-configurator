@@ -92,7 +92,7 @@ var Forwarder = function () {
 				topic: topic,
 				data: data
 			});
-			this.store++;
+			this.logger.info('[Forwarder] Sotred in queue ' + data);
 
 			if (this.FIFO.length === 1) setImmediate(this.run.bind(this));
 		}
