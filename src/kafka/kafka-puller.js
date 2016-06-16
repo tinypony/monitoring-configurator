@@ -58,7 +58,7 @@ class KafkaPuller {
 		 	err => {
 		 		if (err) { return this.logger.warn(`[KafkaPuller.send()] ${JSON.stringify(err)}`); }
 		 		if (!firstMessageLogged) {
-		 			this.logger.info('Passed message "%s" to subscribed client 127.0.0.1:%d', msg, port);
+		 			this.logger.info('[KafkaPuller] Passed message "%s" to subscribed client 127.0.0.1:%d', msg, port);
 		 			firstMessageLogged = true;
 		 		}
 		 	}
@@ -71,11 +71,11 @@ class KafkaPuller {
 
 	handleConsumerError(err, sub, monitoring) {
 		if( KAFKA_ERROR.isNodeExists(err) ) {
-			this.logger.info('Waiting for kafka to clear previous connection');
+			this.logger.info('[KafkaPuller] Waiting for kafka to clear previous connection');
 			this.consumer = null;
 			setTimeout(this.subscribe.bind(this, sub, monitoring), 5000); 			
 		} else if(KAFKA_ERROR.isCouldNotFindBroker(err)) { //Waiting for KAFKA to spin up (possibly)
-			this.logger.info('Waiting for kafka to spin up');
+			this.logger.info('[KafkaPuller] Waiting for kafka to spin up');
 			this.consumer =null;
 			setTimeout(this.subscribe.bind(this, sub, monitoring), 5000);
 		} else {
@@ -127,7 +127,7 @@ class KafkaPuller {
 					this.logger.info('[KafkaPuller] Attached all required callbacks to consumer');
 
 				}).catch( err => {
-					this.logger.warn('Here we have error in catch ' + JSON.stringify(err));
+					this.logger.warn('[KafkaPuller] Here we have error in catch ' + JSON.stringify(err));
 					this.handleConsumerError(err, sub, monitoring);
 				});
 		}
@@ -171,7 +171,6 @@ class KafkaPuller {
 		while(FIFO.length) {
 			let item = FIFO.shift();
 			this.send(item.msg, item.port);
-			console.log('Send to endpoint: ' + item.msg);
 		}
 	}
 }
