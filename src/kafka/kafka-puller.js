@@ -117,8 +117,6 @@ class KafkaPuller {
 							msg: msg.value
 						});
 
-						console.log('Put to queue: ' + msg.value);
-
 						if(FIFO.length === 1) {
 							setImmediate(this.run.bind(this, FIFO));
 						}
