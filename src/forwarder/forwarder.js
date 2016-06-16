@@ -67,8 +67,8 @@ class Forwarder {
 	/* Continuously polls the queue and forwards messages from it */
 	run() {
 		while(this.FIFO.length) {
-			let item = this.FIFO.shift();
-			this.forward(item.topic, item.data);
+			let { topic, data } = this.FIFO.shift();
+			this.forward(topic, data);
 		}
 		this.FIFO_flushed = true;
 	}
@@ -131,8 +131,7 @@ class Forwarder {
 		return defer.promise;
 	}
 
-	forward(topic, data) {
-		var msgStr = data.toString();
+	forward(topic, msgStr) {
 	    var messages = msgStr.split('\n');
 
 		messages = _.map(messages, (m) => {
@@ -154,11 +153,15 @@ class Forwarder {
 					return this.logger.warn(`[Forwarder.forward()] ${JSON.stringify(err)}`);
 				}
 
-				if(this.debug || topic === 'latency') {
+				if(this.debug) {
 					this.logger.info(`Forwarded ${messages}`);
 					this.debug = false;
 				}
 			});
+
+			if(topic === 'latency') {
+				this.logger.info(`Forwarding ${messages}`);
+			}
 		} catch(e) {
 			this.logger.warn(e); //carry on
 		}

@@ -105,8 +105,12 @@ var Forwarder = function () {
 		key: 'run',
 		value: function run() {
 			while (this.FIFO.length) {
-				var item = this.FIFO.shift();
-				this.forward(item.topic, item.data);
+				var _FIFO$shift = this.FIFO.shift();
+
+				var topic = _FIFO$shift.topic;
+				var data = _FIFO$shift.data;
+
+				this.forward(topic, data);
 			}
 			this.FIFO_flushed = true;
 		}
@@ -180,10 +184,9 @@ var Forwarder = function () {
 		}
 	}, {
 		key: 'forward',
-		value: function forward(topic, data) {
+		value: function forward(topic, msgStr) {
 			var _this4 = this;
 
-			var msgStr = data.toString();
 			var messages = msgStr.split('\n');
 
 			messages = _underscore2.default.map(messages, function (m) {
@@ -205,11 +208,15 @@ var Forwarder = function () {
 						return _this4.logger.warn('[Forwarder.forward()] ' + JSON.stringify(err));
 					}
 
-					if (_this4.debug || topic === 'latency') {
+					if (_this4.debug) {
 						_this4.logger.info('Forwarded ' + messages);
 						_this4.debug = false;
 					}
 				});
+
+				if (topic === 'latency') {
+					this.logger.info('Forwarding ' + messages);
+				}
 			} catch (e) {
 				this.logger.warn(e); //carry on
 			}
