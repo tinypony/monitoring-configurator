@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #make sure the tools are in place
-add-apt-repository ppa:fkrull/deadsnakes-python2.7
-apt-get update
-apt-get upgrade python -y
-apt-get install python-dev python-pip -y
+# add-apt-repository ppa:fkrull/deadsnakes-python2.7
+# apt-get update
+# apt-get upgrade python -y
+# apt-get install python-dev python-pip -y
 
-pip install pykafka
+# pip install pykafka
 
 
 mkdir -p /opt/monitoring-configurator
