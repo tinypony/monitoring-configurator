@@ -47,7 +47,7 @@ class Forwarder {
 				FIFO_flushed: true
 			};
 
-			skt.on("message", this.storeInQueue.bind(this, fwd.topic, binding));
+			skt.on("message", this.forward.bind(this, fwd.topic));
 
 			return binding;
 		});
@@ -81,7 +81,7 @@ class Forwarder {
 				let data = FIFO.shift();
 				if(data) messages.push(data);
 			}
-			
+
 			this.forward(topic, messages.join('\n'));
 		}
 		
@@ -146,7 +146,8 @@ class Forwarder {
 		return defer.promise;
 	}
 
-	forward(topic, msgStr) {
+	forward(topic, data) {
+		var msgStr = data.toString();
 	    var messages = msgStr.split('\n');
 
 		messages = _.map(messages, (m) => {
@@ -154,7 +155,7 @@ class Forwarder {
 			return val;
 		});
 		
-		if(!this.forwardToPort || !this.forwardToAddress || !this.producer) {
+		if(!this.forwardToPort || !this.forwardToAddress || !this.producer || !msgStr) {
 			return ;
 		}
 

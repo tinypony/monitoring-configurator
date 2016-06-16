@@ -79,7 +79,7 @@ var Forwarder = function () {
 				FIFO_flushed: true
 			};
 
-			skt.on("message", _this.storeInQueue.bind(_this, fwd.topic, binding));
+			skt.on("message", _this.forward.bind(_this, fwd.topic));
 
 			return binding;
 		});
@@ -196,9 +196,10 @@ var Forwarder = function () {
 		}
 	}, {
 		key: 'forward',
-		value: function forward(topic, msgStr) {
+		value: function forward(topic, data) {
 			var _this4 = this;
 
+			var msgStr = data.toString();
 			var messages = msgStr.split('\n');
 
 			messages = _underscore2.default.map(messages, function (m) {
@@ -206,7 +207,7 @@ var Forwarder = function () {
 				return val;
 			});
 
-			if (!this.forwardToPort || !this.forwardToAddress || !this.producer) {
+			if (!this.forwardToPort || !this.forwardToAddress || !this.producer || !msgStr) {
 				return;
 			}
 
