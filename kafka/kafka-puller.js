@@ -157,6 +157,7 @@ var KafkaPuller = function () {
 						if (!msg.value) {
 							return;
 						}
+						_this3.logger.info('[KafkaPuller] Got message: ' + msg.value);
 
 						FIFO.push({
 							port: port,
