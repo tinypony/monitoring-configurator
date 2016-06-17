@@ -108,7 +108,7 @@ var Forwarder = function () {
 			var _this3 = this;
 
 			var defer = _q2.default.defer();
-
+			var FIFO = new _doubleEndedQueue2.default();
 			// Start a TCP Server
 			_net2.default.createServer(function (socket) {
 				var binding = {
@@ -119,6 +119,7 @@ var Forwarder = function () {
 					FIFO: FIFO,
 					FIFO_flushed: true
 				};
+
 				// Identify this client
 				socket.name = socket.remoteAddress + ":" + socket.remotePort;
 
@@ -127,7 +128,6 @@ var Forwarder = function () {
 
 				// Handle incoming messages from clients.
 				socket.on('data', _this3.forward.bind(_this3, fwd.topic));
-
 				// Remove the client from the list when it leaves
 				socket.on('end', function () {
 					binding.clients.splice(binding.clients.indexOf(socket), 1);

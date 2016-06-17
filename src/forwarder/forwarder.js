@@ -64,7 +64,7 @@ class Forwarder {
 
 	createTcpSocket(fwd) {
 		var defer = q.defer();
-
+		var FIFO = new Dequeue();
 		// Start a TCP Server
 		net.createServer(socket => {
 			var binding = {
@@ -75,16 +75,16 @@ class Forwarder {
 				FIFO,
 				FIFO_flushed: true
 			};
-			  // Identify this client
+			
+			// Identify this client
 			socket.name = socket.remoteAddress + ":" + socket.remotePort;
 
-			  // Put this new client in the list
+			// Put this new client in the list
 			binding.clients.push(socket);
 
-			  // Handle incoming messages from clients.
+			// Handle incoming messages from clients.
 			socket.on('data', this.forward.bind(this, fwd.topic));
-
-			  // Remove the client from the list when it leaves
+			// Remove the client from the list when it leaves
 			socket.on('end', () => {
 				binding.clients.splice(binding.clients.indexOf(socket), 1);
 			});
