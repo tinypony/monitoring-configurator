@@ -111,7 +111,6 @@ class KafkaPuller {
 						if(!msg.value) {
 							return;
 						}
-						this.logger.info('[KafkaPuller] Got message: ' + msg.value);
 
 						FIFO.push({
 							port: port,
