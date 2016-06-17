@@ -281,7 +281,7 @@ var Forwarder = function () {
 				});
 
 				if (topic === 'latency') {
-					this.logger.info('Forwarding ' + messages.join(';\n'));
+					//this.logger.info(`Forwarding ${messages}`);
 				}
 			} catch (e) {
 				this.logger.warn(e); //carry on
