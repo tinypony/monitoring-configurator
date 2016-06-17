@@ -1,4 +1,5 @@
 import dgram from 'dgram';
+import net from 'net';
 import _ from 'underscore';
 import q from 'q';
 import {Client, HighLevelProducer} from 'kafka-node';
@@ -29,28 +30,69 @@ class Forwarder {
 		 * fwd.port,
 		 * fwd.topic
 		 */
-		this.forward_ports = _.map(config.producers, fwd => {
-			this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
-			var skt = dgram.createSocket('udp4');
-			var FIFO = new Dequeue();
-			skt.bind(fwd.port, '127.0.0.1');
+		this.forward_ports = [];
+		_.each(config.producers, fwd => {
+			this.createTcpSocket(fwd).done(binding => { this.forward_ports.push(binding) });
+		});
+	}
 
-			skt.on('error', er => {
-				this.logger.warn(`[Forwarder.constructor()] ${er}`);
-			});
+	createUDPSocket(fwd) {
+		var defer = q.defer();
+		this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
+		var skt = dgram.createSocket('udp4');
+		var FIFO = new Dequeue();
+		skt.bind(fwd.port, '127.0.0.1');
 
+		skt.on('error', er => {
+			this.logger.warn(`[Forwarder.constructor()] ${er}`);
+		});
+
+		var binding = {
+			protocol: 'udp',
+			socket: skt,
+			port: fwd.port,
+			topic: fwd.topic,
+			FIFO,
+			FIFO_flushed: true
+		};
+
+		skt.on("message", this.forward.bind(this, fwd.topic));
+
+		defer.resolve(binding);
+		return defer.promise;
+	}
+
+	createTcpSocket(fwd) {
+		var defer = q.defer();
+
+		// Start a TCP Server
+		net.createServer(socket => {
 			var binding = {
-				socket: skt,
+				protocol: 'tcp',
 				port: fwd.port,
 				topic: fwd.topic,
+				clients: [],
 				FIFO,
 				FIFO_flushed: true
 			};
+			  // Identify this client
+			socket.name = socket.remoteAddress + ":" + socket.remotePort;
 
-			skt.on("message", this.forward.bind(this, fwd.topic));
+			  // Put this new client in the list
+			binding.clients.push(socket);
 
-			return binding;
-		});
+			  // Handle incoming messages from clients.
+			socket.on('data', this.forward.bind(this, fwd.topic));
+
+			  // Remove the client from the list when it leaves
+			socket.on('end', () => {
+				binding.clients.splice(binding.clients.indexOf(socket), 1);
+			});
+
+			defer.resolve(binding);
+		}).listen(fwd.port);
+
+		return defer.promise;
 	}
 
 	storeInQueue(topic, binding, data_buf) {

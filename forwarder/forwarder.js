@@ -10,6 +10,10 @@ var _dgram = require('dgram');
 
 var _dgram2 = _interopRequireDefault(_dgram);
 
+var _net = require('net');
+
+var _net2 = _interopRequireDefault(_net);
+
 var _underscore = require('underscore');
 
 var _underscore2 = _interopRequireDefault(_underscore);
@@ -61,17 +65,31 @@ var Forwarder = function () {
    * fwd.port,
    * fwd.topic
    */
-		this.forward_ports = _underscore2.default.map(config.producers, function (fwd) {
-			_this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
+		this.forward_ports = [];
+		_underscore2.default.each(config.producers, function (fwd) {
+			_this.createTcpSocket(fwd).done(function (binding) {
+				_this.forward_ports.push(binding);
+			});
+		});
+	}
+
+	_createClass(Forwarder, [{
+		key: 'createUDPSocket',
+		value: function createUDPSocket(fwd) {
+			var _this2 = this;
+
+			var defer = _q2.default.defer();
+			this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
 			var skt = _dgram2.default.createSocket('udp4');
 			var FIFO = new _doubleEndedQueue2.default();
 			skt.bind(fwd.port, '127.0.0.1');
 
 			skt.on('error', function (er) {
-				_this.logger.warn('[Forwarder.constructor()] ' + er);
+				_this2.logger.warn('[Forwarder.constructor()] ' + er);
 			});
 
 			var binding = {
+				protocol: 'udp',
 				socket: skt,
 				port: fwd.port,
 				topic: fwd.topic,
@@ -79,13 +97,48 @@ var Forwarder = function () {
 				FIFO_flushed: true
 			};
 
-			skt.on("message", _this.forward.bind(_this, fwd.topic));
+			skt.on("message", this.forward.bind(this, fwd.topic));
 
-			return binding;
-		});
-	}
+			defer.resolve(binding);
+			return defer.promise;
+		}
+	}, {
+		key: 'createTcpSocket',
+		value: function createTcpSocket(fwd) {
+			var _this3 = this;
 
-	_createClass(Forwarder, [{
+			var defer = _q2.default.defer();
+
+			// Start a TCP Server
+			_net2.default.createServer(function (socket) {
+				var binding = {
+					protocol: 'tcp',
+					port: fwd.port,
+					topic: fwd.topic,
+					clients: [],
+					FIFO: FIFO,
+					FIFO_flushed: true
+				};
+				// Identify this client
+				socket.name = socket.remoteAddress + ":" + socket.remotePort;
+
+				// Put this new client in the list
+				binding.clients.push(socket);
+
+				// Handle incoming messages from clients.
+				socket.on('data', _this3.forward.bind(_this3, fwd.topic));
+
+				// Remove the client from the list when it leaves
+				socket.on('end', function () {
+					binding.clients.splice(binding.clients.indexOf(socket), 1);
+				});
+
+				defer.resolve(binding);
+			}).listen(fwd.port);
+
+			return defer.promise;
+		}
+	}, {
 		key: 'storeInQueue',
 		value: function storeInQueue(topic, binding, data_buf) {
 			var data = data_buf.toString();
@@ -147,7 +200,7 @@ var Forwarder = function () {
 	}, {
 		key: 'createConnection',
 		value: function createConnection() {
-			var _this2 = this;
+			var _this4 = this;
 
 			var defer = _q2.default.defer();
 			var connectionString = this.getZK();
@@ -156,14 +209,14 @@ var Forwarder = function () {
 			var producer = new _kafkaNode.HighLevelProducer(client);
 
 			producer.on('ready', function () {
-				_this2.logger.info('Forwader is ready');
-				_this2.producer = producer;
-				_this2.client = client;
+				_this4.logger.info('Forwader is ready');
+				_this4.producer = producer;
+				_this4.client = client;
 				defer.resolve();
 			});
 
 			producer.on('error', function (err) {
-				_this2.logger.warn('[Forwarder.reconfig()] Error: %s', JSON.stringify(err));
+				_this4.logger.warn('[Forwarder.reconfig()] Error: %s', JSON.stringify(err));
 				defer.reject(err);
 			});
 
@@ -173,16 +226,16 @@ var Forwarder = function () {
 	}, {
 		key: 'reconnect',
 		value: function reconnect() {
-			var _this3 = this;
+			var _this5 = this;
 
 			var defer = _q2.default.defer();
 			this.logger.info('[Forwarder.reconnect()] Using nodejs forwarder');
 
 			if (this.producer) {
 				this.producer.close(function () {
-					_this3.logger.info('[Forwarder.reconnect()] Closed the producer, reconnecting');
-					_this3.producer = null;
-					_this3.createConnection().then(defer.resolve, function (err) {
+					_this5.logger.info('[Forwarder.reconnect()] Closed the producer, reconnecting');
+					_this5.producer = null;
+					_this5.createConnection().then(defer.resolve, function (err) {
 						return defer.reject(err);
 					});
 				});
@@ -197,7 +250,7 @@ var Forwarder = function () {
 	}, {
 		key: 'forward',
 		value: function forward(topic, data) {
-			var _this4 = this;
+			var _this6 = this;
 
 			var msgStr = data.toString();
 			var messages = msgStr.split('\n');
@@ -218,12 +271,12 @@ var Forwarder = function () {
 					messages: messages
 				}], function (err) {
 					if (err) {
-						return _this4.logger.warn('[Forwarder.forward()] ' + JSON.stringify(err));
+						return _this6.logger.warn('[Forwarder.forward()] ' + JSON.stringify(err));
 					}
 
-					if (_this4.debug) {
-						_this4.logger.info('Forwarded ' + messages);
-						_this4.debug = false;
+					if (_this6.debug) {
+						_this6.logger.info('Forwarded ' + messages);
+						_this6.debug = false;
 					}
 				});
 
