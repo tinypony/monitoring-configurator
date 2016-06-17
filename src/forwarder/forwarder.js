@@ -113,7 +113,6 @@ class Forwarder {
 
 	/* Continuously polls the queue and forwards messages from it */
 	run(binding) {
-		
 		let { FIFO, topic } = binding;
 
 		while(FIFO.length) {
@@ -212,7 +211,7 @@ class Forwarder {
 				}
 
 				if(this.debug) {
-					this.logger.info(`Forwarded ${messages}`);
+					this.logger.info(`Forwarded ${messages.length} messages`);
 					this.debug = false;
 				}
 			});

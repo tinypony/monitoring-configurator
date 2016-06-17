@@ -275,7 +275,7 @@ var Forwarder = function () {
 					}
 
 					if (_this6.debug) {
-						_this6.logger.info('Forwarded ' + messages);
+						_this6.logger.info('Forwarded ' + messages.length + ' messages');
 						_this6.debug = false;
 					}
 				});
