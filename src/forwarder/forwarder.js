@@ -218,7 +218,7 @@ class Forwarder {
 			});
 
 			if(topic === 'latency') {
-				this.logger.info(`Forwarding ${messages}`);
+				this.logger.info(`Forwarding ${messages.join(';\n')}`);
 			}
 		} catch(e) {
 			this.logger.warn(e); //carry on
