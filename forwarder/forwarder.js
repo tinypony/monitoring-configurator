@@ -53,6 +53,7 @@ var Forwarder = function () {
 		this.id = _nodeUuid2.default.v4();
 		this.debug = true;
 		this.config = config;
+
 		this.logger = new _winston2.default.Logger({
 			transports: [new _winston2.default.transports.Console()]
 		});
@@ -63,11 +64,14 @@ var Forwarder = function () {
 
 		/**
    * fwd.port,
-   * fwd.topic
+   * fwd.topic,
+   * fwd.protocol //udp or tcp
    */
 		this.forward_ports = [];
 		_underscore2.default.each(config.producers, function (fwd) {
-			_this.createTcpSocket(fwd).done(function (binding) {
+			if (fwd.protocol === 'tcp') _this.createTcpSocket(fwd).done(function (binding) {
+				_this.forward_ports.push(binding);
+			});else _this.createUDPSocket(fwd).done(function (binding) {
 				_this.forward_ports.push(binding);
 			});
 		});
@@ -81,7 +85,6 @@ var Forwarder = function () {
 			var defer = _q2.default.defer();
 			this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
 			var skt = _dgram2.default.createSocket('udp4');
-			var FIFO = new _doubleEndedQueue2.default();
 			skt.bind(fwd.port, '127.0.0.1');
 
 			skt.on('error', function (er) {
@@ -92,9 +95,7 @@ var Forwarder = function () {
 				protocol: 'udp',
 				socket: skt,
 				port: fwd.port,
-				topic: fwd.topic,
-				FIFO: FIFO,
-				FIFO_flushed: true
+				topic: fwd.topic
 			};
 
 			skt.on("message", this.forward.bind(this, fwd.topic));
@@ -115,9 +116,7 @@ var Forwarder = function () {
 					protocol: 'tcp',
 					port: fwd.port,
 					topic: fwd.topic,
-					clients: [],
-					FIFO: FIFO,
-					FIFO_flushed: true
+					clients: []
 				};
 
 				// Identify this client

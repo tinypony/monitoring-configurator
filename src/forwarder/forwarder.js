@@ -17,6 +17,7 @@ class Forwarder {
 		this.id = uuid.v4();
 		this.debug = true;
 		this.config = config;
+
 		this.logger = new winston.Logger({
 			transports: [new winston.transports.Console()]
 		});
@@ -28,11 +29,15 @@ class Forwarder {
 
 		/**
 		 * fwd.port,
-		 * fwd.topic
+		 * fwd.topic,
+		 * fwd.protocol //udp or tcp
 		 */
 		this.forward_ports = [];
 		_.each(config.producers, fwd => {
-			this.createTcpSocket(fwd).done(binding => { this.forward_ports.push(binding) });
+			if(fwd.protocol === 'tcp')
+				this.createTcpSocket(fwd).done(binding => { this.forward_ports.push(binding) });
+			else
+				this.createUDPSocket(fwd).done(binding => { this.forward_ports.push(binding) });
 		});
 	}
 
@@ -40,7 +45,6 @@ class Forwarder {
 		var defer = q.defer();
 		this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
 		var skt = dgram.createSocket('udp4');
-		var FIFO = new Dequeue();
 		skt.bind(fwd.port, '127.0.0.1');
 
 		skt.on('error', er => {
@@ -51,9 +55,7 @@ class Forwarder {
 			protocol: 'udp',
 			socket: skt,
 			port: fwd.port,
-			topic: fwd.topic,
-			FIFO,
-			FIFO_flushed: true
+			topic: fwd.topic
 		};
 
 		skt.on("message", this.forward.bind(this, fwd.topic));
@@ -71,9 +73,7 @@ class Forwarder {
 				protocol: 'tcp',
 				port: fwd.port,
 				topic: fwd.topic,
-				clients: [],
-				FIFO,
-				FIFO_flushed: true
+				clients: []
 			};
 			
 			// Identify this client
