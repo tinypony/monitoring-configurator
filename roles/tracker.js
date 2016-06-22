@@ -164,10 +164,18 @@ var Tracker = function (_Role) {
 	}, {
 		key: 'flushQueue',
 		value: function flushQueue() {
+			var _this5 = this;
+
+			var _loop = function _loop() {
+				var item = _this5.newDestinationFIFO.shift();
+				var msg = _this5.getNewDestinationMessage(item.topic, item.dest);
+				_this5.sockets.unicast.send(new Buffer(msg), 0, msg.length, item.source.port, item.source.host, function () {
+					_this5.logger.info('Send topic to endpoint mapping ' + item.topic + ' -> ' + item.dest);
+				});
+			};
+
 			while (this.newDestinationFIFO.length) {
-				var item = this.newDestinationFIFO.shift();
-				var msg = this.getNewDestinationMessage(item.topic, item.dest);
-				this.sockets.unicast.send(new Buffer(msg), 0, msg.length, item.source.port, item.source.host);
+				_loop();
 			}
 		}
 
@@ -181,22 +189,22 @@ var Tracker = function (_Role) {
 	}, {
 		key: 'registerConsumer',
 		value: function registerConsumer(subscriptions) {
-			var _this5 = this;
+			var _this6 = this;
 
 			_underscore2.default.each(subscriptions, function (sub) {
 				var endpoint = { host: sub.host, port: parseInt(sub.port), protocol: sub.protocol ? sub.protocol : 'udp' };
 
 				_underscore2.default.each(sub.topics, function (t) {
-					if (!_this5.consumers[t] || !_this5.consumers[t].length) {
-						_this5.addTopicEndpointMapping(t, endpoint, true);
+					if (!_this6.consumers[t] || !_this6.consumers[t].length) {
+						_this6.addTopicEndpointMapping(t, endpoint, true);
 						return;
 					}
 
-					var existing = _underscore2.default.findWhere(_this5.consumers[t], endpoint);
+					var existing = _underscore2.default.findWhere(_this6.consumers[t], endpoint);
 					if (!existing) {
-						_this5.addTopicEndpointMapping(t, endpoint);
+						_this6.addTopicEndpointMapping(t, endpoint);
 					} else {
-						_this5.notifyProducers(t, endpoint);
+						_this6.notifyProducers(t, endpoint);
 					}
 				});
 			});

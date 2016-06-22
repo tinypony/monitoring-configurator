@@ -114,7 +114,8 @@ class Tracker extends Role {
 				0,
 				msg.length,
 				item.source.port,
-				item.source.host
+				item.source.host,
+				() => {this.logger.info(`Send topic to endpoint mapping ${item.topic} -> ${item.dest}`)}
 			);
 		}
 	}
