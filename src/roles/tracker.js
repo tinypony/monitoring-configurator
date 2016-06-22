@@ -77,7 +77,7 @@ class Tracker extends Role {
 	}
 
 	addTopicEndpointMapping(topic, endpoint, is_new = false) {
-		this.logger.info(`[Tracker] addTopicEndpointMapping( ${topic}, ${endpoint})`);
+		this.logger.info(`[Tracker] addTopicEndpointMapping( ${JSON.stringify(topic)}, ${JSON.stringify(endpoint)})`);
 
 		if(is_new) {
 			this.consumers[topic]= [endpoint];
@@ -89,7 +89,7 @@ class Tracker extends Role {
 	}
 
 	notifyProducers(topic, endpoint) {
-		this.logger.info(`[Tracker] notifyProducers( ${topic}, ${endpoint})`);
+		this.logger.info(`[Tracker] notifyProducers( ${JSON.stringify(topic)}, ${JSON.stringify(endpoint)})`);
 
 		topicWriters = _.filter(this.producers, p => _.contains(p.topics, topic));
 
@@ -99,7 +99,7 @@ class Tracker extends Role {
 	}
 
 	notifyProducer(source, topic, dest) {
-		this.logger.info(`[Tracker] notifyProducer( ${source}, ${topic}, ${dest})`);
+		this.logger.info(`[Tracker] notifyProducer( ${JSON.stringify(source)}, ${JSON.stringify(topic)}, ${JSON.stringify(dest)})`);
 
 		this.newDestinationFIFO.push({
 			dest,
@@ -122,7 +122,7 @@ class Tracker extends Role {
 				msg.length,
 				item.source.port,
 				item.source.host,
-				() => {this.logger.info(`Send topic to endpoint mapping ${item.topic} -> ${item.dest}`)}
+				() => {this.logger.info(`Send topic to endpoint mapping ${JSON.stringify(item.topic)} -> ${JSON.stringify(item.dest)}`)}
 			);
 		}
 	}
@@ -134,7 +134,7 @@ class Tracker extends Role {
 	 *
 	 */
 	registerConsumer(subscriptions) {
-		this.logger.info(`[Tracker] registerConsumer(${subscriptions})`);
+		this.logger.info(`[Tracker] registerConsumer(${JSON.stringify(subscriptions)})`);
 
 		_.each(subscriptions, sub => {
 			let endpoint = { host: sub.host, port: parseInt(sub.port), protocol: sub.protocol ? sub.protocol: 'udp' };

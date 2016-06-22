@@ -128,7 +128,7 @@ var Tracker = function (_Role) {
 		value: function addTopicEndpointMapping(topic, endpoint) {
 			var is_new = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 
-			this.logger.info('[Tracker] addTopicEndpointMapping( ' + topic + ', ' + endpoint + ')');
+			this.logger.info('[Tracker] addTopicEndpointMapping( ' + JSON.stringify(topic) + ', ' + JSON.stringify(endpoint) + ')');
 
 			if (is_new) {
 				this.consumers[topic] = [endpoint];
@@ -143,7 +143,7 @@ var Tracker = function (_Role) {
 		value: function notifyProducers(topic, endpoint) {
 			var _this4 = this;
 
-			this.logger.info('[Tracker] notifyProducers( ' + topic + ', ' + endpoint + ')');
+			this.logger.info('[Tracker] notifyProducers( ' + JSON.stringify(topic) + ', ' + JSON.stringify(endpoint) + ')');
 
 			topicWriters = _underscore2.default.filter(this.producers, function (p) {
 				return _underscore2.default.contains(p.topics, topic);
@@ -156,7 +156,7 @@ var Tracker = function (_Role) {
 	}, {
 		key: 'notifyProducer',
 		value: function notifyProducer(source, topic, dest) {
-			this.logger.info('[Tracker] notifyProducer( ' + source + ', ' + topic + ', ' + dest + ')');
+			this.logger.info('[Tracker] notifyProducer( ' + JSON.stringify(source) + ', ' + JSON.stringify(topic) + ', ' + JSON.stringify(dest) + ')');
 
 			this.newDestinationFIFO.push({
 				dest: dest,
@@ -177,7 +177,7 @@ var Tracker = function (_Role) {
 				var item = _this5.newDestinationFIFO.shift();
 				var msg = _this5.getNewDestinationMessage(item.topic, item.dest);
 				_this5.sockets.unicast.send(new Buffer(msg), 0, msg.length, item.source.port, item.source.host, function () {
-					_this5.logger.info('Send topic to endpoint mapping ' + item.topic + ' -> ' + item.dest);
+					_this5.logger.info('Send topic to endpoint mapping ' + JSON.stringify(item.topic) + ' -> ' + JSON.stringify(item.dest));
 				});
 			};
 
@@ -198,7 +198,7 @@ var Tracker = function (_Role) {
 		value: function registerConsumer(subscriptions) {
 			var _this6 = this;
 
-			this.logger.info('[Tracker] registerConsumer(' + subscriptions + ')');
+			this.logger.info('[Tracker] registerConsumer(' + JSON.stringify(subscriptions) + ')');
 
 			_underscore2.default.each(subscriptions, function (sub) {
 				var endpoint = { host: sub.host, port: parseInt(sub.port), protocol: sub.protocol ? sub.protocol : 'udp' };
