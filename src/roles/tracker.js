@@ -9,6 +9,7 @@ class Tracker extends Role {
 		this.producers = []; //Array<{port:int, host:String, topics: Array<String>}>
 		this.consumers = {}; //Map<String, Array<{port:int, host:String}>>
 		this.newDestinationFIFO = new Dequeue();
+		this.logger.info('[Tracker] Created tracker role');
 	}
 
 	isMe() {
@@ -18,9 +19,9 @@ class Tracker extends Role {
 	onStart() {
 		var defer = q.defer();
 		var message = this.getTrackerReconfigureMessage();
-
+		this.logger.info('[Tracker] onStart()');
 		this.broadcast(message).then(() => {
-			this.logger.info('[Tracker] Broadcasted datasink config');
+			this.logger.info('[Tracker] Broadcasted tracker config');
 			defer.resolve();
 		}, err => defer.reject(err));
 

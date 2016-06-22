@@ -41,6 +41,7 @@ var Tracker = function (_Role) {
 		_this.producers = []; //Array<{port:int, host:String, topics: Array<String>}>
 		_this.consumers = {}; //Map<String, Array<{port:int, host:String}>>
 		_this.newDestinationFIFO = new _dequeue2.default();
+		_this.logger.info('[Tracker] Created tracker role');
 		return _this;
 	}
 
@@ -56,9 +57,9 @@ var Tracker = function (_Role) {
 
 			var defer = _q2.default.defer();
 			var message = this.getTrackerReconfigureMessage();
-
+			this.logger.info('[Tracker] onStart()');
 			this.broadcast(message).then(function () {
-				_this2.logger.info('[Tracker] Broadcasted datasink config');
+				_this2.logger.info('[Tracker] Broadcasted tracker config');
 				defer.resolve();
 			}, function (err) {
 				return defer.reject(err);
