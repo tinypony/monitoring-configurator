@@ -77,6 +77,13 @@ var Tracker = function (_Role) {
 			return msg.roles && _underscore2.default.contains(msg.roles, NODE_TYPE.CONSUMER);
 		}
 	}, {
+		key: 'enhanceWithHost',
+		value: function enhanceWithHost(host, endpoints) {
+			return _underscore2.default.map(endpoints, function (ep) {
+				return _underscore2.default.extend({}, ep, { host: host });
+			});
+		}
+	}, {
 		key: 'handleHello',
 		value: function handleHello(msg) {
 			var defer = _q2.default.defer();
@@ -87,7 +94,7 @@ var Tracker = function (_Role) {
 			}
 
 			if (this.wasConsumer(msg)) {
-				this.registerConsumer(msg.subscribe);
+				this.registerConsumer(this.enhanceWithHost(msg.host, msg.subscribe));
 			}
 
 			d.resolve(msg);
@@ -96,7 +103,7 @@ var Tracker = function (_Role) {
 	}, {
 		key: 'handleSubscribe',
 		value: function handleSubscribe(msg) {
-			this.registerConsumer(msg.subscribe);
+			this.registerConsumer(this.enhanceWithHost(msg.host, msg.subscribe));
 		}
 	}, {
 		key: 'handlePublish',

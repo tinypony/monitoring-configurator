@@ -35,6 +35,12 @@ class Tracker extends Role {
 		return msg.roles && _.contains(msg.roles, NODE_TYPE.CONSUMER);
 	}
 
+	enhanceWithHost(host, endpoints) {
+		return _.map(endpoints, ep => {
+			return _.extend({}, ep, { host });
+		});
+	}
+
 	handleHello(msg) {
 		var defer = q.defer();
 		this.logger.info(`[Tracker] handleHello()`);
@@ -44,7 +50,7 @@ class Tracker extends Role {
 		}
 
 		if(this.wasConsumer(msg)) {
-			this.registerConsumer(msg.subscribe);
+			this.registerConsumer(this.enhanceWithHost(msg.host, msg.subscribe));
 		}
 		
 		d.resolve(msg);
@@ -52,7 +58,7 @@ class Tracker extends Role {
 	}
 
 	handleSubscribe(msg) {
-		this.registerConsumer(msg.subscribe);
+		this.registerConsumer(this.enhanceWithHost(msg.host, msg.subscribe));
 	}
 
 	handlePublish(msg) {
