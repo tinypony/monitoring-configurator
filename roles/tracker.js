@@ -90,6 +90,8 @@ var Tracker = function (_Role) {
 			this.logger.info('[Tracker] handleHello(' + JSON.stringify(msg) + ')');
 
 			if (this.wasProducer(msg)) {
+				this.logger.info('Hello from p2p-producer');
+
 				this.registerProducer(msg.host, msg.port, msg.publish);
 			}
 
