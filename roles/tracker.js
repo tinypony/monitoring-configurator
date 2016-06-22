@@ -87,7 +87,7 @@ var Tracker = function (_Role) {
 		key: 'handleHello',
 		value: function handleHello(msg) {
 			var defer = _q2.default.defer();
-			this.logger.info('[Tracker] handleHello()');
+			this.logger.info('[Tracker] handleHello(' + JSON.stringify(msg) + ')');
 
 			if (this.wasProducer(msg)) {
 				this.registerProducer(msg.host, msg.port, msg.publish);

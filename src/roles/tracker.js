@@ -43,7 +43,7 @@ class Tracker extends Role {
 
 	handleHello(msg) {
 		var defer = q.defer();
-		this.logger.info(`[Tracker] handleHello()`);
+		this.logger.info(`[Tracker] handleHello(${JSON.stringify(msg)})`);
 
 		if(this.wasProducer(msg)) {
 			this.registerProducer(msg.host, msg.port, msg.publish);
