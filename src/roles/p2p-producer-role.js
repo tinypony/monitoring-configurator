@@ -1,5 +1,5 @@
 import Role from './roles';
-import Forwarder from '../forwarder/p2p-forwarder.js';
+import Forwarder from '../forwarder/p2p-forwarder';
 import q from 'q';
 import _ from 'underscore';
 

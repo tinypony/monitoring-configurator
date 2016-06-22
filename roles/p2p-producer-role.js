@@ -12,7 +12,7 @@ var _roles = require('./roles');
 
 var _roles2 = _interopRequireDefault(_roles);
 
-var _p2pForwarder = require('../forwarder/p2p-forwarder.js');
+var _p2pForwarder = require('../forwarder/p2p-forwarder');
 
 var _p2pForwarder2 = _interopRequireDefault(_p2pForwarder);
 
