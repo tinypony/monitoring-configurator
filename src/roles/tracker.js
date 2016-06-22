@@ -50,6 +50,7 @@ class Tracker extends Role {
 		}
 
 		if(this.wasConsumer(msg)) {
+			this.logger.info('Hello from p2p-consumer');
 			this.registerConsumer(this.enhanceWithHost(msg.host, msg.subscribe));
 		}
 		
@@ -140,7 +141,7 @@ class Tracker extends Role {
 	 *
 	 */
 	registerConsumer(subscriptions) {
-		this.logger.info(`[Tracker] registerConsumer(${JSON.stringify(subscriptions)})`);
+		this.logger.info(`[Tracker] registerConsumer(${ JSON.stringify(subscriptions) })`);
 
 		_.each(subscriptions, sub => {
 			let endpoint = { host: sub.host, port: parseInt(sub.port), protocol: sub.protocol ? sub.protocol: 'udp' };

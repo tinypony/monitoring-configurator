@@ -94,6 +94,7 @@ var Tracker = function (_Role) {
 			}
 
 			if (this.wasConsumer(msg)) {
+				this.logger.info('Hello from p2p-consumer');
 				this.registerConsumer(this.enhanceWithHost(msg.host, msg.subscribe));
 			}
 
