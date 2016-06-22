@@ -104,7 +104,7 @@ var Tracker = function (_Role) {
 				this.logger.info('was not a procuder nor a consumer');
 			}
 
-			d.resolve(msg);
+			defer.resolve(msg);
 			return defer.promise;
 		}
 	}, {

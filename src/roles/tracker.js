@@ -60,7 +60,7 @@ class Tracker extends Role {
 			this.logger.info('was not a procuder nor a consumer');
 		}
 		
-		d.resolve(msg);
+		defer.resolve(msg);
 		return defer.promise;
 	}
 
