@@ -9,5 +9,8 @@ exports.default = {
 	DATASINK_SLAVE: 'datasink-slave',
 	PRODUCER: 'producer',
 	CONSUMER: 'consumer',
-	CLIENT: 'client'
+	P2PPRODUCER: 'p2p-producer',
+	P2PCONSUMER: 'p2p-consumer',
+	CLIENT: 'client',
+	TRACKER: 'tracker'
 };

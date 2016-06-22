@@ -25,23 +25,29 @@ class Role {
 		return logger;
 	}
 
-	/**
-	 * Method that is shared by all role subclasses to send unicast responses to the original sender of a message
-	 */
-	respondTo(receivedMessage, response) {
-		let defer = q.defer();
+	send(host, port, message) {
+		var defer = q.defer();
+
 		this.sockets.unicast.send(
-			new Buffer(response),
+			new Buffer(message),
 			0,
-			response.length,
-			receivedMessage.port,
-			receivedMessage.host,
+			message.length,
+			port,
+			host,
 			err => {
 				if(err) { return defer.reject(err); } 
 				else { return defer.resolve(); }
 			}
 		);
+
 		return defer.promise;
+	}
+
+	/**
+	 * Method that is shared by all role subclasses to send unicast responses to the original sender of a message
+	 */
+	respondTo(receivedMessage, response) {
+		return this.send(receivedMessage.host, receivedMessage.port, response);
 	}
 
 	/**
@@ -66,6 +72,10 @@ class Role {
 		);
 
 		return defer.promise;
+	}
+
+	isTracker() {
+		return _.contains(this.config.roles, NODE_TYPE.TRACKER);
 	}	
 
 	isDatasink() {
@@ -82,6 +92,14 @@ class Role {
 
 	isConsumer() {
 		return _.contains(this.config.roles, NODE_TYPE.CONSUMER);
+	}
+
+	isP2PProducer() {
+		return _.contains(this.config.roles, NODE_TYPE.P2PPRODUCER);
+	}
+
+	isP2PConsumer() {
+		return _.contains(this.config.roles, NODE_TYPE.P2PCONSUMER);
 	}
 
 	isValidPort(port) {
@@ -124,7 +142,31 @@ class Role {
 		return defer.promise;
 	}
 
+	handleTConfig(msg) {
+		var defer = q.defer();
+		defer.resolve(msg);
+		return defer.promise;
+	}
+
+	handleTReconfig(msg) {
+		var defer = q.defer();
+		defer.resolve(msg);
+		return defer.promise;
+	}
+
+	handlePublish(msg) {
+		var defer = q.defer();
+		defer.resolve(msg);
+		return defer.promise;
+	}
+
 	handleRegslave(msg) {
+		var defer = q.defer();
+		defer.resolve(msg);
+		return defer.promise;
+	}
+
+	handleNewDestination(msg) {
 		var defer = q.defer();
 		defer.resolve(msg);
 		return defer.promise;
@@ -171,12 +213,36 @@ class Role {
 		return JSON.stringify(msg);	
 	}
 
+	getTrackerReconfigureMessage() {
+		var msg = {
+			type: MESSAGE_TYPE.TRECONFIG,
+			host: 'self',
+			port: this.config.unicast.port
+		};
+
+		return JSON.stringify(msg);
+	}
+
+	getTrackerConfigureMessage(extension) {
+		var msg = {
+			type: MESSAGE_TYPE.TCONFIG,
+			host: 'self',
+			port: this.config.unicast.port
+		};
+
+		msg = _.extend(msg, extension);
+
+		return JSON.stringify(msg);	
+	}
+
 	getHelloMessage() {
 		var msg = {
 			type: MESSAGE_TYPE.HELLO,
 			roles: this.config.roles,
 			uuid: this.initId,
 			host: 'self',
+			publish: this.config.producers? _.map(this.config.producers, p => producers.topic) : [],
+			subscribe: this.config.consumers? this.config.consumers : [],
 			port: this.config.unicast.port
 		};
 
@@ -188,7 +254,18 @@ class Role {
 			type: MESSAGE_TYPE.SUBSCRIBE,
 			host: 'self',
 			port: this.config.unicast.port,
-			endpoints: this.config.consumers
+			subscribe: this.config.consumers? this.config.consumers : []
+		};
+
+		return JSON.stringify(msg);
+	}
+
+	getPublishMessage() {
+		var msg = {
+			type: MESSAGE_TYPE.PUBLISH,
+			host: 'self',
+			port: this.config.unicast.port,
+			subscribe: this.config.consumers? this.config.consumers : []
 		};
 
 		return JSON.stringify(msg);
@@ -219,6 +296,18 @@ class Role {
 
 		return JSON.stringify(msg);
 	}
+
+	getNewDestinationMessage(topic, endpoint) {
+		var msg = {
+			type: MESSAGE_TYPE.NEW_DESTINATION,
+			host: 'self',
+			port: this.config.unicast.port,
+			topic,
+			dest: endpoint
+		}
+	}
+
+
 }
 
 export default Role;

@@ -54,6 +54,18 @@ var _consumerRole = require('./roles/consumer-role');
 
 var _consumerRole2 = _interopRequireDefault(_consumerRole);
 
+var _tracker = require('./roles/tracker');
+
+var _tracker2 = _interopRequireDefault(_tracker);
+
+var _p2pProducerRole = require('./roles/p2p-producer-role');
+
+var _p2pProducerRole2 = _interopRequireDefault(_p2pProducerRole);
+
+var _p2pConsumerRole = require('./roles/p2p-consumer-role');
+
+var _p2pConsumerRole2 = _interopRequireDefault(_p2pConsumerRole);
+
 var _datasinkSlaveRole = require('./roles/datasink-slave-role');
 
 var _datasinkSlaveRole2 = _interopRequireDefault(_datasinkSlaveRole);
@@ -101,7 +113,9 @@ var ConfigurationDaemon = function () {
 			broadcast: this.bc_socket
 		};
 
-		this.roles = [new _datasinkRole2.default(this.initId, this.config, sockets), new _datasinkSlaveRole2.default(this.initId, this.config, sockets), new _producerRole2.default(this.initId, this.config, sockets), new _consumerRole2.default(this.initId, this.config, sockets)];
+		this.roles = [new _datasinkRole2.default(this.initId, this.config, sockets), new _datasinkSlaveRole2.default(this.initId, this.config, sockets), new _producerRole2.default(this.initId, this.config, sockets), new _consumerRole2.default(this.initId, this.config, sockets),
+		//p2p version
+		new _tracker2.default(this.initId, this.config, sockets), new _p2pConsumerRole2.default(this.initId, this.config, sockets), new _p2pProducerRole2.default(this.initId, this.config, sockets)];
 
 		this.hasStartedDefer = _q2.default.defer();
 		this.hasStarted = this.hasStartedDefer.promise;
@@ -181,27 +195,46 @@ var ConfigurationDaemon = function () {
 			return this.handleInChain(msg, 'handleClusterResize');
 		}
 	}, {
+		key: 'handleTConfig',
+		value: function handleTConfig(msg) {
+			return this.handleInChain(msg, 'handleTConfig');
+		}
+	}, {
+		key: 'handleTReconfig',
+		value: function handleTReconfig(msg) {
+			return this.handleInChain(msg, 'handleTReconfig');
+		}
+	}, {
+		key: 'handlePublish',
+		value: function handlePublish(msg) {
+			return this.handleInChain(msg, 'handlePublish');
+		}
+	}, {
+		key: 'handleNewDestination',
+		value: function handleNewDestination(msg) {
+			return this.handleInChain(msg, 'handleNewDestination');
+		}
+	}, {
 		key: 'close',
 		value: function close() {
 			this.uc_socket.close();
 			this.bc_socket.close();
 		}
-
-		//Client node is provided with configuration by a manager node
-
 	}, {
 		key: 'handleUnicastMessage',
 		value: function handleUnicastMessage(msg) {
 			if (msg.type === _messageType.MESSAGE_TYPE.CONFIG) {
 				return this.handleConfig(msg);
-			}
-
-			if (msg.type === _messageType.MESSAGE_TYPE.SUBSCRIBE) {
+			} else if (msg.type === _messageType.MESSAGE_TYPE.TCONFIG) {
+				return this.handleTConfig(msg);
+			} else if (msg.type === _messageType.MESSAGE_TYPE.SUBSCRIBE) {
 				return this.handleSubscribe(msg);
-			}
-
-			if (msg.type === _messageType.MESSAGE_TYPE.REGISTER_SLAVE) {
+			} else if (msg.type === _messageType.MESSAGE_TYPE.REGISTER_SLAVE) {
 				return this.handleRegslave(msg);
+			} else if (msg.type === _messageType.MESSAGE_TYPE.PUBLISH) {
+				return handlePublish(msg);
+			} else if (msg.type === _messageType.MESSAGE_TYPE.NEW_DESTINATION) {
+				return handleNewDestination(msg);
 			}
 		}
 	}, {
@@ -213,6 +246,8 @@ var ConfigurationDaemon = function () {
 				return this.handleReconfig(msg);
 			} else if (msg.type === _messageType.MESSAGE_TYPE.CLUSTER_RESIZE) {
 				return this.handleClusterResize(msg);
+			} else if (msg.type === _messageType.MESSAGE_TYPE.TRECONFIG) {
+				return this.handleTReconfig(msg);
 			}
 		}
 	}, {

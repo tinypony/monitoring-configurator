@@ -12,6 +12,9 @@ import winston from 'winston'
 import DatasinkRole from './roles/datasink-role'
 import ProducerRole from './roles/producer-role'
 import ConsumerRole from './roles/consumer-role'
+import TrackerRole from './roles/tracker'
+import P2PProducerRole from './roles/p2p-producer-role'
+import P2PConsumerRole from './roles/p2p-consumer-role'
 import DatasinkSlaveRole from './roles/datasink-slave-role'
 
 
@@ -56,7 +59,11 @@ class ConfigurationDaemon {
 			new DatasinkRole(this.initId, this.config, sockets),
 			new DatasinkSlaveRole(this.initId, this.config, sockets),
 			new ProducerRole(this.initId, this.config, sockets),
-			new ConsumerRole(this.initId, this.config, sockets)
+			new ConsumerRole(this.initId, this.config, sockets),
+			//p2p version
+			new TrackerRole(this.initId, this.config, sockets),
+			new P2PConsumerRole(this.initId, this.config, sockets),
+			new P2PProducerRole(this.initId, this.config, sockets)
 		];
 
 		this.hasStartedDefer = q.defer();
@@ -122,23 +129,40 @@ class ConfigurationDaemon {
 		return this.handleInChain(msg, 'handleClusterResize');
 	}
 
+	handleTConfig(msg) {
+		return this.handleInChain(msg, 'handleTConfig');
+	}
+
+	handleTReconfig(msg) {
+		return this.handleInChain(msg, 'handleTReconfig');
+	}
+
+	handlePublish(msg) {
+		return this.handleInChain(msg, 'handlePublish');
+	}
+
+	handleNewDestination(msg) {
+		return this.handleInChain(msg, 'handleNewDestination');
+	}
+
 	close() {
 		this.uc_socket.close();
 		this.bc_socket.close();
 	}
 
-	//Client node is provided with configuration by a manager node
 	handleUnicastMessage(msg) {
 		if( msg.type === MESSAGE_TYPE.CONFIG ) {
 			return this.handleConfig(msg);
-		}
-
-		if( msg.type === MESSAGE_TYPE.SUBSCRIBE ) {
+		} else if( msg.type === MESSAGE_TYPE.TCONFIG ) {
+			return this.handleTConfig(msg);
+		} else if( msg.type === MESSAGE_TYPE.SUBSCRIBE ) {
 			return this.handleSubscribe(msg);
-		}
-
-		if( msg.type === MESSAGE_TYPE.REGISTER_SLAVE ) {
+		} else if( msg.type === MESSAGE_TYPE.REGISTER_SLAVE ) {
 			return this.handleRegslave(msg);
+		} else if( msg.type === MESSAGE_TYPE.PUBLISH ) {
+			return handlePublish(msg);
+		} else if (msg.type === MESSAGE_TYPE.NEW_DESTINATION ) {
+			return handleNewDestination(msg);
 		}
 	}
 
@@ -149,6 +173,8 @@ class ConfigurationDaemon {
 			return this.handleReconfig(msg);
 		} else if( msg.type === MESSAGE_TYPE.CLUSTER_RESIZE ) {
 			return this.handleClusterResize(msg);
+		} else if (msg.type === MESSAGE_TYPE.TRECONFIG ) {
+			return this.handleTReconfig(msg);
 		}
 	}
 

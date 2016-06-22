@@ -53,6 +53,21 @@ var Role = function () {
 
 			return logger;
 		}
+	}, {
+		key: 'send',
+		value: function send(host, port, message) {
+			var defer = _q2.default.defer();
+
+			this.sockets.unicast.send(new Buffer(message), 0, message.length, port, host, function (err) {
+				if (err) {
+					return defer.reject(err);
+				} else {
+					return defer.resolve();
+				}
+			});
+
+			return defer.promise;
+		}
 
 		/**
    * Method that is shared by all role subclasses to send unicast responses to the original sender of a message
@@ -61,15 +76,7 @@ var Role = function () {
 	}, {
 		key: 'respondTo',
 		value: function respondTo(receivedMessage, response) {
-			var defer = _q2.default.defer();
-			this.sockets.unicast.send(new Buffer(response), 0, response.length, receivedMessage.port, receivedMessage.host, function (err) {
-				if (err) {
-					return defer.reject(err);
-				} else {
-					return defer.resolve();
-				}
-			});
-			return defer.promise;
+			return this.send(receivedMessage.host, receivedMessage.port, response);
 		}
 
 		/**
@@ -94,6 +101,11 @@ var Role = function () {
 			return defer.promise;
 		}
 	}, {
+		key: 'isTracker',
+		value: function isTracker() {
+			return _underscore2.default.contains(this.config.roles, _nodeType2.default.TRACKER);
+		}
+	}, {
 		key: 'isDatasink',
 		value: function isDatasink() {
 			return _underscore2.default.contains(this.config.roles, _nodeType2.default.DATASINK);
@@ -112,6 +124,16 @@ var Role = function () {
 		key: 'isConsumer',
 		value: function isConsumer() {
 			return _underscore2.default.contains(this.config.roles, _nodeType2.default.CONSUMER);
+		}
+	}, {
+		key: 'isP2PProducer',
+		value: function isP2PProducer() {
+			return _underscore2.default.contains(this.config.roles, _nodeType2.default.P2PPRODUCER);
+		}
+	}, {
+		key: 'isP2PConsumer',
+		value: function isP2PConsumer() {
+			return _underscore2.default.contains(this.config.roles, _nodeType2.default.P2PCONSUMER);
 		}
 	}, {
 		key: 'isValidPort',
@@ -161,8 +183,36 @@ var Role = function () {
 			return defer.promise;
 		}
 	}, {
+		key: 'handleTConfig',
+		value: function handleTConfig(msg) {
+			var defer = _q2.default.defer();
+			defer.resolve(msg);
+			return defer.promise;
+		}
+	}, {
+		key: 'handleTReconfig',
+		value: function handleTReconfig(msg) {
+			var defer = _q2.default.defer();
+			defer.resolve(msg);
+			return defer.promise;
+		}
+	}, {
+		key: 'handlePublish',
+		value: function handlePublish(msg) {
+			var defer = _q2.default.defer();
+			defer.resolve(msg);
+			return defer.promise;
+		}
+	}, {
 		key: 'handleRegslave',
 		value: function handleRegslave(msg) {
+			var defer = _q2.default.defer();
+			defer.resolve(msg);
+			return defer.promise;
+		}
+	}, {
+		key: 'handleNewDestination',
+		value: function handleNewDestination(msg) {
 			var defer = _q2.default.defer();
 			defer.resolve(msg);
 			return defer.promise;
@@ -213,6 +263,30 @@ var Role = function () {
 			return JSON.stringify(msg);
 		}
 	}, {
+		key: 'getTrackerReconfigureMessage',
+		value: function getTrackerReconfigureMessage() {
+			var msg = {
+				type: _messageType.MESSAGE_TYPE.TRECONFIG,
+				host: 'self',
+				port: this.config.unicast.port
+			};
+
+			return JSON.stringify(msg);
+		}
+	}, {
+		key: 'getTrackerConfigureMessage',
+		value: function getTrackerConfigureMessage(extension) {
+			var msg = {
+				type: _messageType.MESSAGE_TYPE.TCONFIG,
+				host: 'self',
+				port: this.config.unicast.port
+			};
+
+			msg = _underscore2.default.extend(msg, extension);
+
+			return JSON.stringify(msg);
+		}
+	}, {
 		key: 'getHelloMessage',
 		value: function getHelloMessage() {
 			var msg = {
@@ -220,6 +294,10 @@ var Role = function () {
 				roles: this.config.roles,
 				uuid: this.initId,
 				host: 'self',
+				publish: this.config.producers ? _underscore2.default.map(this.config.producers, function (p) {
+					return producers.topic;
+				}) : [],
+				subscribe: this.config.consumers ? this.config.consumers : [],
 				port: this.config.unicast.port
 			};
 
@@ -232,7 +310,19 @@ var Role = function () {
 				type: _messageType.MESSAGE_TYPE.SUBSCRIBE,
 				host: 'self',
 				port: this.config.unicast.port,
-				endpoints: this.config.consumers
+				subscribe: this.config.consumers ? this.config.consumers : []
+			};
+
+			return JSON.stringify(msg);
+		}
+	}, {
+		key: 'getPublishMessage',
+		value: function getPublishMessage() {
+			var msg = {
+				type: _messageType.MESSAGE_TYPE.PUBLISH,
+				host: 'self',
+				port: this.config.unicast.port,
+				subscribe: this.config.consumers ? this.config.consumers : []
 			};
 
 			return JSON.stringify(msg);
@@ -264,6 +354,17 @@ var Role = function () {
 			};
 
 			return JSON.stringify(msg);
+		}
+	}, {
+		key: 'getNewDestinationMessage',
+		value: function getNewDestinationMessage(topic, endpoint) {
+			var msg = {
+				type: _messageType.MESSAGE_TYPE.NEW_DESTINATION,
+				host: 'self',
+				port: this.config.unicast.port,
+				topic: topic,
+				dest: endpoint
+			};
 		}
 	}]);
 
