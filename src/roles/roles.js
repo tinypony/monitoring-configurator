@@ -55,7 +55,8 @@ class Role {
 	 */
 	broadcast(message) {
 		let defer = q.defer();
-		this.logger.info('Broadcast');
+		this.logger.info(`Broadcast ${this.getBroadcastAddress()}:${this.config.broadcastPort}`);
+
 		this.sockets.broadcast.send(
 			new Buffer(message), 
 			0, 

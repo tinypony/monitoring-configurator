@@ -89,7 +89,8 @@ var Role = function () {
 			var _this = this;
 
 			var defer = _q2.default.defer();
-			this.logger.info('Broadcast');
+			this.logger.info('Broadcast ' + this.getBroadcastAddress() + ':' + this.config.broadcastPort);
+
 			this.sockets.broadcast.send(new Buffer(message), 0, message.length, this.config.broadcastPort, this.getBroadcastAddress(), function (err) {
 				if (err) {
 					_this.logger.warn(err);
