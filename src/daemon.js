@@ -68,6 +68,7 @@ class ConfigurationDaemon {
 
 		this.hasStartedDefer = q.defer();
 		this.hasStarted = this.hasStartedDefer.promise;
+		this.hasStarted.catch(err => this.logger.info(JSON.stringify(err)));
 	}
 
 	getRoleFunctions(func) {

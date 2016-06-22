@@ -80,6 +80,8 @@ function isValidPort(port) {
 
 var ConfigurationDaemon = function () {
 	function ConfigurationDaemon(config, broadcastPort) {
+		var _this = this;
+
 		_classCallCheck(this, ConfigurationDaemon);
 
 		this.logger = new _winston2.default.Logger({
@@ -119,6 +121,9 @@ var ConfigurationDaemon = function () {
 
 		this.hasStartedDefer = _q2.default.defer();
 		this.hasStarted = this.hasStartedDefer.promise;
+		this.hasStarted.catch(function (err) {
+			return _this.logger.info(JSON.stringify(err));
+		});
 	}
 
 	_createClass(ConfigurationDaemon, [{
@@ -137,12 +142,12 @@ var ConfigurationDaemon = function () {
 	}, {
 		key: 'onStartListening',
 		value: function onStartListening() {
-			var _this = this;
+			var _this2 = this;
 
 			this.bc_socket.setBroadcast(true);
 			var funcs = this.getRoleFunctions('onStart');
 			funcs.push(function () {
-				_this.hasStartedDefer.resolve();
+				_this2.hasStartedDefer.resolve();
 			});
 
 			return funcs.reduce(function (promise, f) {
@@ -266,19 +271,19 @@ var ConfigurationDaemon = function () {
 	}, {
 		key: 'getMessageHandler',
 		value: function getMessageHandler(isBroadcast) {
-			var _this2 = this;
+			var _this3 = this;
 
 			return function (data, rinfo) {
 				var dataString = data.toString();
 
 				try {
 					var msg = JSON.parse(dataString);
-					msg = _this2.preprocessMessage(msg, rinfo);
+					msg = _this3.preprocessMessage(msg, rinfo);
 
-					if (isBroadcast) _this2.handleBroadcastMessage(msg);else _this2.handleUnicastMessage(msg);
+					if (isBroadcast) _this3.handleBroadcastMessage(msg);else _this3.handleUnicastMessage(msg);
 				} catch (e) {
 					//silent skip
-					_this2.logger.info("Could not parse incoming data, probably malformed");
+					_this3.logger.info("Could not parse incoming data, probably malformed");
 				}
 			};
 		}
