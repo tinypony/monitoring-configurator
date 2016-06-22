@@ -41,7 +41,6 @@ var Tracker = function (_Role) {
 		_this.producers = []; //Array<{port:int, host:String, topics: Array<String>}>
 		_this.consumers = {}; //Map<String, Array<{port:int, host:String}>>
 		_this.newDestinationFIFO = new _dequeue2.default();
-		_this.logger.info('[Tracker] Created tracker role');
 		return _this;
 	}
 

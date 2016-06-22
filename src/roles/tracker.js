@@ -9,7 +9,6 @@ class Tracker extends Role {
 		this.producers = []; //Array<{port:int, host:String, topics: Array<String>}>
 		this.consumers = {}; //Map<String, Array<{port:int, host:String}>>
 		this.newDestinationFIFO = new Dequeue();
-		this.logger.info('[Tracker] Created tracker role');
 	}
 
 	isMe() {
