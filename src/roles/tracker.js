@@ -28,11 +28,11 @@ class Tracker extends Role {
 	}
 
 	wasProducer(msg) {
-		return msg.roles && _.contains(msg.roles, NODE_TYPE.PRODUCER);
+		return msg.roles && _.contains(msg.roles, NODE_TYPE.P2PPRODUCER);
 	}
 
 	wasConsumer(msg) {
-		return msg.roles && _.contains(msg.roles, NODE_TYPE.CONSUMER);
+		return msg.roles && _.contains(msg.roles, NODE_TYPE.P2PCONSUMER);
 	}
 
 	enhanceWithHost(host, endpoints) {

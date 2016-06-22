@@ -69,12 +69,12 @@ var Tracker = function (_Role) {
 	}, {
 		key: 'wasProducer',
 		value: function wasProducer(msg) {
-			return msg.roles && _underscore2.default.contains(msg.roles, NODE_TYPE.PRODUCER);
+			return msg.roles && _underscore2.default.contains(msg.roles, NODE_TYPE.P2PPRODUCER);
 		}
 	}, {
 		key: 'wasConsumer',
 		value: function wasConsumer(msg) {
-			return msg.roles && _underscore2.default.contains(msg.roles, NODE_TYPE.CONSUMER);
+			return msg.roles && _underscore2.default.contains(msg.roles, NODE_TYPE.P2PCONSUMER);
 		}
 	}, {
 		key: 'enhanceWithHost',
