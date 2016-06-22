@@ -133,6 +133,7 @@ class Tracker extends Role {
 	 *
 	 */
 	registerConsumer(subscriptions) {
+		this.logger.info(`[Tracker] registerConsumer(${subscriptions})`);
 		_.each(subscriptions, sub => {
 			let endpoint = { host: sub.host, port: parseInt(sub.port), protocol: sub.protocol ? sub.protocol: 'udp' };
 

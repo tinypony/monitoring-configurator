@@ -197,6 +197,7 @@ var Tracker = function (_Role) {
 		value: function registerConsumer(subscriptions) {
 			var _this6 = this;
 
+			this.logger.info('[Tracker] registerConsumer(' + subscriptions + ')');
 			_underscore2.default.each(subscriptions, function (sub) {
 				var endpoint = { host: sub.host, port: parseInt(sub.port), protocol: sub.protocol ? sub.protocol : 'udp' };
 
