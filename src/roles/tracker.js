@@ -76,6 +76,8 @@ class Tracker extends Role {
 	}
 
 	addTopicEndpointMapping(topic, endpoint, is_new = false) {
+		this.logger.info(`[Tracker] addTopicEndpointMapping( ${topic}, ${endpoint})`);
+
 		if(is_new) {
 			this.consumers[topic]= [endpoint];
 		} else {
@@ -86,6 +88,8 @@ class Tracker extends Role {
 	}
 
 	notifyProducers(topic, endpoint) {
+		this.logger.info(`[Tracker] notifyProducers( ${topic}, ${endpoint})`);
+
 		topicWriters = _.filter(this.producers, p => _.contains(p.topics, topic));
 
 		_.each(topicWriters, source => {
@@ -94,6 +98,8 @@ class Tracker extends Role {
 	}
 
 	notifyProducer(source, topic, dest) {
+		this.logger.info(`[Tracker] notifyProducer( ${source}, ${topic}, ${dest})`);
+
 		this.newDestinationFIFO.push({
 			dest,
 			topic,

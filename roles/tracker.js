@@ -127,6 +127,8 @@ var Tracker = function (_Role) {
 		value: function addTopicEndpointMapping(topic, endpoint) {
 			var is_new = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 
+			this.logger.info('[Tracker] addTopicEndpointMapping( ' + topic + ', ' + endpoint + ')');
+
 			if (is_new) {
 				this.consumers[topic] = [endpoint];
 			} else {
@@ -140,6 +142,8 @@ var Tracker = function (_Role) {
 		value: function notifyProducers(topic, endpoint) {
 			var _this4 = this;
 
+			this.logger.info('[Tracker] notifyProducers( ' + topic + ', ' + endpoint + ')');
+
 			topicWriters = _underscore2.default.filter(this.producers, function (p) {
 				return _underscore2.default.contains(p.topics, topic);
 			});
@@ -151,6 +155,8 @@ var Tracker = function (_Role) {
 	}, {
 		key: 'notifyProducer',
 		value: function notifyProducer(source, topic, dest) {
+			this.logger.info('[Tracker] notifyProducer( ' + source + ', ' + topic + ', ' + dest + ')');
+
 			this.newDestinationFIFO.push({
 				dest: dest,
 				topic: topic,
