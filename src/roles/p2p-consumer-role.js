@@ -32,9 +32,11 @@ class P2PConsumerRole extends Role {
 	}
 
 	handleTReconfig(msg) {
+		this.logger.info(`[p2p-Consumer] handleTReconfig(${msg})`);
 		var defer = q.defer();
-		var msg = this.getSubscribeMessage();
-		this.respondTo(msg, msg).then(() => { defer.resolve(msg); }, err => defer.reject(err));
+		var response = this.getSubscribeMessage();
+		this.logger.info(`[p2p-Consumer] subscribe with ${response}`);
+		this.respondTo(msg, response).then(() => { defer.resolve(msg); }, err => defer.reject(err));
 		return defer.promise;
 	}
 }

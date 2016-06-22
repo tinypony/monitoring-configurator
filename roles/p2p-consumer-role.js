@@ -72,9 +72,11 @@ var P2PConsumerRole = function (_Role) {
 	}, {
 		key: 'handleTReconfig',
 		value: function handleTReconfig(msg) {
+			this.logger.info('[p2p-Consumer] handleTReconfig(' + msg + ')');
 			var defer = _q2.default.defer();
-			var msg = this.getSubscribeMessage();
-			this.respondTo(msg, msg).then(function () {
+			var response = this.getSubscribeMessage();
+			this.logger.info('[p2p-Consumer] subscribe with ' + response);
+			this.respondTo(msg, response).then(function () {
 				defer.resolve(msg);
 			}, function (err) {
 				return defer.reject(err);
