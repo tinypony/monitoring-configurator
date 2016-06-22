@@ -95,6 +95,7 @@ var Role = function () {
 					_this.logger.warn(err);
 					defer.reject(err);
 				} else {
+					_this.logger.info('Broadcast OK');
 					defer.resolve();
 				}
 			});

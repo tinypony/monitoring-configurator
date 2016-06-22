@@ -67,6 +67,7 @@ class Role {
 					this.logger.warn(err);
 					defer.reject(err);
 				} else {
+					this.logger.info('Broadcast OK');
 					defer.resolve();
 				}
 			}
