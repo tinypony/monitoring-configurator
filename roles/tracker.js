@@ -80,6 +80,7 @@ var Tracker = function (_Role) {
 		key: 'handleHello',
 		value: function handleHello(msg) {
 			var defer = _q2.default.defer();
+			this.logger.info('[Tracker] handleHello()');
 
 			if (this.wasProducer(msg)) {
 				this.registerProducer(msg.host, msg.port, msg.publish);
@@ -198,6 +199,7 @@ var Tracker = function (_Role) {
 			var _this6 = this;
 
 			this.logger.info('[Tracker] registerConsumer(' + subscriptions + ')');
+
 			_underscore2.default.each(subscriptions, function (sub) {
 				var endpoint = { host: sub.host, port: parseInt(sub.port), protocol: sub.protocol ? sub.protocol : 'udp' };
 

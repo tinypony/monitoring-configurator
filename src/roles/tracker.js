@@ -37,6 +37,7 @@ class Tracker extends Role {
 
 	handleHello(msg) {
 		var defer = q.defer();
+		this.logger.info(`[Tracker] handleHello()`);
 
 		if(this.wasProducer(msg)) {
 			this.registerProducer(msg.host, msg.port, msg.publish);
@@ -134,6 +135,7 @@ class Tracker extends Role {
 	 */
 	registerConsumer(subscriptions) {
 		this.logger.info(`[Tracker] registerConsumer(${subscriptions})`);
+
 		_.each(subscriptions, sub => {
 			let endpoint = { host: sub.host, port: parseInt(sub.port), protocol: sub.protocol ? sub.protocol: 'udp' };
 
