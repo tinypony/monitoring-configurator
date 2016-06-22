@@ -22,6 +22,7 @@ class P2PConsumerRole extends Role {
 		let message = this.getHelloMessage();
 
 		this.broadcast(message).then(() => {
+			this.logger.info('[p2p-Consumer] Broacasted hello');
 			defer.resolve({
 				hello_sent: true
 			});

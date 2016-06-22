@@ -49,6 +49,8 @@ var P2PConsumerRole = function (_Role) {
 	}, {
 		key: 'onStart',
 		value: function onStart(prev) {
+			var _this2 = this;
+
 			if (prev && prev.hello_sent) {
 				return _get(Object.getPrototypeOf(P2PConsumerRole.prototype), 'onStart', this).call(this);
 			}
@@ -57,6 +59,7 @@ var P2PConsumerRole = function (_Role) {
 			var message = this.getHelloMessage();
 
 			this.broadcast(message).then(function () {
+				_this2.logger.info('[p2p-Consumer] Broacasted hello');
 				defer.resolve({
 					hello_sent: true
 				});
