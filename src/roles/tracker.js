@@ -53,6 +53,10 @@ class Tracker extends Role {
 			this.logger.info('Hello from p2p-consumer');
 			this.registerConsumer(this.enhanceWithHost(msg.host, msg.subscribe));
 		}
+
+		if(!this.wasConsumer(msg) && !this.wasProducer(msg)) {
+			this.logger.info('was not a procuder nor a consumer');
+		}
 		
 		d.resolve(msg);
 		return defer.promise;

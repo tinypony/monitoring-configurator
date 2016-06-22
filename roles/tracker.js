@@ -98,6 +98,10 @@ var Tracker = function (_Role) {
 				this.registerConsumer(this.enhanceWithHost(msg.host, msg.subscribe));
 			}
 
+			if (!this.wasConsumer(msg) && !this.wasProducer(msg)) {
+				this.logger.info('was not a procuder nor a consumer');
+			}
+
 			d.resolve(msg);
 			return defer.promise;
 		}
