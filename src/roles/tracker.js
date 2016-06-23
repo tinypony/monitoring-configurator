@@ -96,7 +96,7 @@ class Tracker extends Role {
 
 	notifyProducers(topic, endpoint) {
 		this.logger.info(`[Tracker] notifyProducers( ${JSON.stringify(topic)}, ${JSON.stringify(endpoint)})`);
-
+		this.logger.info(`[Tracker] producers = ${JSON.stringify(this.producers)}`);
 		topicWriters = _.filter(this.producers, p => _.contains(p.topics, topic));
 
 		_.each(topicWriters, source => {
@@ -122,7 +122,7 @@ class Tracker extends Role {
 		while(this.newDestinationFIFO.length) {
 			let item = this.newDestinationFIFO.shift();
 			let msg = this.getNewDestinationMessage(item.topic, item.dest);
-			
+
 			this.send(item.source.host, item.source.port, msg).then(() => {
 				this.logger.info(`Send topic to endpoint mapping ${JSON.stringify(item.topic)} -> ${JSON.stringify(item.dest)}`)
 			});

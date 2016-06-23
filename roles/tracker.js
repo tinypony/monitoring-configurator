@@ -154,7 +154,7 @@ var Tracker = function (_Role) {
 			var _this4 = this;
 
 			this.logger.info('[Tracker] notifyProducers( ' + JSON.stringify(topic) + ', ' + JSON.stringify(endpoint) + ')');
-
+			this.logger.info('[Tracker] producers = ' + JSON.stringify(this.producers));
 			topicWriters = _underscore2.default.filter(this.producers, function (p) {
 				return _underscore2.default.contains(p.topics, topic);
 			});
