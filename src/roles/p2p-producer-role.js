@@ -35,7 +35,7 @@ class P2PProducerRole extends Role {
 
 	handleNewDestination(msg) {
 		this.logger.info(`[p2p-producer] handleNewDestination( ${JSON.stringify(msg)} )`);
-		this.forwarder.addForwaringInfo(msg.topic, msg.dest);
+		this.forwarder.addForwardingInfo(msg.topic, msg.dest);
 		var defer = q.defer();
 		defer.resolve();
 		return defer.promise;

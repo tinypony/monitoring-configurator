@@ -77,7 +77,7 @@ var P2PProducerRole = function (_Role) {
 		key: 'handleNewDestination',
 		value: function handleNewDestination(msg) {
 			this.logger.info('[p2p-producer] handleNewDestination( ' + JSON.stringify(msg) + ' )');
-			this.forwarder.addForwaringInfo(msg.topic, msg.dest);
+			this.forwarder.addForwardingInfo(msg.topic, msg.dest);
 			var defer = _q2.default.defer();
 			defer.resolve();
 			return defer.promise;
