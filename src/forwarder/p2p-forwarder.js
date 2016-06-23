@@ -131,7 +131,6 @@ class P2PForwarder {
 		var msgStr = data.toString();
 		
 		_.each(this.forward_map[topic], endpoint => {
-			this.logger.info(`[p2p-Forwarder] Forward data ${msgStr} to ${endpoint.host}:${endpoint.port}`);
 			this.send(endpoint.host, endpoint.port, msgStr);
 		});
 	}
