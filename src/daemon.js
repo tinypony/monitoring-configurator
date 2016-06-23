@@ -160,9 +160,9 @@ class ConfigurationDaemon {
 		} else if( msg.type === MESSAGE_TYPE.REGISTER_SLAVE ) {
 			return this.handleRegslave(msg);
 		} else if( msg.type === MESSAGE_TYPE.PUBLISH ) {
-			return handlePublish(msg);
+			return this.handlePublish(msg);
 		} else if (msg.type === MESSAGE_TYPE.NEW_DESTINATION ) {
-			return handleNewDestination(msg);
+			return this.handleNewDestination(msg);
 		}
 	}
 
@@ -193,7 +193,6 @@ class ConfigurationDaemon {
 	getMessageHandler(isBroadcast) {
 		return (data, rinfo) => {
 			var dataString = data.toString();
-			this.logger.info(`Received ${dataString}`);
 			try {
 				var msg = JSON.parse(dataString);
 				msg = this.preprocessMessage( msg, rinfo );
