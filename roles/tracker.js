@@ -186,7 +186,7 @@ var Tracker = function (_Role) {
 			var _loop = function _loop() {
 				var item = _this5.newDestinationFIFO.shift();
 				var msg = _this5.getNewDestinationMessage(item.topic, item.dest);
-
+				_this5.logger.info('Send new destionation to ' + item.source.host + ':' + item.source.port);
 				_this5.send(item.source.host, item.source.port, msg).then(function () {
 					_this5.logger.info('Send topic to endpoint mapping ' + JSON.stringify(item.topic) + ' -> ' + JSON.stringify(item.dest));
 				});
@@ -209,7 +209,7 @@ var Tracker = function (_Role) {
 		value: function registerConsumer(subscriptions) {
 			var _this6 = this;
 
-			this.logger.info('[Tracker] registerConsumer(' + JSON.stringify(subscriptions) + ')');
+			this.logger.info('[Tracker] registerConsumer( ' + JSON.stringify(subscriptions) + ' )');
 
 			_underscore2.default.each(subscriptions, function (sub) {
 				var endpoint = { host: sub.host, port: parseInt(sub.port), protocol: sub.protocol ? sub.protocol : 'udp' };

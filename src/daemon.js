@@ -162,6 +162,7 @@ class ConfigurationDaemon {
 		} else if( msg.type === MESSAGE_TYPE.PUBLISH ) {
 			return this.handlePublish(msg);
 		} else if (msg.type === MESSAGE_TYPE.NEW_DESTINATION ) {
+			this.logger.info('handle new destination');
 			return this.handleNewDestination(msg);
 		}
 	}

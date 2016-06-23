@@ -122,7 +122,7 @@ class Tracker extends Role {
 		while(this.newDestinationFIFO.length) {
 			let item = this.newDestinationFIFO.shift();
 			let msg = this.getNewDestinationMessage(item.topic, item.dest);
-
+			this.logger.info(`Send new destionation to ${item.source.host}:${item.source.port}`);
 			this.send(item.source.host, item.source.port, msg).then(() => {
 				this.logger.info(`Send topic to endpoint mapping ${JSON.stringify(item.topic)} -> ${JSON.stringify(item.dest)}`)
 			});
@@ -136,7 +136,7 @@ class Tracker extends Role {
 	 *
 	 */
 	registerConsumer(subscriptions) {
-		this.logger.info(`[Tracker] registerConsumer(${ JSON.stringify(subscriptions) })`);
+		this.logger.info(`[Tracker] registerConsumer( ${JSON.stringify(subscriptions)} )`);
 
 		_.each(subscriptions, sub => {
 			let endpoint = { host: sub.host, port: parseInt(sub.port), protocol: sub.protocol ? sub.protocol: 'udp' };
