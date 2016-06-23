@@ -2,6 +2,7 @@ import _ from 'underscore';
 import Role from './roles';
 import q from 'q';
 import Dequeue from 'dequeue';
+import NODE_TYPE from '../node-type';
 
 class Tracker extends Role {
 	constructor(initId, config, sockets) {
@@ -44,24 +45,18 @@ class Tracker extends Role {
 	handleHello(msg) {
 		var defer = q.defer();
 		this.logger.info(`[Tracker] handleHello( ${JSON.stringify(msg)} )`);
-		try {
-			if(this.wasProducer(msg)) {
-				this.logger.info('Hello from p2p-producer');
-				this.registerProducer(msg.host, msg.port, msg.publish);
-			}
+		if(this.wasProducer(msg)) {
+			this.logger.info('Hello from p2p-producer');
+			this.registerProducer(msg.host, msg.port, msg.publish);
+		}
 
-			if(this.wasConsumer(msg)) {
-				this.logger.info('Hello from p2p-consumer');
-				this.registerConsumer( this.enhanceWithHost(msg.host, msg.subscribe) );
-			}
+		if(this.wasConsumer(msg)) {
+			this.logger.info('Hello from p2p-consumer');
+			this.registerConsumer( this.enhanceWithHost(msg.host, msg.subscribe) );
+		}
 
-			if(!this.wasConsumer(msg) && !this.wasProducer(msg)) {
-				this.logger.info('was not a procuder nor a consumer');
-			}
-		} catch(e) {
-			this.logger.warn(e);
-			this.logger.warn(e.message);
-
+		if(!this.wasConsumer(msg) && !this.wasProducer(msg)) {
+			this.logger.info('was not a procuder nor a consumer');
 		}
 		
 		defer.resolve(msg);

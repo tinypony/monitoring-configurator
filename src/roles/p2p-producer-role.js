@@ -1,6 +1,7 @@
 import Role from './roles';
 import Forwarder from '../forwarder/p2p-forwarder';
 import q from 'q';
+import NODE_TYPE from '../node-type';
 import _ from 'underscore';
 
 

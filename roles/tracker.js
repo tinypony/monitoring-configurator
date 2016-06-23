@@ -22,6 +22,10 @@ var _dequeue = require('dequeue');
 
 var _dequeue2 = _interopRequireDefault(_dequeue);
 
+var _nodeType = require('../node-type');
+
+var _nodeType2 = _interopRequireDefault(_nodeType);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -69,12 +73,12 @@ var Tracker = function (_Role) {
 	}, {
 		key: 'wasProducer',
 		value: function wasProducer(msg) {
-			return msg.roles && _underscore2.default.contains(msg.roles, NODE_TYPE.P2PPRODUCER);
+			return msg.roles && _underscore2.default.contains(msg.roles, _nodeType2.default.P2PPRODUCER);
 		}
 	}, {
 		key: 'wasConsumer',
 		value: function wasConsumer(msg) {
-			return msg.roles && _underscore2.default.contains(msg.roles, NODE_TYPE.P2PCONSUMER);
+			return msg.roles && _underscore2.default.contains(msg.roles, _nodeType2.default.P2PCONSUMER);
 		}
 	}, {
 		key: 'enhanceWithHost',
@@ -88,23 +92,18 @@ var Tracker = function (_Role) {
 		value: function handleHello(msg) {
 			var defer = _q2.default.defer();
 			this.logger.info('[Tracker] handleHello( ' + JSON.stringify(msg) + ' )');
-			try {
-				if (this.wasProducer(msg)) {
-					this.logger.info('Hello from p2p-producer');
-					this.registerProducer(msg.host, msg.port, msg.publish);
-				}
+			if (this.wasProducer(msg)) {
+				this.logger.info('Hello from p2p-producer');
+				this.registerProducer(msg.host, msg.port, msg.publish);
+			}
 
-				if (this.wasConsumer(msg)) {
-					this.logger.info('Hello from p2p-consumer');
-					this.registerConsumer(this.enhanceWithHost(msg.host, msg.subscribe));
-				}
+			if (this.wasConsumer(msg)) {
+				this.logger.info('Hello from p2p-consumer');
+				this.registerConsumer(this.enhanceWithHost(msg.host, msg.subscribe));
+			}
 
-				if (!this.wasConsumer(msg) && !this.wasProducer(msg)) {
-					this.logger.info('was not a procuder nor a consumer');
-				}
-			} catch (e) {
-				this.logger.warn(e);
-				this.logger.warn(e.message);
+			if (!this.wasConsumer(msg) && !this.wasProducer(msg)) {
+				this.logger.info('was not a procuder nor a consumer');
 			}
 
 			defer.resolve(msg);

@@ -20,6 +20,10 @@ var _q = require('q');
 
 var _q2 = _interopRequireDefault(_q);
 
+var _nodeType = require('../node-type');
+
+var _nodeType2 = _interopRequireDefault(_nodeType);
+
 var _underscore = require('underscore');
 
 var _underscore2 = _interopRequireDefault(_underscore);

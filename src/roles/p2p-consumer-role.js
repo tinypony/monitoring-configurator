@@ -1,6 +1,6 @@
 import Role from './roles';
 import q from 'q';
-
+import NODE_TYPE from '../node-type';
 import _ from 'underscore';
 import KafkaPuller from '../kafka/kafka-puller';
 
