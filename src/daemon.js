@@ -191,9 +191,9 @@ class ConfigurationDaemon {
 	}
 
 	getMessageHandler(isBroadcast) {
-		return ( data, rinfo) => {
+		return (data, rinfo) => {
 			var dataString = data.toString();
-
+			this.logger.info(`Received ${dataString}`);
 			try {
 				var msg = JSON.parse(dataString);
 				msg = this.preprocessMessage( msg, rinfo );

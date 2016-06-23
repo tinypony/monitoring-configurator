@@ -274,7 +274,7 @@ var ConfigurationDaemon = function () {
 
 			return function (data, rinfo) {
 				var dataString = data.toString();
-
+				_this3.logger.info('Received ' + dataString);
 				try {
 					var msg = JSON.parse(dataString);
 					msg = _this3.preprocessMessage(msg, rinfo);
