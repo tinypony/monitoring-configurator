@@ -43,8 +43,8 @@ class P2PProducerRole extends Role {
 
 	handleTReconfig(msg) {
 		var defer = q.defer();
-		var msg = this.getSubscribeMessage();
-		this.respondTo(msg, msg).then(() => { defer.resolve(msg); }, err => defer.reject(err));
+		var publish = this.getSubscribeMessage();
+		this.respondTo(msg, publish).then(() => { defer.resolve(msg); }, err => defer.reject(err));
 		return defer.promise;
 	}
 }
