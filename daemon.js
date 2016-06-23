@@ -282,6 +282,7 @@ var ConfigurationDaemon = function () {
 					if (isBroadcast) _this3.handleBroadcastMessage(msg);else _this3.handleUnicastMessage(msg);
 				} catch (e) {
 					//silent skip
+					_this3.logger.info(e);
 					_this3.logger.info("Could not parse incoming data, probably malformed");
 				}
 			};

@@ -204,6 +204,7 @@ class ConfigurationDaemon {
 					this.handleUnicastMessage(msg);
 			} catch(e) {
 				//silent skip
+				this.logger.info(e);
 				this.logger.info("Could not parse incoming data, probably malformed");
 			}
 		}
