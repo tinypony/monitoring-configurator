@@ -59,7 +59,9 @@ class Tracker extends Role {
 				this.logger.info('was not a procuder nor a consumer');
 			}
 		} catch(e) {
-			this.logger.warn(JSON.stringify(e));
+			this.logger.warn(e);
+			this.logger.warn(e.message);
+
 		}
 		
 		defer.resolve(msg);
