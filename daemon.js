@@ -239,7 +239,11 @@ var ConfigurationDaemon = function () {
 				return this.handlePublish(msg);
 			} else if (msg.type === _messageType.MESSAGE_TYPE.NEW_DESTINATION) {
 				this.logger.info('handle new destination');
-				return this.handleNewDestination(msg);
+				try {
+					return this.handleNewDestination(msg);
+				} catch (e) {
+					this.logger.warn(e);
+				}
 			}
 		}
 	}, {
