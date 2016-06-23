@@ -366,6 +366,8 @@ var Role = function () {
 				topic: topic,
 				dest: endpoint
 			};
+
+			return JSON.stringify(msg);
 		}
 	}]);
 

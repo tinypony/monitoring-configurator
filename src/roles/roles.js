@@ -306,6 +306,8 @@ class Role {
 			topic,
 			dest: endpoint
 		}
+
+		return JSON.stringify(msg);
 	}
 
 
