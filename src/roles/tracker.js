@@ -122,14 +122,10 @@ class Tracker extends Role {
 		while(this.newDestinationFIFO.length) {
 			let item = this.newDestinationFIFO.shift();
 			let msg = this.getNewDestinationMessage(item.topic, item.dest);
-			this.sockets.unicast.send(
-				new Buffer(msg),
-				0,
-				msg.length,
-				item.source.port,
-				item.source.host,
-				() => {this.logger.info(`Send topic to endpoint mapping ${JSON.stringify(item.topic)} -> ${JSON.stringify(item.dest)}`)}
-			);
+			
+			this.send(item.source.host, item.source.port, msg).then(() => {
+				this.logger.info(`Send topic to endpoint mapping ${JSON.stringify(item.topic)} -> ${JSON.stringify(item.dest)}`)
+			});
 		}
 	}
 

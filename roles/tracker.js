@@ -186,7 +186,8 @@ var Tracker = function (_Role) {
 			var _loop = function _loop() {
 				var item = _this5.newDestinationFIFO.shift();
 				var msg = _this5.getNewDestinationMessage(item.topic, item.dest);
-				_this5.sockets.unicast.send(new Buffer(msg), 0, msg.length, item.source.port, item.source.host, function () {
+
+				_this5.send(item.source.host, item.source.port, msg).then(function () {
 					_this5.logger.info('Send topic to endpoint mapping ' + JSON.stringify(item.topic) + ' -> ' + JSON.stringify(item.dest));
 				});
 			};
