@@ -5,7 +5,7 @@ import NODE_TYPE from '../node-type';
 import _ from 'underscore';
 
 
-class ProducerRole extends Role {
+class P2PProducerRole extends Role {
 	constructor(initId, config, sockets) {
 		super(initId, config, sockets);
 		
@@ -37,6 +37,7 @@ class ProducerRole extends Role {
 					this.logger.warn(err);
 					return defer.reject(err);
 				} else {
+					this.logger.info('[p2p-producer] broadcasted hello');
 					defer.resolve({
 						hello_sent: true
 					});
@@ -62,4 +63,4 @@ class ProducerRole extends Role {
 	}
 }
 
-export default ProducerRole;
+export default P2PProducerRole;

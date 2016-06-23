@@ -36,13 +36,13 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var ProducerRole = function (_Role) {
-	_inherits(ProducerRole, _Role);
+var P2PProducerRole = function (_Role) {
+	_inherits(P2PProducerRole, _Role);
 
-	function ProducerRole(initId, config, sockets) {
-		_classCallCheck(this, ProducerRole);
+	function P2PProducerRole(initId, config, sockets) {
+		_classCallCheck(this, P2PProducerRole);
 
-		var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(ProducerRole).call(this, initId, config, sockets));
+		var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(P2PProducerRole).call(this, initId, config, sockets));
 
 		if (_this.isP2PProducer()) {
 			_this.forwarder = new _p2pForwarder2.default(_this.config);
@@ -50,7 +50,7 @@ var ProducerRole = function (_Role) {
 		return _this;
 	}
 
-	_createClass(ProducerRole, [{
+	_createClass(P2PProducerRole, [{
 		key: 'isMe',
 		value: function isMe() {
 			return this.isP2PProducer();
@@ -61,7 +61,7 @@ var ProducerRole = function (_Role) {
 			var _this2 = this;
 
 			if (prev && prev.hello_sent) {
-				return _get(Object.getPrototypeOf(ProducerRole.prototype), 'onStart', this).call(this, prev);
+				return _get(Object.getPrototypeOf(P2PProducerRole.prototype), 'onStart', this).call(this, prev);
 			}
 
 			var defer = _q2.default.defer();
@@ -72,6 +72,7 @@ var ProducerRole = function (_Role) {
 					_this2.logger.warn(err);
 					return defer.reject(err);
 				} else {
+					_this2.logger.info('[p2p-producer] broadcasted hello');
 					defer.resolve({
 						hello_sent: true
 					});
@@ -102,7 +103,7 @@ var ProducerRole = function (_Role) {
 		}
 	}]);
 
-	return ProducerRole;
+	return P2PProducerRole;
 }(_roles2.default);
 
-exports.default = ProducerRole;
+exports.default = P2PProducerRole;
