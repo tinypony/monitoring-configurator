@@ -69,6 +69,7 @@ var P2PForwarder = function () {
    */
 		this.forward_map = {};
 		this.forward_ports = [];
+
 		_underscore2.default.each(config.producers, function (fwd) {
 			if (fwd.protocol === 'tcp') _this.createTcpSocket(fwd).done(function (binding) {
 				_this.forward_ports.push(binding);
@@ -141,6 +142,7 @@ var P2PForwarder = function () {
 	}, {
 		key: 'addForwardingInfo',
 		value: function addForwardingInfo(topic, dest) {
+			this.logger.info('[p2p-forwarder] addForwardingInfo(' + JSON.stringify(topic) + ', ' + JSON.stringify(dest) + ')');
 			var destinations = this.forward_map[topic];
 
 			if (!destinations) {

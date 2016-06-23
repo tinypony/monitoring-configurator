@@ -34,6 +34,7 @@ class P2PForwarder {
 		 */
 		this.forward_map = {};
 		this.forward_ports = [];
+
 		_.each(config.producers, fwd => {
 			if(fwd.protocol === 'tcp')
 				this.createTcpSocket(fwd).done(binding => { this.forward_ports.push(binding) });
@@ -97,6 +98,7 @@ class P2PForwarder {
 	}
 
 	addForwardingInfo(topic, dest) {
+		this.logger.info(`[p2p-forwarder] addForwardingInfo(${JSON.stringify(topic)}, ${JSON.stringify(dest)})`)
 		let destinations = this.forward_map[topic];
 		
 		if(!destinations) {
