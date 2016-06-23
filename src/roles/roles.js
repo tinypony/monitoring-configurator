@@ -242,8 +242,8 @@ class Role {
 			roles: this.config.roles,
 			uuid: this.initId,
 			host: 'self',
-			publish: this.config.producers? _.map(this.config.producers, p => producers.topic) : [],
-			subscribe: this.config.consumers? this.config.consumers : [],
+			publish: this.config.producers ? _.map(this.config.producers, p => p.topic) : [],
+			subscribe: this.config.consumers ? this.config.consumers : [],
 			port: this.config.unicast.port
 		};
 

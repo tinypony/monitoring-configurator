@@ -23,27 +23,12 @@ class P2PProducerRole extends Role {
 			return super.onStart(prev);
 		}
 
-		var defer = q.defer();
 		let message = this.getHelloMessage();
-
-		this.sockets.broadcast.send(
-			new Buffer(message), 
-			0, 
-			message.length, 
-			this.config.broadcastPort,
-			this.getBroadcastAddress(), 
-			(err) => {
-				if (err) {
-					this.logger.warn(err);
-					return defer.reject(err);
-				} else {
-					this.logger.info('[p2p-producer] broadcasted hello');
-					defer.resolve({
-						hello_sent: true
-					});
-				}
-			}
-		);
+		this.broadcast(message).then(() => {
+			defer.resolve({
+				hello_sent: true
+			});
+		}, err => defer.reject(err));
 
 		return defer.promise;
 	}

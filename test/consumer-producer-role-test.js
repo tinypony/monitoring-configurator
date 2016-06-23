@@ -84,15 +84,6 @@ describe('Hybrid (producer/consumer) role', () => {
 				'10.0.255.255'
 			)).to.be.true;
 
-			// expect(socketSpy.calledWith(
-			// 	sinon.match.any,
-			// 	sinon.match.any,
-			// 	sinon.match.any,
-			// 	1337,
-			// 	'10.0.0.10'
-			// )).to.be.true;
-
-
 			done();
 		});
 	});

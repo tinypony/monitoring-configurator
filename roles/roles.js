@@ -296,7 +296,7 @@ var Role = function () {
 				uuid: this.initId,
 				host: 'self',
 				publish: this.config.producers ? _underscore2.default.map(this.config.producers, function (p) {
-					return producers.topic;
+					return p.topic;
 				}) : [],
 				subscribe: this.config.consumers ? this.config.consumers : [],
 				port: this.config.unicast.port

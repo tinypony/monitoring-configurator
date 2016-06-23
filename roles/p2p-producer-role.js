@@ -58,25 +58,17 @@ var P2PProducerRole = function (_Role) {
 	}, {
 		key: 'onStart',
 		value: function onStart(prev) {
-			var _this2 = this;
-
 			if (prev && prev.hello_sent) {
 				return _get(Object.getPrototypeOf(P2PProducerRole.prototype), 'onStart', this).call(this, prev);
 			}
 
-			var defer = _q2.default.defer();
 			var message = this.getHelloMessage();
-
-			this.sockets.broadcast.send(new Buffer(message), 0, message.length, this.config.broadcastPort, this.getBroadcastAddress(), function (err) {
-				if (err) {
-					_this2.logger.warn(err);
-					return defer.reject(err);
-				} else {
-					_this2.logger.info('[p2p-producer] broadcasted hello');
-					defer.resolve({
-						hello_sent: true
-					});
-				}
+			this.broadcast(message).then(function () {
+				defer.resolve({
+					hello_sent: true
+				});
+			}, function (err) {
+				return defer.reject(err);
 			});
 
 			return defer.promise;

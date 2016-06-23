@@ -54,24 +54,20 @@ var ProducerRole = function (_Role) {
 	}, {
 		key: 'onStart',
 		value: function onStart(prev) {
-			var _this2 = this;
 
 			if (prev && prev.hello_sent) {
-				return _get(Object.getPrototypeOf(ProducerRole.prototype), 'onStart', this).call(this, prev);
+				return _get(Object.getPrototypeOf(ProducerRole.prototype), 'onStart', this).call(this);
 			}
 
 			var defer = _q2.default.defer();
-			var message = this.getHelloMessage();
 
-			this.sockets.broadcast.send(new Buffer(message), 0, message.length, this.config.broadcastPort, this.getBroadcastAddress(), function (err) {
-				if (err) {
-					_this2.logger.warn(err);
-					return defer.reject(err);
-				} else {
-					defer.resolve({
-						hello_sent: true
-					});
-				}
+			var message = this.getHelloMessage();
+			this.broadcast(message).then(function () {
+				defer.resolve({
+					hello_sent: true
+				});
+			}, function (err) {
+				return defer.reject(err);
 			});
 
 			return defer.promise;

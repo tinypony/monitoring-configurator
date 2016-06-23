@@ -65,10 +65,9 @@ class ConfigurationDaemon {
 			new P2PConsumerRole(this.initId, this.config, sockets),
 			new P2PProducerRole(this.initId, this.config, sockets)
 		];
-
 		this.hasStartedDefer = q.defer();
 		this.hasStarted = this.hasStartedDefer.promise;
-		this.hasStarted.catch(err => this.logger.info(JSON.stringify(err)));
+		this.hasStarted.catch(err => this.logger.info(err));
 	}
 
 	getRoleFunctions(func) {

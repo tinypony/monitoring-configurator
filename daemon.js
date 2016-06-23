@@ -118,11 +118,10 @@ var ConfigurationDaemon = function () {
 		this.roles = [new _datasinkRole2.default(this.initId, this.config, sockets), new _datasinkSlaveRole2.default(this.initId, this.config, sockets), new _producerRole2.default(this.initId, this.config, sockets), new _consumerRole2.default(this.initId, this.config, sockets),
 		//p2p version
 		new _tracker2.default(this.initId, this.config, sockets), new _p2pConsumerRole2.default(this.initId, this.config, sockets), new _p2pProducerRole2.default(this.initId, this.config, sockets)];
-
 		this.hasStartedDefer = _q2.default.defer();
 		this.hasStarted = this.hasStartedDefer.promise;
 		this.hasStarted.catch(function (err) {
-			return _this.logger.info(JSON.stringify(err));
+			return _this.logger.info(err);
 		});
 	}
 
