@@ -87,21 +87,23 @@ var Tracker = function (_Role) {
 		key: 'handleHello',
 		value: function handleHello(msg) {
 			var defer = _q2.default.defer();
-			this.logger.info('[Tracker] handleHello(' + JSON.stringify(msg) + ')');
+			this.logger.info('[Tracker] handleHello( ' + JSON.stringify(msg) + ' )');
+			try {
+				if (this.wasProducer(msg)) {
+					this.logger.info('Hello from p2p-producer');
+					this.registerProducer(msg.host, msg.port, msg.publish);
+				}
 
-			if (this.wasProducer(msg)) {
-				this.logger.info('Hello from p2p-producer');
+				if (this.wasConsumer(msg)) {
+					this.logger.info('Hello from p2p-consumer');
+					this.registerConsumer(this.enhanceWithHost(msg.host, msg.subscribe));
+				}
 
-				this.registerProducer(msg.host, msg.port, msg.publish);
-			}
-
-			if (this.wasConsumer(msg)) {
-				this.logger.info('Hello from p2p-consumer');
-				this.registerConsumer(this.enhanceWithHost(msg.host, msg.subscribe));
-			}
-
-			if (!this.wasConsumer(msg) && !this.wasProducer(msg)) {
-				this.logger.info('was not a procuder nor a consumer');
+				if (!this.wasConsumer(msg) && !this.wasProducer(msg)) {
+					this.logger.info('was not a procuder nor a consumer');
+				}
+			} catch (e) {
+				this.logger.warn(JSON.stringify(e));
 			}
 
 			defer.resolve(msg);
