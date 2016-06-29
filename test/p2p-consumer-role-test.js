@@ -1,18 +1,18 @@
-import Producer from '../src/roles/p2p-producer-role';
+import Consumer from '../src/roles/p2p-consumer-role';
 import { MESSAGE_TYPE } from '../src/message-type';
 import NODE_TYPE from '../src/node-type';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import q from 'q';
 
-describe('p2p Producer', () => {
-	const producerConf = {
+describe('p2p Consumer', () => {
+	const consumerConf = {
 		unicast: {
 			port: 12556
 		},
-		roles: [NODE_TYPE.P2PPRODUCER],
-		producers: [{
-			topic: 'foo',
+		roles: [NODE_TYPE.P2PCONSUMER],
+		consumers: [{
+			topics: ['foo'],
 			port: 10000
 		}],
 		monitoring: {
@@ -29,7 +29,7 @@ describe('p2p Producer', () => {
 		port: 1234
 	};
 
-	let producer, spy;
+	let consumer, spy;
 
 	beforeEach(() => {
 		const sockets = {
@@ -39,20 +39,20 @@ describe('p2p Producer', () => {
 
 		var defer = q.defer();
 		defer.resolve();
-		spy = sinon.stub(Producer.prototype, 'respondTo').returns(defer.promise);
-		producer = new Producer(null, producerConf, sockets);
+		spy = sinon.stub(Consumer.prototype, 'respondTo').returns(defer.promise);
+		consumer = new Consumer(null, consumerConf, sockets);
 	});
 
 	afterEach(() => {
 		spy.restore();
 	});
 
-	it('Handles reconfig message from tracker by responding with publish', done => {
-		producer.handleTReconfig(trackerReconfig).done(() => {
+	it('Handles reconfig message from tracker by responding with subscribe', done => {
+		consumer.handleTReconfig(trackerReconfig).done(() => {
 			expect(spy.calledOnce).to.be.true;
 			expect(spy.getCall(0).args).to.eql([
 				trackerReconfig, 
-				producer.getPublishMessage()
+				consumer.getSubscribeMessage()
 			]);
 			done();
 		});

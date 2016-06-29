@@ -255,7 +255,7 @@ class Role {
 			type: MESSAGE_TYPE.SUBSCRIBE,
 			host: 'self',
 			port: this.config.unicast.port,
-			subscribe: this.config.consumers? this.config.consumers : []
+			subscribe: this.config.consumers ? this.config.consumers : []
 		};
 
 		return JSON.stringify(msg);
@@ -266,7 +266,7 @@ class Role {
 			type: MESSAGE_TYPE.PUBLISH,
 			host: 'self',
 			port: this.config.unicast.port,
-			subscribe: this.config.consumers? this.config.consumers : []
+			publish: this.config.producers ? _.map(this.config.producers, p => p.topic) : []
 		};
 
 		return JSON.stringify(msg);

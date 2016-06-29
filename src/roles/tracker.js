@@ -4,11 +4,13 @@ import q from 'q';
 import Dequeue from 'dequeue';
 import NODE_TYPE from '../node-type';
 
+const DEFAULT_CONSUMER_PROTOCOL = 'udp';
+
 class Tracker extends Role {
 	constructor(initId, config, sockets) {
 		super(initId, config, sockets);
 		this.producers = []; //Array<{port:int, host:String, topics: Array<String>}>
-		this.consumers = {}; //Map<String, Array<{port:int, host:String}>>
+		this.consumers = {}; //Map<topic:String -> Array<{port:int, host:String}>>
 		this.newDestinationFIFO = new Dequeue();
 	}
 
@@ -60,10 +62,12 @@ class Tracker extends Role {
 
 	handleSubscribe(msg) {
 		this.registerConsumer(this.enhanceWithHost(msg.host, msg.subscribe));
+		return super.handleSubscribe(msg);
 	}
 
 	handlePublish(msg) {
 		this.registerProducer(msg.host, msg.port, msg.publish);
+		return super.handlePublish(msg);
 	}
 
 	registerProducer(host, port, writeTopics) {
@@ -87,7 +91,7 @@ class Tracker extends Role {
 		this.logger.info(`[Tracker] addTopicEndpointMapping( ${JSON.stringify(topic)}, ${JSON.stringify(endpoint)})`);
 
 		if(is_new) {
-			this.consumers[topic]= [endpoint];
+			this.consumers[topic] = [endpoint];
 		} else {
 			this.consumers[topic].push(endpoint);
 		}
@@ -95,16 +99,21 @@ class Tracker extends Role {
 		this.notifyProducers(topic, endpoint);
 	}
 
-	notifyProducers(topic, endpoint) {
-		this.logger.info(`[Tracker] notifyProducers( ${JSON.stringify(topic)}, ${JSON.stringify(endpoint)})`);
+	notifyProducers(topic, dest) {
+		this.logger.info(`[Tracker] notifyProducers( ${JSON.stringify(topic)}, ${JSON.stringify(dest)})`);
 		this.logger.info(`[Tracker] producers = ${JSON.stringify(this.producers)}`);
-		topicWriters = _.filter(this.producers, p => _.contains(p.topics, topic));
+		const topicWriters = _.filter(this.producers, p => _.contains(p.topics, topic));
 
 		_.each(topicWriters, source => {
-			this.notifyProducer(source, topic, endpoint);
+			this.notifyProducer(source, topic, dest);
 		});
 	}
 
+	/**
+	 * dest: {host, port}
+	 * topic: string
+	 * source: {host, port}
+	 */
 	notifyProducer(source, topic, dest) {
 		this.logger.info(`[Tracker] notifyProducer( ${JSON.stringify(source)}, ${JSON.stringify(topic)}, ${JSON.stringify(dest)})`);
 
@@ -123,7 +132,7 @@ class Tracker extends Role {
 		while(this.newDestinationFIFO.length) {
 			let item = this.newDestinationFIFO.shift();
 			let msg = this.getNewDestinationMessage(item.topic, item.dest);
-			this.logger.info(`Send new destionation to ${item.source.host}:${item.source.port}`);
+			this.logger.info(`Send new destination to ${item.source.host}:${item.source.port}`);
 			this.send(item.source.host, item.source.port, msg).then(() => {
 				this.logger.info(`Send topic to endpoint mapping ${JSON.stringify(item.topic)} -> ${JSON.stringify(item.dest)}`)
 			});
@@ -140,7 +149,7 @@ class Tracker extends Role {
 		this.logger.info(`[Tracker] registerConsumer( ${JSON.stringify(subscriptions)} )`);
 
 		_.each(subscriptions, sub => {
-			let endpoint = { host: sub.host, port: parseInt(sub.port), protocol: sub.protocol ? sub.protocol: 'udp' };
+			let endpoint = { host: sub.host, port: parseInt(sub.port), protocol: sub.protocol ? sub.protocol: DEFAULT_CONSUMER_PROTOCOL };
 
 			_.each(sub.topics, t => {
 				if(!this.consumers[t] || !this.consumers[t].length) {
