@@ -141,7 +141,7 @@ var KafkaPuller = function () {
 			if (this.consumer) {
 				this.consumer.close(function () {
 					_this3.consumer = null;
-					_this3.subscribe(sub.monitoring);
+					_this3.subscribe(sub, monitoring);
 				});
 			} else {
 				this.logger.info('[KafkaPuller] Subscribing 127.0.0.1:%d', sub.port);

@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 var _underscore = require('underscore');
 
 var _underscore2 = _interopRequireDefault(_underscore);
@@ -34,6 +36,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var DEFAULT_CONSUMER_PROTOCOL = 'udp';
+
 var Tracker = function (_Role) {
 	_inherits(Tracker, _Role);
 
@@ -43,7 +47,7 @@ var Tracker = function (_Role) {
 		var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Tracker).call(this, initId, config, sockets));
 
 		_this.producers = []; //Array<{port:int, host:String, topics: Array<String>}>
-		_this.consumers = {}; //Map<String, Array<{port:int, host:String}>>
+		_this.consumers = {}; //Map<topic:String -> Array<{port:int, host:String}>>
 		_this.newDestinationFIFO = new _dequeue2.default();
 		return _this;
 	}
@@ -92,6 +96,7 @@ var Tracker = function (_Role) {
 		value: function handleHello(msg) {
 			var defer = _q2.default.defer();
 			this.logger.info('[Tracker] handleHello( ' + JSON.stringify(msg) + ' )');
+
 			if (this.wasProducer(msg)) {
 				this.registerProducer(msg.host, msg.port, msg.publish);
 			}
@@ -107,11 +112,13 @@ var Tracker = function (_Role) {
 		key: 'handleSubscribe',
 		value: function handleSubscribe(msg) {
 			this.registerConsumer(this.enhanceWithHost(msg.host, msg.subscribe));
+			return _get(Object.getPrototypeOf(Tracker.prototype), 'handleSubscribe', this).call(this, msg);
 		}
 	}, {
 		key: 'handlePublish',
 		value: function handlePublish(msg) {
 			this.registerProducer(msg.host, msg.port, msg.publish);
+			return _get(Object.getPrototypeOf(Tracker.prototype), 'handlePublish', this).call(this, msg);
 		}
 	}, {
 		key: 'registerProducer',
@@ -150,19 +157,26 @@ var Tracker = function (_Role) {
 		}
 	}, {
 		key: 'notifyProducers',
-		value: function notifyProducers(topic, endpoint) {
+		value: function notifyProducers(topic, dest) {
 			var _this4 = this;
 
-			this.logger.info('[Tracker] notifyProducers( ' + JSON.stringify(topic) + ', ' + JSON.stringify(endpoint) + ')');
+			this.logger.info('[Tracker] notifyProducers( ' + JSON.stringify(topic) + ', ' + JSON.stringify(dest) + ')');
 			this.logger.info('[Tracker] producers = ' + JSON.stringify(this.producers));
-			topicWriters = _underscore2.default.filter(this.producers, function (p) {
+			var topicWriters = _underscore2.default.filter(this.producers, function (p) {
 				return _underscore2.default.contains(p.topics, topic);
 			});
 
 			_underscore2.default.each(topicWriters, function (source) {
-				_this4.notifyProducer(source, topic, endpoint);
+				_this4.notifyProducer(source, topic, dest);
 			});
 		}
+
+		/**
+   * dest: {host, port}
+   * topic: string
+   * source: {host, port}
+   */
+
 	}, {
 		key: 'notifyProducer',
 		value: function notifyProducer(source, topic, dest) {
@@ -186,7 +200,7 @@ var Tracker = function (_Role) {
 			var _loop = function _loop() {
 				var item = _this5.newDestinationFIFO.shift();
 				var msg = _this5.getNewDestinationMessage(item.topic, item.dest);
-				_this5.logger.info('Send new destionation to ' + item.source.host + ':' + item.source.port);
+				_this5.logger.info('Send new destination to ' + item.source.host + ':' + item.source.port);
 				_this5.send(item.source.host, item.source.port, msg).then(function () {
 					_this5.logger.info('Send topic to endpoint mapping ' + JSON.stringify(item.topic) + ' -> ' + JSON.stringify(item.dest));
 				});
@@ -212,7 +226,7 @@ var Tracker = function (_Role) {
 			this.logger.info('[Tracker] registerConsumer( ' + JSON.stringify(subscriptions) + ' )');
 
 			_underscore2.default.each(subscriptions, function (sub) {
-				var endpoint = { host: sub.host, port: parseInt(sub.port), protocol: sub.protocol ? sub.protocol : 'udp' };
+				var endpoint = { host: sub.host, port: parseInt(sub.port), protocol: sub.protocol ? sub.protocol : DEFAULT_CONSUMER_PROTOCOL };
 
 				_underscore2.default.each(sub.topics, function (t) {
 					if (!_this6.consumers[t] || !_this6.consumers[t].length) {

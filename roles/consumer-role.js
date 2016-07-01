@@ -83,7 +83,7 @@ var ConsumerRole = function (_Role) {
 				return defer.promise;
 			}
 
-			this.puller.subscribe(this.config.consumers[0], this.config.monitoring);
+			this.puller.subscribe(this.config.consumers[0], this.config.monitoring); //only one consumer binding is used at the moment
 			defer.resolve(msg);
 			// this.logger.info('Consumer received configuration ' + JSON.stringify(msg));
 			// var subscribeMsg = this.getSubscribeMessage();
@@ -101,16 +101,19 @@ var ConsumerRole = function (_Role) {
 	}, {
 		key: 'handleClusterResize',
 		value: function handleClusterResize(msg) {
+			this.logger.info('[Consumer] handle cluster resize');
 			return this.configureClient(msg);
 		}
 	}, {
 		key: 'handleConfig',
 		value: function handleConfig(msg) {
+			this.logger.info('[Consumer] handle config ' + JSON.stringify(msg));
 			return this.configureClient(msg);
 		}
 	}, {
 		key: 'handleReconfig',
 		value: function handleReconfig(msg) {
+			this.logger.info('[Consumer] handle reconfig ' + JSON.stringify(msg));
 			return this.configureClient(msg);
 		}
 	}]);

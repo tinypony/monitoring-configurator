@@ -175,7 +175,6 @@ var P2PForwarder = function () {
 			var msgStr = data.toString();
 
 			_underscore2.default.each(this.forward_map[topic], function (endpoint) {
-				_this4.logger.info('[p2p-Forwarder] Forward data ' + msgStr + ' to ' + endpoint.host + ':' + endpoint.port);
 				_this4.send(endpoint.host, endpoint.port, msgStr);
 			});
 		}

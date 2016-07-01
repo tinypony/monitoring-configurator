@@ -323,7 +323,9 @@ var Role = function () {
 				type: _messageType.MESSAGE_TYPE.PUBLISH,
 				host: 'self',
 				port: this.config.unicast.port,
-				subscribe: this.config.consumers ? this.config.consumers : []
+				publish: this.config.producers ? _underscore2.default.map(this.config.producers, function (p) {
+					return p.topic;
+				}) : []
 			};
 
 			return JSON.stringify(msg);

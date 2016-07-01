@@ -86,9 +86,9 @@ var P2PProducerRole = function (_Role) {
 		key: 'handleTReconfig',
 		value: function handleTReconfig(msg) {
 			var defer = _q2.default.defer();
-			var publish = this.getSubscribeMessage();
-			this.respondTo(msg, publish).then(function () {
-				defer.resolve(msg);
+			var publish = this.getPublishMessage();
+			this.respondTo(msg, publish).then(function (ok) {
+				return defer.resolve(msg);
 			}, function (err) {
 				return defer.reject(err);
 			});
