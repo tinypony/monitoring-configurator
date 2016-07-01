@@ -2,9 +2,14 @@
   "unicast": {
     "port": 12556
   },
-  "roles": ["p2p-producer"],
+  "roles": ["p2p-producer", "producer"],
   "producers" : [{
+    "port": 2003,
+    "p2p": false,
+    "topic": "latency"
+  }, {
     "port": 2004,
+    "p2p": true,
     "topic": "latency"
   }],
   "monitoring": {

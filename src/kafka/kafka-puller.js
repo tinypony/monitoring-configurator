@@ -95,7 +95,7 @@ class KafkaPuller {
 		if(this.consumer) {
 			this.consumer.close(() => {
 				this.consumer = null;
-				this.subscribe(sub. monitoring);
+				this.subscribe(sub, monitoring);
 			});
 		} else {
 			this.logger.info('[KafkaPuller] Subscribing 127.0.0.1:%d', sub.port);
