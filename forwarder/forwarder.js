@@ -184,17 +184,43 @@ var Forwarder = function () {
 			var _this4 = this;
 
 			if (!isValidPort(config.monitoring.port)) {
-				this.logger.info('trying to configure forwarder with an invalid port');
+				this.logger.warn('trying to configure forwarder with an invalid port');
 				return;
 			}
 			this.config = config;
 			this.forwardToAddress = config.monitoring.host;
 			this.forwardToPort = config.monitoring.port;
 			this.logger.info('[Forwarder.reconfig()] Reconfiguring forwarder');
+
 			this.reconnect().catch(function (err) {
 				_this4.logger.warn('[Forwarder.reconfig()] ' + JSON.stringify(err));
 				_this4.reconnect();
 			});
+		}
+	}, {
+		key: 'reconnect',
+		value: function reconnect() {
+			var _this5 = this;
+
+			this.logger.info('[Forwarder.reconnect()] Using nodejs forwarder');
+
+			if (this.producer) {
+				this.logger.info('[Forwarder.reconnect()] Close previous producer');
+				var defer = _q2.default.defer();
+
+				this.producer.close(function () {
+					_this5.logger.info('[Forwarder.reconnect()] Closed the producer, reconnecting');
+					_this5.producer = null;
+					_this5.createConnection().then(defer.resolve, function (err) {
+						return defer.reject(err);
+					});
+				});
+
+				return defer.promise;
+			} else {
+				this.logger.info('[Forwarder.reconnect()] No existing producer, proceed');
+				return this.createConnection();
+			}
 		}
 	}, {
 		key: 'getZK',
@@ -204,7 +230,7 @@ var Forwarder = function () {
 	}, {
 		key: 'createConnection',
 		value: function createConnection() {
-			var _this5 = this;
+			var _this6 = this;
 
 			var defer = _q2.default.defer();
 			var connectionString = this.getZK();
@@ -213,41 +239,18 @@ var Forwarder = function () {
 			var producer = new _kafkaNode.HighLevelProducer(client);
 
 			producer.on('ready', function () {
-				_this5.logger.info('Forwader is ready');
-				_this5.producer = producer;
+				_this6.logger.info('Forwader is ready');
+				_this6.producer = producer;
 				defer.resolve();
 			});
 
 			producer.on('error', function (err) {
-				_this5.logger.warn('[Forwarder.createConnection()] Error: %s', JSON.stringify(err));
+				_this6.logger.warn('[Forwarder.createConnection()] Error: %s', JSON.stringify(err));
 				defer.reject(err);
 			});
 
-			this.logger.info('[Forwarder] Created new producer');
+			this.logger.info('[Forwarder] Created new kafka producer and attached handlers');
 			return defer.promise;
-		}
-	}, {
-		key: 'reconnect',
-		value: function reconnect() {
-			var _this6 = this;
-
-			this.logger.info('[Forwarder.reconnect()] Using nodejs forwarder');
-
-			if (this.producer) {
-				var defer = _q2.default.defer();
-
-				this.producer.close(function () {
-					_this6.logger.info('[Forwarder.reconnect()] Closed the producer, reconnecting');
-					_this6.producer = null;
-					_this6.createConnection().then(defer.resolve, function (err) {
-						return defer.reject(err);
-					});
-				});
-
-				return defer.promise;
-			} else {
-				return this.createConnection();
-			}
 		}
 	}, {
 		key: 'forward',

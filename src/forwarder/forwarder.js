@@ -131,17 +131,40 @@ class Forwarder {
 	
 	reconfig(config) {
 		if(!isValidPort(config.monitoring.port)) {
-			this.logger.info('trying to configure forwarder with an invalid port');
+			this.logger.warn('trying to configure forwarder with an invalid port');
 			return;
 		}
 		this.config = config;
 		this.forwardToAddress = config.monitoring.host;
 		this.forwardToPort = config.monitoring.port;
 		this.logger.info('[Forwarder.reconfig()] Reconfiguring forwarder');
-		this.reconnect().catch( err => { 
-			this.logger.warn(`[Forwarder.reconfig()] ${JSON.stringify(err)}`);
-			this.reconnect();
-		});
+
+		this.reconnect()
+			.catch( err => { 
+				this.logger.warn(`[Forwarder.reconfig()] ${JSON.stringify(err)}`);
+				this.reconnect();
+			});
+	}
+
+	reconnect() {		
+		this.logger.info('[Forwarder.reconnect()] Using nodejs forwarder');
+
+		if (this.producer) {
+			this.logger.info('[Forwarder.reconnect()] Close previous producer');
+			var defer = q.defer();
+
+			this.producer.close(() => {
+				this.logger.info('[Forwarder.reconnect()] Closed the producer, reconnecting');
+				this.producer = null;
+				this.createConnection()
+					.then(defer.resolve, err => defer.reject(err));
+			});
+
+			return defer.promise;
+		} else {
+			this.logger.info('[Forwarder.reconnect()] No existing producer, proceed');
+			return this.createConnection();
+		}
 	}
 
 	getZK() {
@@ -166,29 +189,11 @@ class Forwarder {
 			defer.reject(err);
 		});
 
-		this.logger.info('[Forwarder] Created new producer');
+		this.logger.info('[Forwarder] Created new kafka producer and attached handlers');
 		return defer.promise;
 	}
 
-	reconnect() {		
-		this.logger.info('[Forwarder.reconnect()] Using nodejs forwarder');
 
-		if (this.producer) {
-			var defer = q.defer();
-
-			this.producer.close(() => {
-				this.logger.info('[Forwarder.reconnect()] Closed the producer, reconnecting');
-				this.producer = null;
-				this.createConnection()
-					.then(defer.resolve, err => defer.reject(err));
-			});
-
-			return defer.promise;
-		} else {
-			return this.createConnection();
-		}
-
-	}
 
 	forward(topic, data) {
 		var msgStr = data.toString();
