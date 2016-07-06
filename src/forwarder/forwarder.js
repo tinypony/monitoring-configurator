@@ -186,7 +186,7 @@ class Forwarder {
 
 		producer.on('error', err => {
 			this.logger.warn('[Forwarder.createConnection()] Error: %s', JSON.stringify(err));
-			defer.reject(err);
+			console.trace( "error");
 		});
 
 		this.logger.info('[Forwarder] Created new kafka producer and attached handlers');
