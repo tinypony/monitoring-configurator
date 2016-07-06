@@ -43,19 +43,12 @@ class ConsumerRole extends Role {
 			return defer.promise;
 		}
 
-		this.puller.subscribe(this.config.consumers[0], this.config.monitoring); //only one consumer binding is used at the moment
-		defer.resolve(msg);
-		// this.logger.info('Consumer received configuration ' + JSON.stringify(msg));
-		// var subscribeMsg = this.getSubscribeMessage();
-
-		// this.respondTo(msg, subscribeMsg).then(() => { 
-		// 	this.logger.info('Subscribed with ' + subscribeMsg);
-		// 	defer.resolve(msg);
-		// }, err => {
-		// 	this.logger.warn(JSON.stringify(err));
-		// 	defer.reject(err);
-		// });
-
+		this.puller.destroy( () => {
+			this.puller = new KafkaPuller(this.config);
+			this.puller.subscribe(this.config.consumers[0], this.config.monitoring); //only one consumer binding is used at the moment
+			defer.resolve(msg);
+		});
+		
 		return defer.promise;
 	}
 

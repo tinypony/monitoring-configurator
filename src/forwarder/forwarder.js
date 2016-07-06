@@ -160,7 +160,7 @@ class Forwarder {
 		});
 
 		producer.on('error', err => {
-			this.logger.warn('[Forwarder.reconfig()] Error: %s', JSON.stringify(err));
+			this.logger.warn('[Forwarder.createConnection()] Error: %s', JSON.stringify(err));
 			defer.reject(err);
 		});
 

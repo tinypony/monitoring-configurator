@@ -39,15 +39,6 @@ class KafkaPuller {
 		return monitoring.host + ':' + monitoring.port;
 	}
 
-	handleRebalance() {
-		_.each(this.connection, con => {
-			//recreate consumer for all connections
-			con.consumer.close(true, () => {
-				this.createConsumer(con.subInfo);
-			});
-		});
-	}
-
 	send(msg, port) {
 		this.ou_socket.send(
 		 	new Buffer(msg), 
@@ -100,8 +91,6 @@ class KafkaPuller {
 		} else {
 			this.logger.info('[KafkaPuller] Subscribing 127.0.0.1:%d', sub.port);
 			this.createConsumer(sub, monitoring)
-
-
 				.then( args => {
 					let { consumer, FIFO, port } = args; 
 					this.consumer = consumer;
@@ -163,6 +152,16 @@ class KafkaPuller {
 		});
 
 		return defer.promise;
+	}
+
+	destroy(callback) {
+		if(this.consumer) {
+			this.consumer.close(() => {
+				this.ou_socket.close( () => callback.call());
+			});
+		} else {
+			this.ou_socket.close(() => callback.call());
+		}
 	}
 
 	run(FIFO) {
