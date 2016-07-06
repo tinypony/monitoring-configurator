@@ -181,6 +181,8 @@ var Forwarder = function () {
 	}, {
 		key: 'reconfig',
 		value: function reconfig(config) {
+			var _this4 = this;
+
 			if (!isValidPort(config.monitoring.port)) {
 				this.logger.info('trying to configure forwarder with an invalid port');
 				return;
@@ -189,7 +191,10 @@ var Forwarder = function () {
 			this.forwardToAddress = config.monitoring.host;
 			this.forwardToPort = config.monitoring.port;
 			this.logger.info('[Forwarder.reconfig()] Reconfiguring forwarder');
-			this.reconnect();
+			this.reconnect().catch(function (err) {
+				_this4.logger.warn('[Forwarder.reconfig()] ' + JSON.stringify(err));
+				_this4.reconnect();
+			});
 		}
 	}, {
 		key: 'getZK',
@@ -199,7 +204,7 @@ var Forwarder = function () {
 	}, {
 		key: 'createConnection',
 		value: function createConnection() {
-			var _this4 = this;
+			var _this5 = this;
 
 			var defer = _q2.default.defer();
 			var connectionString = this.getZK();
@@ -208,14 +213,13 @@ var Forwarder = function () {
 			var producer = new _kafkaNode.HighLevelProducer(client);
 
 			producer.on('ready', function () {
-				_this4.logger.info('Forwader is ready');
-				_this4.producer = producer;
-				_this4.client = client;
+				_this5.logger.info('Forwader is ready');
+				_this5.producer = producer;
 				defer.resolve();
 			});
 
 			producer.on('error', function (err) {
-				_this4.logger.warn('[Forwarder.createConnection()] Error: %s', JSON.stringify(err));
+				_this5.logger.warn('[Forwarder.createConnection()] Error: %s', JSON.stringify(err));
 				defer.reject(err);
 			});
 
@@ -225,31 +229,30 @@ var Forwarder = function () {
 	}, {
 		key: 'reconnect',
 		value: function reconnect() {
-			var _this5 = this;
+			var _this6 = this;
 
-			var defer = _q2.default.defer();
 			this.logger.info('[Forwarder.reconnect()] Using nodejs forwarder');
 
 			if (this.producer) {
+				var defer = _q2.default.defer();
+
 				this.producer.close(function () {
-					_this5.logger.info('[Forwarder.reconnect()] Closed the producer, reconnecting');
-					_this5.producer = null;
-					_this5.createConnection().then(defer.resolve, function (err) {
+					_this6.logger.info('[Forwarder.reconnect()] Closed the producer, reconnecting');
+					_this6.producer = null;
+					_this6.createConnection().then(defer.resolve, function (err) {
 						return defer.reject(err);
 					});
 				});
-			} else {
-				this.createConnection().then(defer.resolve, function (err) {
-					return defer.reject(err);
-				});
-			}
 
-			return defer.promise;
+				return defer.promise;
+			} else {
+				return this.createConnection();
+			}
 		}
 	}, {
 		key: 'forward',
 		value: function forward(topic, data) {
-			var _this6 = this;
+			var _this7 = this;
 
 			var msgStr = data.toString();
 			var messages = msgStr.split('\n');
@@ -270,12 +273,12 @@ var Forwarder = function () {
 					messages: messages
 				}], function (err) {
 					if (err) {
-						return _this6.logger.warn('[Forwarder.forward()] ' + JSON.stringify(err));
+						return _this7.logger.warn('[Forwarder.forward()] ' + JSON.stringify(err));
 					}
 
-					if (_this6.debug) {
-						_this6.logger.info('Forwarded ' + messages.length + ' messages');
-						_this6.debug = false;
+					if (_this7.debug) {
+						_this7.logger.info('Forwarded ' + messages.length + ' messages');
+						_this7.debug = false;
 					}
 				});
 

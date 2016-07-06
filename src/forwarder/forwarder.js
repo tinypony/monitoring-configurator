@@ -138,7 +138,10 @@ class Forwarder {
 		this.forwardToAddress = config.monitoring.host;
 		this.forwardToPort = config.monitoring.port;
 		this.logger.info('[Forwarder.reconfig()] Reconfiguring forwarder');
-		this.reconnect();
+		this.reconnect().catch( err => { 
+			this.logger.warn(`[Forwarder.reconfig()] ${JSON.stringify(err)}`);
+			this.reconnect();
+		});
 	}
 
 	getZK() {
@@ -155,7 +158,6 @@ class Forwarder {
 		producer.on('ready', () => {
 			this.logger.info('Forwader is ready');
 			this.producer = producer;
-			this.client = client;
 			defer.resolve();
 		});
 
@@ -168,23 +170,24 @@ class Forwarder {
 		return defer.promise;
 	}
 
-	reconnect() {
-		var defer = q.defer();
+	reconnect() {		
 		this.logger.info('[Forwarder.reconnect()] Using nodejs forwarder');
 
 		if (this.producer) {
+			var defer = q.defer();
+
 			this.producer.close(() => {
 				this.logger.info('[Forwarder.reconnect()] Closed the producer, reconnecting');
 				this.producer = null;
 				this.createConnection()
 					.then(defer.resolve, err => defer.reject(err));
 			});
+
+			return defer.promise;
 		} else {
-			this.createConnection()
-				.then(defer.resolve, err => defer.reject(err));
+			return this.createConnection();
 		}
 
-		return defer.promise;
 	}
 
 	forward(topic, data) {
