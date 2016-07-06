@@ -74,8 +74,6 @@ var ConsumerRole = function (_Role) {
 	}, {
 		key: 'configureClient',
 		value: function configureClient(msg) {
-			var _this2 = this;
-
 			var defer = _q2.default.defer();
 			this.config.monitoring = _underscore2.default.extend(this.config.monitoring, msg.monitoring);
 
@@ -85,13 +83,8 @@ var ConsumerRole = function (_Role) {
 				return defer.promise;
 			}
 
-			this.puller.destroy(function () {
-				_this2.logger.info('[Consumer] puller destroyed');
-				_this2.puller = new _kafkaPuller2.default(_this2.config);
-				_this2.logger.info('[Consumer] new puller created');
-				_this2.puller.subscribe(_this2.config.consumers[0], _this2.config.monitoring); //only one consumer binding is used at the moment
-				defer.resolve(msg);
-			});
+			this.puller.subscribe(this.config.consumers[0], this.config.monitoring); //only one consumer binding is used at the moment
+			defer.resolve(msg);
 
 			return defer.promise;
 		}

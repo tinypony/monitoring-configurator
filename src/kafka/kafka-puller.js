@@ -8,7 +8,7 @@ import { Client, HighLevelConsumer } from 'kafka-node';
 import os from 'os';
 
 var firstMessageLogged = false;
-var latencyC= 0;
+var latencyC = 0;
 
 var KAFKA_ERROR = {
 	isNodeExists: function(err) {
