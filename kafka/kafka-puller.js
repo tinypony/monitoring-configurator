@@ -77,28 +77,16 @@ var KafkaPuller = function () {
 			return monitoring.host + ':' + monitoring.port;
 		}
 	}, {
-		key: 'handleRebalance',
-		value: function handleRebalance() {
-			var _this = this;
-
-			_underscore2.default.each(this.connection, function (con) {
-				//recreate consumer for all connections
-				con.consumer.close(true, function () {
-					_this.createConsumer(con.subInfo);
-				});
-			});
-		}
-	}, {
 		key: 'send',
 		value: function send(msg, port) {
-			var _this2 = this;
+			var _this = this;
 
 			this.ou_socket.send(new Buffer(msg), 0, msg.length, port, '127.0.0.1', function (err) {
 				if (err) {
-					return _this2.logger.warn('[KafkaPuller.send()] ' + JSON.stringify(err));
+					return _this.logger.warn('[KafkaPuller.send()] ' + JSON.stringify(err));
 				}
 				if (!firstMessageLogged) {
-					_this2.logger.info('[KafkaPuller] Passed message "%s" to subscribed client 127.0.0.1:%d', msg, port);
+					_this.logger.info('[KafkaPuller] Passed message "%s" to subscribed client 127.0.0.1:%d', msg, port);
 					firstMessageLogged = true;
 				}
 			});
@@ -136,12 +124,12 @@ var KafkaPuller = function () {
 	}, {
 		key: 'subscribe',
 		value: function subscribe(sub, monitoring) {
-			var _this3 = this;
+			var _this2 = this;
 
 			if (this.consumer) {
 				this.consumer.close(function () {
-					_this3.consumer = null;
-					_this3.subscribe(sub, monitoring);
+					_this2.consumer = null;
+					_this2.subscribe(sub, monitoring);
 				});
 			} else {
 				this.logger.info('[KafkaPuller] Subscribing 127.0.0.1:%d', sub.port);
@@ -150,10 +138,10 @@ var KafkaPuller = function () {
 					var FIFO = args.FIFO;
 					var port = args.port;
 
-					_this3.consumer = consumer;
+					_this2.consumer = consumer;
 
-					_this3.logger.info('[KafkaPuller] Attach message handler consumer');
-					_this3.consumer.on('message', function (msg) {
+					_this2.logger.info('[KafkaPuller] Attach message handler consumer');
+					_this2.consumer.on('message', function (msg) {
 						if (!msg.value) {
 							return;
 						}
@@ -164,14 +152,14 @@ var KafkaPuller = function () {
 						});
 
 						if (FIFO.length === 1) {
-							setImmediate(_this3.run.bind(_this3, FIFO));
+							setImmediate(_this2.run.bind(_this2, FIFO));
 						}
 					});
 
-					_this3.logger.info('[KafkaPuller] Attached all required callbacks to consumer');
+					_this2.logger.info('[KafkaPuller] Attached all required callbacks to consumer');
 				}).catch(function (err) {
-					_this3.logger.warn('[KafkaPuller] Here we have error in catch ' + JSON.stringify(err));
-					_this3.handleConsumerError(err, sub, monitoring);
+					_this2.logger.warn('[KafkaPuller] Here we have error in catch ' + JSON.stringify(err));
+					_this2.handleConsumerError(err, sub, monitoring);
 				});
 			}
 		}
@@ -209,6 +197,23 @@ var KafkaPuller = function () {
 			});
 
 			return defer.promise;
+		}
+	}, {
+		key: 'destroy',
+		value: function destroy(callback) {
+			var _this3 = this;
+
+			if (this.consumer) {
+				this.consumer.close(function () {
+					_this3.ou_socket.close(function () {
+						return callback.call();
+					});
+				});
+			} else {
+				this.ou_socket.close(function () {
+					return callback.call();
+				});
+			}
 		}
 	}, {
 		key: 'run',

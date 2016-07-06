@@ -215,7 +215,7 @@ var Forwarder = function () {
 			});
 
 			producer.on('error', function (err) {
-				_this4.logger.warn('[Forwarder.reconfig()] Error: %s', JSON.stringify(err));
+				_this4.logger.warn('[Forwarder.createConnection()] Error: %s', JSON.stringify(err));
 				defer.reject(err);
 			});
 
