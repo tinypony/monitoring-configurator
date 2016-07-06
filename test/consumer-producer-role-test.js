@@ -7,7 +7,6 @@ chai.use(spies);
 let expect = chai.expect;
 import Daemon from '../src/daemon.js';
 import Forwarder from '../src/forwarder/forwarder';
-import Puller from '../src/kafka/kafka-puller';
 import { Socket } from 'dgram';
 import NODE_TYPE from '../src/node-type';
 import { MESSAGE_TYPE } from '../src/message-type';
@@ -38,15 +37,12 @@ describe('Hybrid (producer/consumer) role', () => {
 	let d;
 	let socketSpy;
 	let forwarderSpy;
-	let pullerSpy;
 
 	beforeEach(() => {
 		broadcastScope  = mockudp('10.0.255.255:12555');
 		unicastScope = mockudp('10.0.0.10:1337');
 		socketSpy = sinon.spy(Socket.prototype, 'send');
 		forwarderSpy = sinon.spy(Forwarder.prototype, 'reconfig');
-
-		Puller.prototype.destroy = callback => callback.call();
 		d = new Daemon(producerConf, 12555);
 	});
 
