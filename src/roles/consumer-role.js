@@ -50,8 +50,11 @@ class ConsumerRole extends Role {
 	}
 
 	handleClusterResize(msg) {
-		this.logger.info(`[Consumer] handle cluster resize`);
-		return this.configureClient(msg);
+		// this.logger.info(`[Consumer] handle cluster resize`);
+		// return this.configureClient(msg);
+		var defer = q.defer();
+		defer.resolve(msg);
+		return defer.promise;
 	}
 
 	handleConfig(msg) {

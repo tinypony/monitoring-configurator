@@ -75,12 +75,14 @@ var ProducerRole = function (_Role) {
 	}, {
 		key: 'handleClusterResize',
 		value: function handleClusterResize(msg) {
-			var defer = _q2.default.defer();
-			var done = defer.resolve.bind(defer, msg);
+			// var defer = q.defer();
+			// let done = defer.resolve.bind(defer, msg);
 
-			this.forwarder.reconnect().then(done, function (er) {
-				return defer.reject(er);
-			});
+			// this.forwarder.reconnect()
+			// 	.then(done, er => defer.reject(er));
+			// return defer.promise;
+			var defer = _q2.default.defer();
+			defer.resolve(msg);
 			return defer.promise;
 		}
 	}, {

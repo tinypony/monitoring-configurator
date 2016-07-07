@@ -36,11 +36,14 @@ class ProducerRole extends Role {
 	}
 
 	handleClusterResize(msg) {
-		var defer = q.defer();
-		let done = defer.resolve.bind(defer, msg);
+		// var defer = q.defer();
+		// let done = defer.resolve.bind(defer, msg);
 
-		this.forwarder.reconnect()
-			.then(done, er => defer.reject(er));
+		// this.forwarder.reconnect()
+		// 	.then(done, er => defer.reject(er));
+		// return defer.promise;
+		var defer = q.defer();
+		defer.resolve(msg);
 		return defer.promise;
 	}
 
