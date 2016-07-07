@@ -37,7 +37,7 @@ class KafkaPuller {
 
 		setInterval(() => {
 			this.logger.info('Received messages from partitions ' + JSON.stringify(this.latency_partitions));
-		});
+		}, 5000);
 	}
 
 	getConnectionString(monitoring) {

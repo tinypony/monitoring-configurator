@@ -75,7 +75,7 @@ var KafkaPuller = function () {
 
 		setInterval(function () {
 			_this.logger.info('Received messages from partitions ' + JSON.stringify(_this.latency_partitions));
-		});
+		}, 5000);
 	}
 
 	_createClass(KafkaPuller, [{
