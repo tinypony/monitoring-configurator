@@ -114,7 +114,6 @@ class KafkaPuller {
 
 					this.logger.info('[KafkaPuller] Attach message handler consumer');
 					this.consumer.on('message', msg => {
-						console.log(JSON.stringify(msg));
 						if(!msg.value) {
 							return;
 						}

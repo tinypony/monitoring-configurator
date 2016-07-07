@@ -162,7 +162,6 @@ var KafkaPuller = function () {
 
 					_this4.logger.info('[KafkaPuller] Attach message handler consumer');
 					_this4.consumer.on('message', function (msg) {
-						console.log(JSON.stringify(msg));
 						if (!msg.value) {
 							return;
 						}
