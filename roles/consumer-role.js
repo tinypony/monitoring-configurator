@@ -91,11 +91,11 @@ var ConsumerRole = function (_Role) {
 	}, {
 		key: 'handleClusterResize',
 		value: function handleClusterResize(msg) {
-			// this.logger.info(`[Consumer] handle cluster resize`);
-			// return this.configureClient(msg);
-			var defer = _q2.default.defer();
-			defer.resolve(msg);
-			return defer.promise;
+			this.logger.info('[Consumer] handle cluster resize');
+			return this.configureClient(msg);
+			// var defer = q.defer();
+			// defer.resolve(msg);
+			// return defer.promise;
 		}
 	}, {
 		key: 'handleConfig',
