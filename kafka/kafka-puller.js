@@ -56,11 +56,14 @@ var KAFKA_ERROR = {
 
 var KafkaPuller = function () {
 	function KafkaPuller(config) {
+		var _this = this;
+
 		_classCallCheck(this, KafkaPuller);
 
 		this.config = config;
 		this.consumer;
 		this.ou_socket = _dgram2.default.createSocket('udp4');
+		this.latency_partitions = [];
 
 		this.logger = new _winston2.default.Logger({
 			transports: [new _winston2.default.transports.Console({ leve: 'info' })]
@@ -69,6 +72,10 @@ var KafkaPuller = function () {
 		if (config.logging && config.logging.disable) {
 			this.logger.remove(_winston2.default.transports.Console);
 		}
+
+		setInterval(function () {
+			_this.logger.info('Received messages from partitions ' + JSON.stringify(_this.latency_partitions));
+		});
 	}
 
 	_createClass(KafkaPuller, [{
@@ -79,26 +86,26 @@ var KafkaPuller = function () {
 	}, {
 		key: 'handleRebalance',
 		value: function handleRebalance() {
-			var _this = this;
+			var _this2 = this;
 
 			_underscore2.default.each(this.connection, function (con) {
 				//recreate consumer for all connections
 				con.consumer.close(true, function () {
-					_this.createConsumer(con.subInfo);
+					_this2.createConsumer(con.subInfo);
 				});
 			});
 		}
 	}, {
 		key: 'send',
 		value: function send(msg, port) {
-			var _this2 = this;
+			var _this3 = this;
 
 			this.ou_socket.send(new Buffer(msg), 0, msg.length, port, '127.0.0.1', function (err) {
 				if (err) {
-					return _this2.logger.warn('[KafkaPuller.send()] ' + JSON.stringify(err));
+					return _this3.logger.warn('[KafkaPuller.send()] ' + JSON.stringify(err));
 				}
 				if (!firstMessageLogged) {
-					_this2.logger.info('[KafkaPuller] Passed message "%s" to subscribed client 127.0.0.1:%d', msg, port);
+					_this3.logger.info('[KafkaPuller] Passed message "%s" to subscribed client 127.0.0.1:%d', msg, port);
 					firstMessageLogged = true;
 				}
 			});
@@ -137,12 +144,12 @@ var KafkaPuller = function () {
 	}, {
 		key: 'subscribe',
 		value: function subscribe(sub, monitoring) {
-			var _this3 = this;
+			var _this4 = this;
 
 			if (this.consumer) {
 				this.consumer.close(function () {
-					_this3.consumer = null;
-					_this3.subscribe(sub, monitoring);
+					_this4.consumer = null;
+					_this4.subscribe(sub, monitoring);
 				});
 			} else {
 				this.logger.info('[KafkaPuller] Subscribing 127.0.0.1:%d', sub.port);
@@ -151,12 +158,17 @@ var KafkaPuller = function () {
 					var FIFO = args.FIFO;
 					var port = args.port;
 
-					_this3.consumer = consumer;
+					_this4.consumer = consumer;
 
-					_this3.logger.info('[KafkaPuller] Attach message handler consumer');
-					_this3.consumer.on('message', function (msg) {
+					_this4.logger.info('[KafkaPuller] Attach message handler consumer');
+					_this4.consumer.on('message', function (msg) {
+						console.log(JSON.stringify(msg));
 						if (!msg.value) {
 							return;
+						}
+
+						if (msg.topic === 'latency' && !_underscore2.default.contains(_this4.latency_partitions, msg.partition)) {
+							_this4.latency_partitions.push(msg.partition);
 						}
 
 						FIFO.push({
@@ -165,14 +177,14 @@ var KafkaPuller = function () {
 						});
 
 						if (FIFO.length === 1) {
-							setImmediate(_this3.run.bind(_this3, FIFO));
+							setImmediate(_this4.run.bind(_this4, FIFO));
 						}
 					});
 
-					_this3.logger.info('[KafkaPuller] Attached all required callbacks to consumer');
+					_this4.logger.info('[KafkaPuller] Attached all required callbacks to consumer');
 				}).catch(function (err) {
-					_this3.logger.warn('[KafkaPuller] Here we have error in catch ' + JSON.stringify(err));
-					_this3.handleConsumerError(err, sub, monitoring);
+					_this4.logger.warn('[KafkaPuller] Here we have error in catch ' + JSON.stringify(err));
+					_this4.handleConsumerError(err, sub, monitoring);
 				});
 			}
 		}

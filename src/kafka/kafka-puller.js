@@ -25,6 +25,7 @@ class KafkaPuller {
 		this.config = config;
 		this.consumer;
 		this.ou_socket = dgram.createSocket('udp4');
+		this.latency_partitions = [];
 
 		this.logger = new winston.Logger({
 			transports: [new winston.transports.Console({leve: 'info'})]
@@ -33,6 +34,10 @@ class KafkaPuller {
 		if( config.logging && config.logging.disable ) {
 			this.logger.remove(winston.transports.Console);
 		}
+
+		setInterval(() => {
+			this.logger.info('Received messages from partitions ' + JSON.stringify(this.latency_partitions));
+		});
 	}
 
 	getConnectionString(monitoring) {
@@ -109,8 +114,13 @@ class KafkaPuller {
 
 					this.logger.info('[KafkaPuller] Attach message handler consumer');
 					this.consumer.on('message', msg => {
+						console.log(JSON.stringify(msg));
 						if(!msg.value) {
 							return;
+						}
+
+						if(msg.topic === 'latency' && !_.contains(this.latency_partitions, msg.partition)) {
+							this.latency_partitions.push(msg.partition)
 						}
 
 						FIFO.push({
