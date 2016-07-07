@@ -190,6 +190,8 @@ var KafkaPuller = function () {
 	}, {
 		key: 'createConsumer',
 		value: function createConsumer(sub, monitoring) {
+			var _this5 = this;
+
 			var connStr = this.getConnectionString(monitoring);
 
 			this.logger.info('[KafkaPuller] Creating consumer for ' + connStr + ', ' + sub.topics.join(' ') + ' => ' + sub.port);
@@ -211,7 +213,20 @@ var KafkaPuller = function () {
 
 			//Handle consumer connection error
 			consumer.on('error', function (err) {
+				_this5.logger.warn('[KafkaPuller] Consumer error ' + JSON.stringify(err));
 				defer.reject(err);
+			});
+
+			consumer.on('rebalancing', function () {
+				_this5.logger.info('[KafkaPuller] Rebalancing consumer');
+			});
+
+			client.on('ready', function () {
+				_this5.logger.info('[KafkaPuller] Client is ready');
+			});
+
+			client.on('brokersChanged', function () {
+				_this5.logger.info('[KafkaPuller] brokers changed');
 			});
 
 			defer.resolve({

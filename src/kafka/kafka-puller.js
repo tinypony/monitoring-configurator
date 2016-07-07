@@ -163,7 +163,20 @@ class KafkaPuller {
 
 		//Handle consumer connection error
 		consumer.on('error', err => {
+			this.logger.warn(`[KafkaPuller] Consumer error ${JSON.stringify(err)}`);
 			defer.reject(err);
+		});
+
+		consumer.on('rebalancing', () => {
+			this.logger.info(`[KafkaPuller] Rebalancing consumer`);
+		})
+
+		client.on('ready', () => {
+			this.logger.info(`[KafkaPuller] Client is ready`);
+		});
+
+		client.on('brokersChanged', () => {
+			this.logger.info(`[KafkaPuller] brokers changed`);
 		});
 
 		defer.resolve({ 
