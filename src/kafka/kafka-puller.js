@@ -66,7 +66,8 @@ class KafkaPuller {
 	}
 
 	getClientId(sub) {
-		return os.hostname() + "-" + sub.port + "-" + sub.topics.join('-');
+		return uuid.v4();
+		//return os.hostname() + "-" + sub.port + "-" + sub.topics.join('-');
 	}
 
 	handleConsumerError(err, sub, monitoring) {

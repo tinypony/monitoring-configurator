@@ -106,7 +106,8 @@ var KafkaPuller = function () {
 	}, {
 		key: 'getClientId',
 		value: function getClientId(sub) {
-			return _os2.default.hostname() + "-" + sub.port + "-" + sub.topics.join('-');
+			return _nodeUuid2.default.v4();
+			//return os.hostname() + "-" + sub.port + "-" + sub.topics.join('-');
 		}
 	}, {
 		key: 'handleConsumerError',
