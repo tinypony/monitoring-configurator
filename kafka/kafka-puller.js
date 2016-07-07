@@ -196,7 +196,7 @@ var KafkaPuller = function () {
 
 			this.logger.info('[KafkaPuller] Creating consumer for ' + connStr + ', ' + sub.topics.join(' ') + ' => ' + sub.port);
 			var defer = _q2.default.defer();
-			var client = new _kafkaNode.Client(connStr, this.getClientId(sub));
+			var client = new _kafkaNode.Client(connStr, _nodeUuid2.default.v4());
 			var FIFO = new _dequeue2.default();
 
 			var payloads = _underscore2.default.map(sub.topics, function (topic) {
@@ -204,6 +204,8 @@ var KafkaPuller = function () {
 			});
 
 			var consumer = new _kafkaNode.HighLevelConsumer(client, payloads, {
+				groupId: 'kafka-puller',
+				id: this.getClientId(),
 				autoCommit: true,
 				autoCommitIntervalMs: 5000,
 				encoding: 'utf8'

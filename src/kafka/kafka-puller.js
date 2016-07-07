@@ -146,7 +146,7 @@ class KafkaPuller {
 
 		this.logger.info(`[KafkaPuller] Creating consumer for ${connStr}, ${sub.topics.join(' ')} => ${sub.port}`);
 		var defer = q.defer();
-		var client = new Client(connStr, this.getClientId(sub));
+		var client = new Client(connStr, uuid.v4());
 		var FIFO = new Dequeue();
 
 		let payloads = _.map(sub.topics, function(topic) {
@@ -154,6 +154,8 @@ class KafkaPuller {
 		});
 
 		var consumer = new HighLevelConsumer(client, payloads, {
+			groupId: 'kafka-puller',
+		    id: this.getClientId(),
 			autoCommit: true,
 	    	autoCommitIntervalMs: 5000,
 	    	encoding: 'utf8'
