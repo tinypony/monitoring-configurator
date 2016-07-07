@@ -204,7 +204,7 @@ var KafkaPuller = function () {
 			});
 
 			var consumer = new _kafkaNode.HighLevelConsumer(client, payloads, {
-				groupId: 'kafka-puller',
+				groupId: this.getClientId(),
 				id: this.getClientId(),
 				autoCommit: true,
 				autoCommitIntervalMs: 5000,
