@@ -224,9 +224,7 @@ var Forwarder = function () {
 			try {
 				this.producer.send([{
 					topic: topic,
-					messages: _underscore2.default.map(this.msgStr.split('\n'), function (m) {
-						return m.replace(/\r$/g, '');
-					})
+					messages: this.msgStr
 				}], function (err) {
 					if (err) {
 						return _this7.logger.warn('[Forwarder.forward()] ' + JSON.stringify(err));
