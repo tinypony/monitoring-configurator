@@ -215,6 +215,7 @@ var Forwarder = function () {
 
 			var msgStr = data.toString();
 			var messages = msgStr.split('\n');
+			console.log(message.length);
 
 			messages = _underscore2.default.map(messages, function (m) {
 				var val = m.replace(/\r$/g, '');
