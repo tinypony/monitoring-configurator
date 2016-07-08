@@ -171,7 +171,7 @@ class Forwarder {
 		try {
 			this.producer.send([{
 				topic: topic,
-				messages: _.map(msgStr.split('\n'), m => m.replace(/\r$/g, '') )
+				messages: _.map(this.msgStr.split('\n'), m => m.replace(/\r$/g, '') )
 			}], err => {
 				if(err) {
 					return this.logger.warn(`[Forwarder.forward()] ${JSON.stringify(err)}`);
