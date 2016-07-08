@@ -17,6 +17,7 @@ class Forwarder {
 		this.id = uuid.v4();
 		this.debug = true;
 		this.config = config;
+		this.msgStr;
 
 		this.logger = new winston.Logger({
 			transports: [new winston.transports.Console()]
@@ -160,15 +161,9 @@ class Forwarder {
 	}
 
 	forward(topic, data) {
-		var msgStr = data.toString();
-	    var messages = msgStr.split('\n');
-
-		messages = _.map(messages, (m) => {
-			var val = m.replace(/\r$/g, '');
-			return val;
-		});
+		this.msgStr = data.toString();
 		
-		if(!this.forwardToPort || !this.forwardToAddress || !this.producer || !msgStr) {
+		if(!this.forwardToPort || !this.forwardToAddress || !this.producer || !this.msgStr) {
 			return ;
 		}
 
@@ -176,15 +171,10 @@ class Forwarder {
 		try {
 			this.producer.send([{
 				topic: topic,
-				messages: messages
+				messages: _.map(msgStr.split('\n'), m => m.replace(/\r$/g, '') )
 			}], err => {
 				if(err) {
 					return this.logger.warn(`[Forwarder.forward()] ${JSON.stringify(err)}`);
-				}
-
-				if(this.debug) {
-					this.logger.info(`Forwarded ${messages.length} messages`);
-					this.debug = false;
 				}
 			});
 		} catch(e) {

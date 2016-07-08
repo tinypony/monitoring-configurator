@@ -53,6 +53,7 @@ var Forwarder = function () {
 		this.id = _nodeUuid2.default.v4();
 		this.debug = true;
 		this.config = config;
+		this.msgStr;
 
 		this.logger = new _winston2.default.Logger({
 			transports: [new _winston2.default.transports.Console()]
@@ -213,15 +214,9 @@ var Forwarder = function () {
 		value: function forward(topic, data) {
 			var _this7 = this;
 
-			var msgStr = data.toString();
-			var messages = msgStr.split('\n');
+			this.msgStr = data.toString();
 
-			messages = _underscore2.default.map(messages, function (m) {
-				var val = m.replace(/\r$/g, '');
-				return val;
-			});
-
-			if (!this.forwardToPort || !this.forwardToAddress || !this.producer || !msgStr) {
+			if (!this.forwardToPort || !this.forwardToAddress || !this.producer || !this.msgStr) {
 				return;
 			}
 
@@ -229,15 +224,12 @@ var Forwarder = function () {
 			try {
 				this.producer.send([{
 					topic: topic,
-					messages: messages
+					messages: _underscore2.default.map(msgStr.split('\n'), function (m) {
+						return m.replace(/\r$/g, '');
+					})
 				}], function (err) {
 					if (err) {
 						return _this7.logger.warn('[Forwarder.forward()] ' + JSON.stringify(err));
-					}
-
-					if (_this7.debug) {
-						_this7.logger.info('Forwarded ' + messages.length + ' messages');
-						_this7.debug = false;
 					}
 				});
 			} catch (e) {
