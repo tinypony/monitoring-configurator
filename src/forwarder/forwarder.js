@@ -162,8 +162,8 @@ class Forwarder {
 	forward(topic, data) {
 		var msgStr = data.toString();
 	    var messages = msgStr.split('\n');
-	    console.log(message.length);
-	    
+	    console.log(messages.length);
+
 		messages = _.map(messages, (m) => {
 			var val = m.replace(/\r$/g, '');
 			return val;
