@@ -59,75 +59,65 @@ class Forwarder {
 		};
 
 		skt.on("message", this.forward.bind(this, fwd.topic));
-
 		defer.resolve(binding);
+
 		return defer.promise;
 	}
 
 	createTcpSocket(fwd) {
 		var defer = q.defer();
-		var FIFO = new Dequeue();
+		this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
 		// Start a TCP Server
 		net.createServer(socket => {
+			// Identify this client
+			socket.name = socket.remoteAddress + ":" + socket.remotePort;
+			// Handle incoming messages from clients.
+			socket.on('data', this.forward.bind(this, fwd.topic));
+		}).listen(fwd.port, () => {
 			var binding = {
 				protocol: 'tcp',
 				port: fwd.port,
-				topic: fwd.topic,
-				clients: []
+				topic: fwd.topic
 			};
-			
-			// Identify this client
-			socket.name = socket.remoteAddress + ":" + socket.remotePort;
-
-			// Put this new client in the list
-			binding.clients.push(socket);
-
-			// Handle incoming messages from clients.
-			socket.on('data', this.forward.bind(this, fwd.topic));
-			// Remove the client from the list when it leaves
-			socket.on('end', () => {
-				binding.clients.splice(binding.clients.indexOf(socket), 1);
-			});
-
 			defer.resolve(binding);
-		}).listen(fwd.port);
+		});
 
 		return defer.promise;
 	}
 
-	storeInQueue(topic, binding, data_buf) {
-		let data = data_buf.toString();
-		if(!data) return;
+	// storeInQueue(topic, binding, data_buf) {
+	// 	let data = data_buf.toString();
+	// 	if(!data) return;
 
-		var { FIFO } = binding;
+	// 	var { FIFO } = binding;
 
-		FIFO.push(data);
+	// 	FIFO.push(data);
 
-		this.logger.info(`[Forwarder] Sotred in queue ${data}`);
+	// 	this.logger.info(`[Forwarder] Sotred in queue ${data}`);
 
-		if(binding.FIFO_flushed) {
-			binding.FIFO_flushed = false;
-			setImmediate(this.run.bind(this, binding));
-		}
-	}
+	// 	if(binding.FIFO_flushed) {
+	// 		binding.FIFO_flushed = false;
+	// 		setImmediate(this.run.bind(this, binding));
+	// 	}
+	// }
 
-	/* Continuously polls the queue and forwards messages from it */
-	run(binding) {
-		let { FIFO, topic } = binding;
+	//  Continuously polls the queue and forwards messages from it 
+	// run(binding) {
+	// 	let { FIFO, topic } = binding;
 
-		while(FIFO.length) {
-			let messages = [];
+	// 	while(FIFO.length) {
+	// 		let messages = [];
 
-			for(let i=0; i<10; i++) {
-				let data = FIFO.shift();
-				if(data) messages.push(data);
-			}
+	// 		for(let i=0; i<10; i++) {
+	// 			let data = FIFO.shift();
+	// 			if(data) messages.push(data);
+	// 		}
 
-			this.forward(topic, messages.join('\n'));
-		}
+	// 		this.forward(topic, messages.join('\n'));
+	// 	}
 		
-		binding.FIFO_flushed = true;
-	}
+	// 	binding.FIFO_flushed = true;
+	// }
 	
 	reconfig(config) {
 		if(!isValidPort(config.monitoring.port)) {

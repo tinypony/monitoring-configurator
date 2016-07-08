@@ -68,31 +68,21 @@ class P2PForwarder {
 
 	createTcpSocket(fwd) {
 		var defer = q.defer();
-		var FIFO = new Dequeue();
+
 		// Start a TCP Server
 		net.createServer(socket => {
+			// Identify this client
+			socket.name = socket.remoteAddress + ":" + socket.remotePort;
+			// Handle incoming messages from clients.
+			socket.on('data', this.forward.bind(this, fwd.topic));
+		}).listen(fwd.port, () => {
 			var binding = {
 				protocol: 'tcp',
 				port: fwd.port,
-				topic: fwd.topic,
-				clients: []
+				topic: fwd.topic
 			};
-			
-			// Identify this client
-			socket.name = socket.remoteAddress + ":" + socket.remotePort;
-
-			// Put this new client in the list
-			binding.clients.push(socket);
-
-			// Handle incoming messages from clients.
-			socket.on('data', this.forward.bind(this, fwd.topic));
-			// Remove the client from the list when it leaves
-			socket.on('end', () => {
-				binding.clients.splice(binding.clients.indexOf(socket), 1);
-			});
-
 			defer.resolve(binding);
-		}).listen(fwd.port);
+		});
 
 		return defer.promise;
 	}

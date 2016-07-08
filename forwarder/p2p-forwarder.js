@@ -111,31 +111,21 @@ var P2PForwarder = function () {
 			var _this3 = this;
 
 			var defer = _q2.default.defer();
-			var FIFO = new _doubleEndedQueue2.default();
+
 			// Start a TCP Server
 			_net2.default.createServer(function (socket) {
+				// Identify this client
+				socket.name = socket.remoteAddress + ":" + socket.remotePort;
+				// Handle incoming messages from clients.
+				socket.on('data', _this3.forward.bind(_this3, fwd.topic));
+			}).listen(fwd.port, function () {
 				var binding = {
 					protocol: 'tcp',
 					port: fwd.port,
-					topic: fwd.topic,
-					clients: []
+					topic: fwd.topic
 				};
-
-				// Identify this client
-				socket.name = socket.remoteAddress + ":" + socket.remotePort;
-
-				// Put this new client in the list
-				binding.clients.push(socket);
-
-				// Handle incoming messages from clients.
-				socket.on('data', _this3.forward.bind(_this3, fwd.topic));
-				// Remove the client from the list when it leaves
-				socket.on('end', function () {
-					binding.clients.splice(binding.clients.indexOf(socket), 1);
-				});
-
 				defer.resolve(binding);
-			}).listen(fwd.port);
+			});
 
 			return defer.promise;
 		}

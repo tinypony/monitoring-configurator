@@ -99,8 +99,8 @@ var Forwarder = function () {
 			};
 
 			skt.on("message", this.forward.bind(this, fwd.topic));
-
 			defer.resolve(binding);
+
 			return defer.promise;
 		}
 	}, {
@@ -109,75 +109,59 @@ var Forwarder = function () {
 			var _this3 = this;
 
 			var defer = _q2.default.defer();
-			var FIFO = new _doubleEndedQueue2.default();
+			this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
 			// Start a TCP Server
 			_net2.default.createServer(function (socket) {
+				// Identify this client
+				socket.name = socket.remoteAddress + ":" + socket.remotePort;
+				// Handle incoming messages from clients.
+				socket.on('data', _this3.forward.bind(_this3, fwd.topic));
+			}).listen(fwd.port, function () {
 				var binding = {
 					protocol: 'tcp',
 					port: fwd.port,
-					topic: fwd.topic,
-					clients: []
+					topic: fwd.topic
 				};
-
-				// Identify this client
-				socket.name = socket.remoteAddress + ":" + socket.remotePort;
-
-				// Put this new client in the list
-				binding.clients.push(socket);
-
-				// Handle incoming messages from clients.
-				socket.on('data', _this3.forward.bind(_this3, fwd.topic));
-				// Remove the client from the list when it leaves
-				socket.on('end', function () {
-					binding.clients.splice(binding.clients.indexOf(socket), 1);
-				});
-
 				defer.resolve(binding);
-			}).listen(fwd.port);
+			});
 
 			return defer.promise;
 		}
-	}, {
-		key: 'storeInQueue',
-		value: function storeInQueue(topic, binding, data_buf) {
-			var data = data_buf.toString();
-			if (!data) return;
 
-			var FIFO = binding.FIFO;
+		// storeInQueue(topic, binding, data_buf) {
+		// 	let data = data_buf.toString();
+		// 	if(!data) return;
 
+		// 	var { FIFO } = binding;
 
-			FIFO.push(data);
+		// 	FIFO.push(data);
 
-			this.logger.info('[Forwarder] Sotred in queue ' + data);
+		// 	this.logger.info(`[Forwarder] Sotred in queue ${data}`);
 
-			if (binding.FIFO_flushed) {
-				binding.FIFO_flushed = false;
-				setImmediate(this.run.bind(this, binding));
-			}
-		}
+		// 	if(binding.FIFO_flushed) {
+		// 		binding.FIFO_flushed = false;
+		// 		setImmediate(this.run.bind(this, binding));
+		// 	}
+		// }
 
-		/* Continuously polls the queue and forwards messages from it */
+		//  Continuously polls the queue and forwards messages from it
+		// run(binding) {
+		// 	let { FIFO, topic } = binding;
 
-	}, {
-		key: 'run',
-		value: function run(binding) {
-			var FIFO = binding.FIFO;
-			var topic = binding.topic;
+		// 	while(FIFO.length) {
+		// 		let messages = [];
 
+		// 		for(let i=0; i<10; i++) {
+		// 			let data = FIFO.shift();
+		// 			if(data) messages.push(data);
+		// 		}
 
-			while (FIFO.length) {
-				var messages = [];
+		// 		this.forward(topic, messages.join('\n'));
+		// 	}
 
-				for (var i = 0; i < 10; i++) {
-					var data = FIFO.shift();
-					if (data) messages.push(data);
-				}
+		// 	binding.FIFO_flushed = true;
+		// }
 
-				this.forward(topic, messages.join('\n'));
-			}
-
-			binding.FIFO_flushed = true;
-		}
 	}, {
 		key: 'reconfig',
 		value: function reconfig(config) {
