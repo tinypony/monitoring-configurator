@@ -35,9 +35,9 @@ class KafkaPuller {
 			this.logger.remove(winston.transports.Console);
 		}
 
-		setInterval(() => {
-			this.logger.info('Received messages from partitions ' + JSON.stringify(this.latency_partitions));
-		}, 5000);
+		// setInterval(() => {
+		// 	this.logger.info('Received messages from partitions ' + JSON.stringify(this.latency_partitions));
+		// }, 5000);
 	}
 
 	getConnectionString(monitoring) {
@@ -118,9 +118,9 @@ class KafkaPuller {
 							return;
 						}
 
-						if(msg.topic === 'latency' && !_.contains(this.latency_partitions, msg.partition)) {
-							this.latency_partitions.push(msg.partition)
-						}
+						// if(msg.topic === 'latency' && !_.contains(this.latency_partitions, msg.partition)) {
+						// 	this.latency_partitions.push(msg.partition)
+						// }
 
 						FIFO.push({
 							port: port,

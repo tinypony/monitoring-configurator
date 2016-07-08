@@ -55,6 +55,7 @@ class Forwarder {
 		this.logger.info("Forwarding configuration = (TCP) %d => %s", fwd.port, fwd.topic);
 		// Start a TCP Server
 		net.createServer(socket => {
+			this.logger.info('New incoming connection');
 			// Handle incoming messages from clients.
 			socket.on('data', this.forward.bind(this, fwd.topic));
 		}).listen(fwd.port);
@@ -157,8 +158,6 @@ class Forwarder {
 		this.logger.info('[Forwarder] Created new kafka producer and attached handlers');
 		return defer.promise;
 	}
-
-
 
 	forward(topic, data) {
 		var msgStr = data.toString();

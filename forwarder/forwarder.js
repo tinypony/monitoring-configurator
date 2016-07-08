@@ -94,6 +94,7 @@ var Forwarder = function () {
 			this.logger.info("Forwarding configuration = (TCP) %d => %s", fwd.port, fwd.topic);
 			// Start a TCP Server
 			_net2.default.createServer(function (socket) {
+				_this3.logger.info('New incoming connection');
 				// Handle incoming messages from clients.
 				socket.on('data', _this3.forward.bind(_this3, fwd.topic));
 			}).listen(fwd.port);

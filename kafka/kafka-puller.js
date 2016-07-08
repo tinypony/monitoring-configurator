@@ -56,8 +56,6 @@ var KAFKA_ERROR = {
 
 var KafkaPuller = function () {
 	function KafkaPuller(config) {
-		var _this = this;
-
 		_classCallCheck(this, KafkaPuller);
 
 		this.config = config;
@@ -73,9 +71,9 @@ var KafkaPuller = function () {
 			this.logger.remove(_winston2.default.transports.Console);
 		}
 
-		setInterval(function () {
-			_this.logger.info('Received messages from partitions ' + JSON.stringify(_this.latency_partitions));
-		}, 5000);
+		// setInterval(() => {
+		// 	this.logger.info('Received messages from partitions ' + JSON.stringify(this.latency_partitions));
+		// }, 5000);
 	}
 
 	_createClass(KafkaPuller, [{
@@ -86,26 +84,26 @@ var KafkaPuller = function () {
 	}, {
 		key: 'handleRebalance',
 		value: function handleRebalance() {
-			var _this2 = this;
+			var _this = this;
 
 			_underscore2.default.each(this.connection, function (con) {
 				//recreate consumer for all connections
 				con.consumer.close(true, function () {
-					_this2.createConsumer(con.subInfo);
+					_this.createConsumer(con.subInfo);
 				});
 			});
 		}
 	}, {
 		key: 'send',
 		value: function send(msg, port) {
-			var _this3 = this;
+			var _this2 = this;
 
 			this.ou_socket.send(new Buffer(msg), 0, msg.length, port, '127.0.0.1', function (err) {
 				if (err) {
-					return _this3.logger.warn('[KafkaPuller.send()] ' + JSON.stringify(err));
+					return _this2.logger.warn('[KafkaPuller.send()] ' + JSON.stringify(err));
 				}
 				if (!firstMessageLogged) {
-					_this3.logger.info('[KafkaPuller] Passed message "%s" to subscribed client 127.0.0.1:%d', msg, port);
+					_this2.logger.info('[KafkaPuller] Passed message "%s" to subscribed client 127.0.0.1:%d', msg, port);
 					firstMessageLogged = true;
 				}
 			});
@@ -144,12 +142,12 @@ var KafkaPuller = function () {
 	}, {
 		key: 'subscribe',
 		value: function subscribe(sub, monitoring) {
-			var _this4 = this;
+			var _this3 = this;
 
 			if (this.consumer) {
 				this.consumer.close(function () {
-					_this4.consumer = null;
-					_this4.subscribe(sub, monitoring);
+					_this3.consumer = null;
+					_this3.subscribe(sub, monitoring);
 				});
 			} else {
 				this.logger.info('[KafkaPuller] Subscribing 127.0.0.1:%d', sub.port);
@@ -158,17 +156,17 @@ var KafkaPuller = function () {
 					var FIFO = args.FIFO;
 					var port = args.port;
 
-					_this4.consumer = consumer;
+					_this3.consumer = consumer;
 
-					_this4.logger.info('[KafkaPuller] Attach message handler consumer');
-					_this4.consumer.on('message', function (msg) {
+					_this3.logger.info('[KafkaPuller] Attach message handler consumer');
+					_this3.consumer.on('message', function (msg) {
 						if (!msg.value) {
 							return;
 						}
 
-						if (msg.topic === 'latency' && !_underscore2.default.contains(_this4.latency_partitions, msg.partition)) {
-							_this4.latency_partitions.push(msg.partition);
-						}
+						// if(msg.topic === 'latency' && !_.contains(this.latency_partitions, msg.partition)) {
+						// 	this.latency_partitions.push(msg.partition)
+						// }
 
 						FIFO.push({
 							port: port,
@@ -176,21 +174,21 @@ var KafkaPuller = function () {
 						});
 
 						if (FIFO.length === 1) {
-							setImmediate(_this4.run.bind(_this4, FIFO));
+							setImmediate(_this3.run.bind(_this3, FIFO));
 						}
 					});
 
-					_this4.logger.info('[KafkaPuller] Attached all required callbacks to consumer');
+					_this3.logger.info('[KafkaPuller] Attached all required callbacks to consumer');
 				}).catch(function (err) {
-					_this4.logger.warn('[KafkaPuller] Here we have error in catch ' + JSON.stringify(err));
-					_this4.handleConsumerError(err, sub, monitoring);
+					_this3.logger.warn('[KafkaPuller] Here we have error in catch ' + JSON.stringify(err));
+					_this3.handleConsumerError(err, sub, monitoring);
 				});
 			}
 		}
 	}, {
 		key: 'createConsumer',
 		value: function createConsumer(sub, monitoring) {
-			var _this5 = this;
+			var _this4 = this;
 
 			var connStr = this.getConnectionString(monitoring);
 
@@ -215,20 +213,20 @@ var KafkaPuller = function () {
 
 			//Handle consumer connection error
 			consumer.on('error', function (err) {
-				_this5.logger.warn('[KafkaPuller] Consumer error ' + JSON.stringify(err));
+				_this4.logger.warn('[KafkaPuller] Consumer error ' + JSON.stringify(err));
 				defer.reject(err);
 			});
 
 			consumer.on('rebalancing', function () {
-				_this5.logger.info('[KafkaPuller] Rebalancing consumer');
+				_this4.logger.info('[KafkaPuller] Rebalancing consumer');
 			});
 
 			client.on('ready', function () {
-				_this5.logger.info('[KafkaPuller] Client is ready');
+				_this4.logger.info('[KafkaPuller] Client is ready');
 			});
 
 			client.on('brokersChanged', function () {
-				_this5.logger.info('[KafkaPuller] brokers changed');
+				_this4.logger.info('[KafkaPuller] brokers changed');
 			});
 
 			defer.resolve({
