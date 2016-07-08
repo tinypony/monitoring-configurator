@@ -67,13 +67,8 @@ var Forwarder = function () {
    * fwd.topic,
    * fwd.protocol //udp or tcp
    */
-		this.forward_ports = [];
 		_underscore2.default.each(config.producers, function (fwd) {
-			if (fwd.protocol === 'tcp') _this.createTcpSocket(fwd).done(function (binding) {
-				_this.forward_ports.push(binding);
-			});else _this.createUDPSocket(fwd).done(function (binding) {
-				_this.forward_ports.push(binding);
-			});
+			if (fwd.protocol === 'tcp') _this.createTcpSocket(fwd);else _this.createUDPSocket(fwd);
 		});
 	}
 
@@ -82,50 +77,26 @@ var Forwarder = function () {
 		value: function createUDPSocket(fwd) {
 			var _this2 = this;
 
-			var defer = _q2.default.defer();
-			this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
+			this.logger.info("Forwarding configuration = (UDP) %d => %s", fwd.port, fwd.topic);
 			var skt = _dgram2.default.createSocket('udp4');
 			skt.bind(fwd.port, '127.0.0.1');
 
 			skt.on('error', function (er) {
 				_this2.logger.warn('[Forwarder.constructor()] ' + er);
 			});
-
-			var binding = {
-				protocol: 'udp',
-				socket: skt,
-				port: fwd.port,
-				topic: fwd.topic
-			};
-
 			skt.on("message", this.forward.bind(this, fwd.topic));
-			defer.resolve(binding);
-
-			return defer.promise;
 		}
 	}, {
 		key: 'createTcpSocket',
 		value: function createTcpSocket(fwd) {
 			var _this3 = this;
 
-			var defer = _q2.default.defer();
-			this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
+			this.logger.info("Forwarding configuration = (TCP) %d => %s", fwd.port, fwd.topic);
 			// Start a TCP Server
 			_net2.default.createServer(function (socket) {
-				// Identify this client
-				socket.name = socket.remoteAddress + ":" + socket.remotePort;
 				// Handle incoming messages from clients.
 				socket.on('data', _this3.forward.bind(_this3, fwd.topic));
-			}).listen(fwd.port, function () {
-				var binding = {
-					protocol: 'tcp',
-					port: fwd.port,
-					topic: fwd.topic
-				};
-				defer.resolve(binding);
-			});
-
-			return defer.promise;
+			}).listen(fwd.port);
 		}
 
 		// storeInQueue(topic, binding, data_buf) {
@@ -268,10 +239,6 @@ var Forwarder = function () {
 						_this7.debug = false;
 					}
 				});
-
-				if (topic === 'latency') {
-					//this.logger.info(`Forwarding ${messages.length} messages`);
-				}
 			} catch (e) {
 				this.logger.warn(e); //carry on
 			}

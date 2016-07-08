@@ -32,57 +32,32 @@ class Forwarder {
 		 * fwd.topic,
 		 * fwd.protocol //udp or tcp
 		 */
-		this.forward_ports = [];
 		_.each(config.producers, fwd => {
 			if(fwd.protocol === 'tcp')
-				this.createTcpSocket(fwd).done(binding => { this.forward_ports.push(binding) });
+				this.createTcpSocket(fwd);
 			else
-				this.createUDPSocket(fwd).done(binding => { this.forward_ports.push(binding) });
+				this.createUDPSocket(fwd);
 		});
 	}
 
 	createUDPSocket(fwd) {
-		var defer = q.defer();
-		this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
+		this.logger.info("Forwarding configuration = (UDP) %d => %s", fwd.port, fwd.topic);
 		var skt = dgram.createSocket('udp4');
 		skt.bind(fwd.port, '127.0.0.1');
 
 		skt.on('error', er => {
 			this.logger.warn(`[Forwarder.constructor()] ${er}`);
 		});
-
-		var binding = {
-			protocol: 'udp',
-			socket: skt,
-			port: fwd.port,
-			topic: fwd.topic
-		};
-
 		skt.on("message", this.forward.bind(this, fwd.topic));
-		defer.resolve(binding);
-
-		return defer.promise;
 	}
 
 	createTcpSocket(fwd) {
-		var defer = q.defer();
-		this.logger.info("Forwarding configuration = %d => %s", fwd.port, fwd.topic);
+		this.logger.info("Forwarding configuration = (TCP) %d => %s", fwd.port, fwd.topic);
 		// Start a TCP Server
 		net.createServer(socket => {
-			// Identify this client
-			socket.name = socket.remoteAddress + ":" + socket.remotePort;
 			// Handle incoming messages from clients.
 			socket.on('data', this.forward.bind(this, fwd.topic));
-		}).listen(fwd.port, () => {
-			var binding = {
-				protocol: 'tcp',
-				port: fwd.port,
-				topic: fwd.topic
-			};
-			defer.resolve(binding);
-		});
-
-		return defer.promise;
+		}).listen(fwd.port);
 	}
 
 	// storeInQueue(topic, binding, data_buf) {
@@ -213,10 +188,6 @@ class Forwarder {
 					this.debug = false;
 				}
 			});
-
-			if(topic === 'latency') {
-				//this.logger.info(`Forwarding ${messages.length} messages`);
-			}
 		} catch(e) {
 			this.logger.warn(e); //carry on
 		}
